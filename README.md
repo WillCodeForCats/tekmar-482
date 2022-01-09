@@ -1,6 +1,9 @@
 # tekmar-482
 Home Assistant integration for the Tekmar 482 Gateway
 
+Works with Add On Tekmar Packet Server:
+https://github.com/WillCodeForCats/tekmar-packetserv
+
 ## Progress Updates
 Please visit the wiki section. Documentation is being developed "on the fly" as the integration is developed. Once I have something that's relatively complete and tested, the first version of the integration will be made available on github and we'll see what happens with bug reports. I won't have hands on discontinued thermostats and snow melt controls (as much as I'd love a heated driveway to avoid shoveling snow, I don't have one) so these will probably rely on bug reports if I haven't interpreted the user manuals correctly.
 
