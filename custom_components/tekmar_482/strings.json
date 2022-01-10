@@ -1,0 +1,21 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Tekmar 482 Gateway Configuration",
+        "data": {
+          "name": "Sensor Prefix",
+          "host": "Packet Server Address",
+          "port": "Packet Server Port",
+          "setback_enable": "Enable Setback Support"
+        }
+      }
+    },
+    "error": {
+      "already_configured": "Gateway is already configured!"
+    },
+    "abort": {
+      "already_configured": "Gateway is already configured!"
+    }
+  }
+}
