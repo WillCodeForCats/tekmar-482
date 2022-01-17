@@ -167,21 +167,21 @@ method_formats = {
         0x00000150   :   FieldList(
             'RelativeHumidity',
                 Int16('address'),
-                Int8('RHpercent'),
+                Int8('percent'),
             ),     
 
         #*********************************************************************
         0x00000151   :   FieldList(
             'HumiditySetMax',
                 Int16('address'),
-                Int8('percentMax'),
+                Int8('percent'),
             ),    
 
         #*********************************************************************
         0x00000152   :   FieldList(
             'HumiditySetMin',
                 Int16('address'),
-                Int8('percentMin'),
+                Int8('percent'),
             ),
             
         #*********************************************************************

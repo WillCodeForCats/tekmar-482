@@ -41,7 +41,7 @@ ACTIVE_MODE = {
     0x06: "Emergency"
 }
 
-ACTIVE_SETBACK = {
+SETBACK_STATE = {
     THA_WAKE_4: "WAKE_4",
     THA_UNOCC_4: "UNOCC_4",
     THA_OCC_4: "OCC_4",
@@ -49,6 +49,16 @@ ACTIVE_SETBACK = {
     THA_OCC_2: "OCC_2",
     THA_UNOCC_2: "UNOCC_2",
     THA_AWAY: "AWAY"
+}
+
+SETBACK_DESCRIPTION = {
+    THA_WAKE_4: "Awake",
+    THA_UNOCC_4: "Sleep",
+    THA_OCC_4: "Awake",
+    THA_SLEEP_4: "Sleep",
+    THA_OCC_2: "Awake",
+    THA_UNOCC_2: "Sleep",
+    THA_AWAY: "Away"
 }
 
 SETBACK_SETPOINT_MAP = {
@@ -242,7 +252,14 @@ NETWORK_ERRORS = {
     0x8F: "Slab sensor error",
     0x90: "Duct sensor error",
     0x91: "Remote sensor error",
-    
+    0x92: "Coil return sensor error",
+    0x93: "Tank sensor error",
+    0x94: "Humidity sensor error",
+    0x95: "Heat Pump error",
+    0x96: "Brown/Slab error",
+    0x97: "Yellow error",
+    0x98: "Blue error",
+    0x99: "Tandem error",
     0xC0: "Hot room warning",
     0xC1: "Cold room warning",
     0xC2: "Freeze protect warning",

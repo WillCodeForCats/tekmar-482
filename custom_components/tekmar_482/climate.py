@@ -1,6 +1,7 @@
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     SUPPORT_TARGET_TEMPERATURE, SUPPORT_TARGET_TEMPERATURE_RANGE, SUPPORT_FAN_MODE,
+    SUPPORT_TARGET_HUMIDITY,
     HVAC_MODE_OFF, HVAC_MODE_HEAT, HVAC_MODE_COOL, HVAC_MODE_HEAT_COOL, HVAC_MODE_FAN_ONLY,
     CURRENT_HVAC_OFF, CURRENT_HVAC_IDLE, CURRENT_HVAC_HEAT, CURRENT_HVAC_COOL,
     ATTR_TARGET_TEMP_LOW, ATTR_TARGET_TEMP_HIGH,
@@ -16,6 +17,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     DOMAIN,
+    DEVICE_FEATURES,
     THA_NA_8, THA_NA_16,
 )
 
@@ -109,10 +111,10 @@ class ThaClimateBase(ClimateEntity):
         self._tekmar_tha.remove_callback(self.async_write_ha_state)
 
 class ThaClimateThermostat(ThaClimateBase):
-    
-    supported_features = SUPPORT_TARGET_TEMPERATURE_RANGE | SUPPORT_FAN_MODE
-    hvac_modes = [HVAC_MODE_OFF, HVAC_MODE_HEAT, HVAC_MODE_COOL, HVAC_MODE_HEAT_COOL]
-    fan_modes = [FAN_ON, FAN_AUTO]
+
+    temperature_unit = TEMP_CELSIUS
+    max_humidity = 80
+    min_humidity = 20
 
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
@@ -120,59 +122,24 @@ class ThaClimateThermostat(ThaClimateBase):
 
         self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-climate"
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Climate"
-
-    async def async_set_temperature(self, **kwargs):
-        # for SUPPORT_TARGET_TEMPERATURE
-        # ATTR_TEMPERATURE
-        # for SUPPORT_TARGET_TEMPERATURE_RANGE
-        # ATTR_TARGET_TEMP_LOW, ATTR_TARGET_TEMP_HIGH
-        #value = kwargs[ATTR_TEMPERATURE]
-        #await self._tekmar_tha.async_set_temperature(value)
         
-        heat_setpoint = kwargs.get(ATTR_TARGET_TEMP_LOW)
-        cool_setpoint = kwargs.get(ATTR_TARGET_TEMP_HIGH)
-        
-        if heat_setpoint is not None:
-            heat_setpoint = int(degCtoE(heat_setpoint))
-            await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint)
-            
-        if cool_setpoint is not None:
-            cool_setpoint = int(degCtoE(cool_setpoint))
-            await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint)
-
-    async def async_set_hvac_mode(self, hvac_mode):
-        if hvac_mode == HVAC_MODE_OFF:
-            value = 0x00
-        elif hvac_mode == HVAC_MODE_HEAT:
-            value = 0x01
-        elif hvac_mode == HVAC_MODE_COOL:
-            value = 0x03
-        elif hvac_mode == HVAC_MODE_HEAT_COOL:
-            value = 0x02
-        else:
-            raise NotImplementedError()
-        
-        await self._tekmar_tha.set_mode_setting_txqueue(value)
-
-    async def async_set_fan_mode(self, fan_mode):
-    
-        if fan_mode == FAN_ON:
-            if self._tekmar_tha.tha_device['type'] in [99203, 99202, 99201]:
-                value = 10
-            else:
-                value = 100
-            
-        elif fan_mode == FAN_AUTO:
-            value = 0
-            
-        else:
-            raise NotImplementedError()
-            
-        await self._tekmar_tha.set_fan_mode_txqueue(value)
-
     @property
-    def temperature_unit (self):
-        return TEMP_CELSIUS
+    def supported_features(self):
+        supported_features = SUPPORT_TARGET_TEMPERATURE_RANGE
+    
+        if DEVICE_FEATURES[self._tekmar_tha.tha_device['type']]['fan']:
+            supported_features = supported_features | SUPPORT_FAN_MODE
+
+        if DEVICE_FEATURES[self._tekmar_tha.tha_device['type']]['humid']:
+            if (
+                (self._tekmar_tha.humidity_setpoint_min != THA_NA_8 or
+                self._tekmar_tha.humidity_setpoint_max != THA_NA_8) and not
+                (self._tekmar_tha.humidity_setpoint_min != THA_NA_8 and
+                self._tekmar_tha.humidity_setpoint_max != THA_NA_8)
+            ):
+                supported_features =  supported_features | SUPPORT_TARGET_HUMIDITY
+        
+        return supported_features
 
     @property
     def current_temperature (self):
@@ -193,16 +160,34 @@ class ThaClimateThermostat(ThaClimateBase):
     @property
     def current_humidity (self):
         """Return the state of the sensor."""
-        if self._tekmar_tha.relative_humidity == THA_NA_8:
-            return None
-
-        elif self._tekmar_tha.relative_humidity == None:
-            #self._tekmar_tha.query_method('CurrentHumidity')
+        if (
+            self._tekmar_tha.relative_humidity == THA_NA_8 or
+            self._tekmar_tha.relative_humidity == None
+        ):
             return None
 
         else:
             return self._tekmar_tha.relative_humidity
     
+    @property
+    def hvac_modes(self) -> list[str]:
+
+        hvac_modes = [HVAC_MODE_OFF]
+        
+        if self._tekmar_tha.tha_device['attributes'].Zone_Heating:
+            hvac_modes.append(HVAC_MODE_HEAT)
+
+        if self._tekmar_tha.tha_device['attributes'].Zone_Cooling:
+            hvac_modes.append(HVAC_MODE_COOL)
+            
+        if (
+            self._tekmar_tha.tha_device['attributes'].Zone_Heating and
+            self._tekmar_tha.tha_device['attributes'].Zone_Cooling
+        ):
+            hvac_modes.append(HVAC_MODE_HEAT_COOL)
+
+        return hvac_modes
+
     @property
     def hvac_mode(self):
         if self._tekmar_tha.mode_setting == 0x00:
@@ -222,20 +207,25 @@ class ThaClimateThermostat(ThaClimateBase):
             return HVAC_MODE_HEAT
         else:
             return None
-    
+
+    @property
+    def fan_modes(self):
+        if DEVICE_FEATURES[self._tekmar_tha.tha_device['type']]['fan']:
+            return [FAN_ON, FAN_AUTO]
+        else:
+            return None
+
     @property
     def fan_mode(self):
         if self._tekmar_tha.tha_device['type'] in [99203, 99202, 99201]:
             if self._tekmar_tha.fan_percent == 10:
                 return FAN_ON
-        
             else:
                 return FAN_AUTO
         
         else:
             if self._tekmar_tha.fan_percent == 100:
                 return FAN_ON
-        
             else:
                 return FAN_AUTO
                     
@@ -248,11 +238,27 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def target_humidity(self):
-        # humidity_setpoint_min if configured for HM1 to 3
-        # humidity_setpoint_max if configured for DHM1 to 5
-        # depending on thermostat setup
-        return None
+        if (
+            self._tekmar_tha.humidity_setpoint_min != THA_NA_8 and
+            self._tekmar_tha.humidity_setpoint_max == THA_NA_8
+        ):
+            return self._tekmar_tha.humidity_setpoint_min
+            
+        elif (
+            self._tekmar_tha.humidity_setpoint_min == THA_NA_8 and
+            self._tekmar_tha.humidity_setpoint_max != THA_NA_8
+        ):
+            return self._tekmar_tha.humidity_setpoint_max
         
+        elif (
+            self._tekmar_tha.humidity_setpoint_min == THA_NA_8 and
+            self._tekmar_tha.humidity_setpoint_max == THA_NA_8
+        ):
+            return None
+        
+        else:
+            return None
+            
     @property
     def preset_mode(self):
         if self._tekmar_tha.setback_state == 0x00:
@@ -298,30 +304,40 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def target_temperature(self):
-
-        if self._tekmar_tha.tha_device['attributes'].Zone_Heating and not self._tekmar_tha.tha_device['attributes'].Zone_Cooling:
+        if (
+            self._tekmar_tha.tha_device['attributes'].Zone_Heating and
+            self._tekmar_tha.mode_setting == 0x03
+        ):
             this_device_setpoint = self._tekmar_tha.heat_setpoint
     
-        elif self._tekmar_tha.tha_device['attributes'].Zone_Cooling and not self._tekmar_tha.tha_device['attributes'].Zone_Heating:
+        elif (
+            self._tekmar_tha.tha_device['attributes'].Zone_Cooling and
+            self._tekmar_tha.mode_setting == 0x01
+        ):
             this_device_setpoint = self._tekmar_tha.cool_setpoint
         
         else:
-            raise NotImplementedError
+            return None
         
-        if this_device_setpoint == THA_NA_8 or this_device_setpoint == None:
+        if (
+            this_device_setpoint == THA_NA_8 or
+            this_device_setpoint == None
+        ):
             return None
 
         else:
             try:
-                temp = degEtoC(this_device_setpoint)
-                return round(temp, 0)
+                return degEtoC(this_device_setpoint)
 
             except TypeError:
                 return None
 
     @property
     def target_temperature_high(self):
-        if self._tekmar_tha.cool_setpoint == THA_NA_8 or self._tekmar_tha.cool_setpoint == None:
+        if (
+            self._tekmar_tha.cool_setpoint == THA_NA_8 or
+            self._tekmar_tha.cool_setpoint == None
+        ):
             return None
 
         else:
@@ -334,7 +350,10 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def target_temperature_low(self):
-        if self._tekmar_tha.heat_setpoint == THA_NA_8 or self._tekmar_tha.heat_setpoint == None:
+        if (
+            self._tekmar_tha.heat_setpoint == THA_NA_8 or
+            self._tekmar_tha.heat_setpoint == None
+        ):
             return None
 
         else:
@@ -345,4 +364,71 @@ class ThaClimateThermostat(ThaClimateBase):
             except TypeError:
                 return None
 
-    
+    async def async_set_temperature(self, **kwargs):
+        # for SUPPORT_TARGET_TEMPERATURE
+        # ATTR_TEMPERATURE
+        # for SUPPORT_TARGET_TEMPERATURE_RANGE
+        # ATTR_TARGET_TEMP_LOW, ATTR_TARGET_TEMP_HIGH
+        #value = kwargs[ATTR_TEMPERATURE]
+        #await self._tekmar_tha.async_set_temperature(value)
+        
+        heat_setpoint = kwargs.get(ATTR_TARGET_TEMP_LOW)
+        cool_setpoint = kwargs.get(ATTR_TARGET_TEMP_HIGH)
+        
+        if heat_setpoint is not None:
+            heat_setpoint = int(degCtoE(heat_setpoint))
+            await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint)
+            
+        if cool_setpoint is not None:
+            cool_setpoint = int(degCtoE(cool_setpoint))
+            await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint)
+
+    async def async_set_hvac_mode(self, hvac_mode):
+        if hvac_mode == HVAC_MODE_OFF:
+            value = 0x00
+        elif hvac_mode == HVAC_MODE_HEAT:
+            value = 0x01
+        elif hvac_mode == HVAC_MODE_COOL:
+            value = 0x03
+        elif hvac_mode == HVAC_MODE_HEAT_COOL:
+            value = 0x02
+        else:
+            raise NotImplementedError()
+        
+        await self._tekmar_tha.set_mode_setting_txqueue(value)
+
+    async def async_set_fan_mode(self, fan_mode):
+        if fan_mode == FAN_ON:
+            if self._tekmar_tha.tha_device['type'] in [99203, 99202, 99201]:
+                value = 10
+            else:
+                value = 100
+            
+        elif fan_mode == FAN_AUTO:
+            value = 0
+            
+        else:
+            raise NotImplementedError()
+            
+    async def async_set_humidity(self, humidity):
+
+        if (
+            self._tekmar_tha.humidity_setpoint_min != THA_NA_8 and
+            self._tekmar_tha.humidity_setpoint_max == THA_NA_8
+        ):
+            await self._tekmar_tha.set_humidity_setpoint_min_txqueue(humidity)
+            
+        elif (
+            self._tekmar_tha.humidity_setpoint_min == THA_NA_8 and
+            self._tekmar_tha.humidity_setpoint_max != THA_NA_8
+        ):
+            await self._tekmar_tha.set_humidity_setpoint_max_txqueue(humidity)
+        
+        elif (
+            self._tekmar_tha.humidity_setpoint_min == THA_NA_8 and
+            self._tekmar_tha.humidity_setpoint_max == THA_NA_8
+        ):
+            pass
+        
+        else:
+            pass

@@ -66,7 +66,7 @@ class TekmarHub:
         
         await self._sock.open()
 
-        self._tx_queue.append(
+        await self._sock.write(
             TrpcPacket(
                 service = 'Update',
                 method = 'ReportingState',
@@ -89,21 +89,17 @@ class TekmarHub:
         )
         
         if self._setback_enable:
-            self._tx_queue.append(
-                TrpcPacket(
-                    service = 'Update',
-                    method = 'SetbackEnable',
-                    enable = 0x01
-                )
-            )
+            packet_setback_enable = 0x01
         else:
-            self._tx_queue.append(
-                TrpcPacket(
-                    service = 'Update',
-                    method = 'SetbackEnable',
-                    enable = 0x0
-                )
+            packet_setback_enable = 0x00
+            
+        self._tx_queue.append(
+            TrpcPacket(
+                service = 'Update',
+                method = 'SetbackEnable',
+                enable = packet_setback_enable
             )
+        )
 
         self._tx_queue.append(
             TrpcPacket(
@@ -115,6 +111,9 @@ class TekmarHub:
 
         while self._inSetup == True:
             if len(self._tx_queue) != 0:
+                # do something here where we add messages to another list
+                # that gets cleared as we get respones back, then retry
+                # messages we didn't get a response for
                 await self._sock.write(self._tx_queue.pop(0))
 
             p = await self._sock.read()
@@ -241,6 +240,9 @@ class TekmarHub:
         while self._inRun == True:  
 
             if len(self._tx_queue) != 0:
+                # do something here where we add messages to another list
+                # that gets cleared as we get respones back, then retry
+                # messages we didn't get a response for
                 await self._sock.write(self._tx_queue.pop(0))
 
             p = await self._sock.read()
@@ -262,15 +264,6 @@ class TekmarHub:
                         await gateway.set_outdoor_temperature(p.body['temp'])
             
                 elif tha_method in ['CurrentTemperature']:
-                    if self._tha_inventory[b['address']]['type'] in [105102, 104401]:
-                        if self._tha_pr_ver in [2,3]:
-                            self._tx_queue.append(
-                                TrpcPacket(
-                                    service = 'Request',
-                                    method = 'RelativeHumidity',
-                                    address = b['address']
-                                )
-                            )
                     for device in self.tha_devices:
                         if device.device_id == b['address']:
                             await device.set_current_temperature(p.body['temp'])
@@ -306,7 +299,7 @@ class TekmarHub:
                 elif tha_method in ['RelativeHumidity']:
                     for device in self.tha_devices:
                         if device.device_id == b['address']:
-                            await device.set_relative_humidity(p.body['RHpercent'])
+                            await device.set_relative_humidity(p.body['percent'])
 
                 elif tha_method in ['ActiveDemand']:
                     self._tx_queue.append(
@@ -322,24 +315,14 @@ class TekmarHub:
 
                 elif tha_method in ['SetbackState']:
                     if self._tha_inventory[b['address']]['attributes'].Fan_Percent:
-                        if p.body['setback'] == 0x06:
-                            self._tx_queue.append(
-                                TrpcPacket(
-                                    service = 'Request',
-                                    method = 'FanPercent',
-                                    setback = 0x05,
-                                    address = b['address']
-                                )
+                        self._tx_queue.append(
+                            TrpcPacket(
+                                service = 'Request',
+                                method = 'FanPercent',
+                                setback = THA_CURRENT,
+                                address = b['address']
                             )
-                        else:
-                            self._tx_queue.append(
-                                TrpcPacket(
-                                    service = 'Request',
-                                    method = 'FanPercent',
-                                    setback = p.body['setback'],
-                                    address = b['address']
-                                )
-                            )                            
+                        )
                     for device in self.tha_devices:
                         if device.device_id == b['address']:
                             await device.set_setback_state(p.body['setback'])
@@ -357,12 +340,12 @@ class TekmarHub:
                 elif tha_method in ['HumiditySetMin']:
                     for device in self.tha_devices:
                         if device.device_id == b['address']:
-                            await device.set_humidity_setpoint_min(p.body['percentMin'])
+                            await device.set_humidity_setpoint_min(p.body['percent'])
             
                 elif tha_method in ['HumiditySetMax']:
                     for device in self.tha_devices:
                         if device.device_id == b['address']:
-                            await device.set_humidity_setpoint_min(p.body['percentMax'])
+                            await device.set_humidity_setpoint_max(p.body['percent'])
           
                 elif tha_method in ['SetpointGroupEnable']:
                     for gateway in self.tha_gateway:
@@ -471,26 +454,26 @@ class TekmarThermostat:
         self._tha_current_floor_temperature = None #degH
         self._tha_active_demand = None
         self._tha_relative_humidity = None
-        self._tha_heat_setpoint = None #degE
-        self._tha_cool_setpoint = None #degE
-        self._tha_slab_setpoint = None #degE
         self._tha_setback_state = None
         self._tha_mode_setting = None
         self._tha_humidity_setpoint_min = None
         self._tha_humidity_setpoint_max = None
 
+        self._tha_heat_setpoint = None #degE
         self._tha_heat_setpoints = { #degE
             0x00: None, #day
             0x01: None, #night
             0x02: None, #away
             }
 
+        self._tha_cool_setpoint = None #degE
         self._tha_cool_setpoints = { #degE
             0x00: None,
             0x01: None,
             0x02: None,
             }
 
+        self._tha_slab_setpoint = None #degE
         self._tha_slab_setpoints = { #degE
             0x00: None,
             0x01: None,
@@ -592,6 +575,32 @@ class TekmarThermostat:
                     method = 'SlabSetpoint',
                     address = self._id,
                     setback = THA_CURRENT
+                )
+            )
+            
+        if (
+            DEVICE_FEATURES[self.tha_device['type']]['humid'] and
+            hub.tha_pr_ver in [2,3]
+        ):
+            self.hub.queue_message(
+                TrpcPacket(
+                    service = 'Request',
+                    method = 'RelativeHumidity',
+                    address = self._id
+                )
+            )
+            self.hub.queue_message(
+                TrpcPacket(
+                    service = 'Request',
+                    method = 'HumiditySetMax',
+                    address = self._id
+                )
+            )
+            self.hub.queue_message(
+                TrpcPacket(
+                    service = 'Request',
+                    method = 'HumiditySetMin',
+                    address = self._id
                 )
             )
 
@@ -760,31 +769,34 @@ class TekmarThermostat:
             )
         )
 
-    async def set_fan_mode_txqueue(self, value: int) -> None:
+    async def set_humidity_setpoint_min(self, percent: int) -> None:
+        self._tha_humidity_setpoint_min = percent
+        await self.publish_updates()
+        
+    async def set_humidity_setpoint_min_txqueue(self, value: int) -> None:
         await self.hub.async_queue_message(
             TrpcPacket(
                 service = 'Update',
-                method = 'FanPercent',
+                method = 'HumiditySetMin',
                 address = self._id,
-                setback = self._tha_setback_state,
-                percent = value
+                percent = int(value)
             )
-        )     
+        )
 
-    async def set_humidity_setpoint_min(self, percentMin: int) -> None:
-        if self.hub.tha_pr_ver not in [2,3]:
-            raise NotImplementedError()
-        else:
-            self._tha_humidity_setpoint_min = percentMin
-            await self.publish_updates()
-        
-    async def set_humidity_setpoint_max(self, percentMax: int) -> None:
-        if self.hub.tha_pr_ver not in [2,3]:
-            raise NotImplementedError()
-        else:
-            self._tha_humidity_setpoint_max = percentMax
-            await self.publish_updates()
-        
+    async def set_humidity_setpoint_max(self, percent: int) -> None:
+        self._tha_humidity_setpoint_max = percent
+        await self.publish_updates()
+
+    async def set_humidity_setpoint_max_txqueue(self, value: int) -> None:
+        await self.hub.async_queue_message(
+            TrpcPacket(
+                service = 'Update',
+                method = 'HumiditySetMax',
+                address = self._id,
+                percent = int(value)
+            )
+        )
+
     async def set_setback_events(self, events: int) -> None:
         self.tha_device['events'] = events
         await self.publish_updates()

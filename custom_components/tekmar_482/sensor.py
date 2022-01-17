@@ -16,6 +16,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import (
     DOMAIN,
     DEVICE_TYPES, DEVICE_FEATURES,
+    SETBACK_STATE, SETBACK_DESCRIPTION,
     THA_NA_8, THA_NA_16, NETWORK_ERRORS, 
 )
 
@@ -62,12 +63,19 @@ async def async_setup_entry(
     for device in hub.tha_devices:
         entities.append(CurrentTemperature(device, config_entry))
         
-        if (DEVICE_FEATURES[device.tha_device['type']]['humid'] and
-            hub.tha_pr_ver in [2,3]):
+        if hub.tha_setback_enable == 0x01:
+            entities.append(SetbackState(device, config_entry))
+        
+        if (
+            DEVICE_FEATURES[device.tha_device['type']]['humid'] and
+            hub.tha_pr_ver in [2,3]
+        ):
             entities.append(RelativeHumidity(device, config_entry))
             
-        if (device.tha_device['attributes'].Slab_Setpoint and
-            hub.tha_pr_ver in [3]):
+        if (
+            device.tha_device['attributes'].Slab_Setpoint and
+            hub.tha_pr_ver in [3]
+        ):
             entities.append(CurrentFloorTemperature(device, config_entry))
 
     if entities:
@@ -141,10 +149,10 @@ class OutdoorTemprature(ThaSensorBase):
     @property
     def native_value(self):
         """Return the state of the sensor."""
-        if self._tekmar_tha.outdoor_temprature == THA_NA_16:
-            return None
-
-        elif self._tekmar_tha.outdoor_temprature == None:
+        if (
+            self._tekmar_tha.outdoor_temprature == THA_NA_16 or
+            self._tekmar_tha.outdoor_temprature == None
+        ):
             return None
 
         else:
@@ -164,14 +172,9 @@ class LastPing(ThaSensorBase):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
 
-    @property
-    def unique_id(self) -> str:
-        return f"{self.config_entry_id}-last-ping"
-        
-    @property
-    def name(self) -> str:
-        return f"{self.config_entry_name.capitalize()} Last Ping"
-    
+        self._attr_unique_id = f"{self.config_entry_id}-last-ping"
+        self._attr_name = f"{self.config_entry_name.capitalize()} Last Ping"
+
     @property
     def available(self) -> bool:
         if self._tekmar_tha.last_ping == None:
@@ -247,10 +250,10 @@ class CurrentTemperature(ThaSensorBase):
     @property
     def native_value(self):
         """Return the state of the sensor."""
-        if self._tekmar_tha.current_temperature == THA_NA_16:
-            return None
-
-        elif self._tekmar_tha.current_temperature == None:
+        if (
+            self._tekmar_tha.current_temperature == THA_NA_16 or
+            self._tekmar_tha.current_temperature == None
+        ):
             return None
 
         else:
@@ -284,10 +287,10 @@ class CurrentFloorTemperature(ThaSensorBase):
     @property
     def native_value(self):
         """Return the state of the sensor."""
-        if self._tekmar_tha.current_floor_temperature == THA_NA_16:
-            return None
-
-        elif self._tekmar_tha.current_floor_temperature == None:
+        if (
+            self._tekmar_tha.current_floor_temperature == THA_NA_16 or
+            self._tekmar_tha.current_floor_temperature == None
+        ):
             return None
 
         else:
@@ -321,12 +324,47 @@ class RelativeHumidity(ThaSensorBase):
     @property
     def native_value(self):
         """Return the state of the sensor."""
-        if self._tekmar_tha.relative_humidity == THA_NA_8:
-            return None
-
-        elif self._tekmar_tha.relative_humidity == None:
+        if (
+            self._tekmar_tha.relative_humidity == THA_NA_8 or
+            self._tekmar_tha.relative_humidity == None
+        ):
             return None
 
         else:
             return self._tekmar_tha.relative_humidity
 
+class SetbackState(ThaSensorBase):
+    """Representation of a Sensor."""
+    icon = 'mdi:format-list-bulleted'
+
+    def __init__(self, tekmar_tha, config_entry):
+        """Initialize the sensor."""
+        super().__init__(tekmar_tha, config_entry)
+        
+        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-setback-state"
+        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Setback State"
+
+    @property
+    def available(self) -> bool:
+        if self._tekmar_tha.setback_state == THA_NA_8:
+            return False
+        else:
+            return True
+
+    @property
+    def native_value(self):
+        """Return the state of the sensor."""
+        if self._tekmar_tha.setback_state == THA_NA_8:
+            return None
+            
+        try:
+            return SETBACK_STATE[self._tekmar_tha.setback_state]
+        except KeyError:
+            return None
+
+    @property
+    def extra_state_attributes(self):
+        try:
+            return {"description": SETBACK_DESCRIPTION[self._tekmar_tha.setback_state]}
+        except KeyError:
+            return None

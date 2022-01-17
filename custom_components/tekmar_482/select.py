@@ -81,7 +81,6 @@ class ThaSelectBase(SelectEntity):
 class ThaFanSelect(ThaSelectBase):
 
     unit_of_measurement = PERCENTAGE
-    options =['0','10','20','30','40','50','60','70','80','90','100']
     icon = 'mdi:fan'
 
     def __init__(self, tekmar_tha, config_entry):
@@ -111,6 +110,13 @@ class ThaFanSelect(ThaSelectBase):
             return False
         else:
             return True
+
+    @property
+    def options(self):
+        if self._tekmar_tha.tha_device['attributes'].Fan_Percent:
+            return ['0','10','20','30','40','50','60','70','80','90','100']
+        else:
+            return ['0','100']
 
     @property
     def current_option(self) -> str:
