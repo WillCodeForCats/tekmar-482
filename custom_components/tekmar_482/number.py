@@ -1,7 +1,5 @@
-from typing import Optional, Dict, Any
-
-from homeassistant.components.select import (
-    SelectEntity,
+from homeassistant.components.number import (
+    NumberEntity,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -17,9 +15,7 @@ from homeassistant.helpers.typing import ConfigType, StateType
 
 from .const import (
     DOMAIN,
-    DEVICE_TYPES, DEVICE_FEATURES,
-    ATTR_MANUFACTURER,
-    THA_NA_8, THA_NA_16, NETWORK_ERRORS, 
+    THA_NA_8, THA_NA_16
 )
 
 
@@ -35,13 +31,14 @@ async def async_setup_entry(
 
     for device in hub.tha_devices:
         if DEVICE_FEATURES[device.tha_device['type']]['fan']:
-            entities.append(ThaFanSelect(device, config_entry))
+            entities.append(TheHumiditySetMax(device, config_entry))
+            entities.append(TheHumiditySetMin(device, config_entry))
 
     if entities:
         async_add_entities(entities)
 
 
-class ThaSelectBase(SelectEntity):
+class ThaNumberBase(NumberEntity):
 
     should_poll = False
 
@@ -77,47 +74,56 @@ class ThaSelectBase(SelectEntity):
         """Entity being removed from hass."""
         self._tekmar_tha.remove_callback(self.async_write_ha_state)
 
-class ThaFanSelect(ThaSelectBase):
+class TheHumiditySetMax(ThaNumberBase):
 
     unit_of_measurement = PERCENTAGE
-    icon = 'mdi:fan'
-
+    icon = 'mdi:water-percent'
+    min_value = 20
+    max_value = 80
+    
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
 
-        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-fan-percent"
-        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Fan Percent"
+        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-humidity-max-setpoint"
+        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Humidity Maximum Setpoint"
 
-    async def async_select_option(self, option: str) -> None:
-        if option in ['0','10','20','30','40','50','60','70','80','90','100']:
-        
-            if self._tekmar_tha.tha_device['type'] in [99203, 99202, 99201]:
-                value = int(option / 10)
-                await self._tekmar_tha.set_fan_percent_txqueue(value)
-                
-            else:
-                value = int(option)
-                await self._tekmar_tha.set_fan_percent_txqueue(value)
-        
-        else:
-            raise ValueError
+    #async def async_set_value(self, value: float) -> None:
 
     @property
     def available(self) -> bool:        
-        if self._tekmar_tha.fan_percent == THA_NA_8:
+        if self._tekmar_tha.humidity_setpoint_max == THA_NA_8:
             return False
         else:
             return True
 
     @property
-    def options(self):
-        if self._tekmar_tha.tha_device['attributes'].Fan_Percent:
-            return ['0','10','20','30','40','50','60','70','80','90','100']
-        else:
-            return ['0','100']
+    def value(self):
+        return self._tekmar_tha.humidity_setpoint_max
+
+class TheHumiditySetMin(ThaNumberBase):
+
+    unit_of_measurement = PERCENTAGE
+    icon = 'mdi:water-percent'
+    min_value = 20
+    max_value = 80
+    
+    def __init__(self, tekmar_tha, config_entry):
+        """Initialize the sensor."""
+        super().__init__(tekmar_tha, config_entry)
+
+        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-humidity-min-setpoint"
+        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Humidity Minimum Setpoint"
+
+    #async def async_set_value(self, value: float) -> None:
 
     @property
-    def current_option(self) -> str:
-        return str(self._tekmar_tha.fan_percent)
-        
+    def available(self) -> bool:        
+        if self._tekmar_tha.humidity_setpoint_min == THA_NA_8:
+            return False
+        else:
+            return True
+
+    @property
+    def value(self):
+        return self._tekmar_tha.humidity_setpoint_min

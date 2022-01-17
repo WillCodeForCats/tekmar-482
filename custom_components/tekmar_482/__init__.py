@@ -16,7 +16,7 @@ from .const import (
     CONF_SETBACK_ENABLE
 )
 
-PLATFORMS: list[str] = ["sensor", "climate", "select", "switch", "binary_sensor"]
+PLATFORMS: list[str] = ["sensor", "climate", "select", "switch", "binary_sensor", "number"]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up a Tekmar Gateway from config entry."""
