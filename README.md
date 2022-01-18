@@ -11,7 +11,9 @@ https://github.com/WillCodeForCats/tekmar-482/wiki
 
 Once I'm comfortable with my test platform I will connect it to my real home system and give it the "friends and family" test.
 
-Jan 8, 2021:
+Jan 18, 2022: The Setpoint 161 control I ordered should be here by Friday.
+
+Jan 8, 2022:
 
 Purchased a Setpoint 161 and Thermostat 553 for additional testing (currently waiting for them to arrive).
 
