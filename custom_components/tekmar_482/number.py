@@ -15,6 +15,7 @@ from homeassistant.helpers.typing import ConfigType, StateType
 
 from .const import (
     DOMAIN,
+    DEVICE_FEATURES,
     THA_NA_8, THA_NA_16
 )
 
@@ -30,7 +31,7 @@ async def async_setup_entry(
     entities = []
 
     for device in hub.tha_devices:
-        if DEVICE_FEATURES[device.tha_device['type']]['fan']:
+        if DEVICE_FEATURES[device.tha_device['type']]['humid']:
             entities.append(TheHumiditySetMax(device, config_entry))
             entities.append(TheHumiditySetMin(device, config_entry))
 
@@ -88,7 +89,20 @@ class TheHumiditySetMax(ThaNumberBase):
         self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-humidity-max-setpoint"
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Humidity Maximum Setpoint"
 
-    #async def async_set_value(self, value: float) -> None:
+    async def async_set_value(self, value: float) -> None:
+        value = int(value)
+        await self._tekmar_tha.set_humidity_setpoint_max_txqueue(value)
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        if (
+            self._tekmar_tha.humidity_setpoint_max is not None and
+            self._tekmar_tha.humidity_setpoint_min != THA_NA_8 and
+            self._tekmar_tha.humidity_setpoint_max != THA_NA_8
+        ):
+            return True
+        else:
+            return False
 
     @property
     def available(self) -> bool:        
@@ -115,7 +129,20 @@ class TheHumiditySetMin(ThaNumberBase):
         self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-humidity-min-setpoint"
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Humidity Minimum Setpoint"
 
-    #async def async_set_value(self, value: float) -> None:
+    async def async_set_value(self, value: float) -> None:
+        value = int(value)
+        await self._tekmar_tha.set_humidity_setpoint_min_txqueue(value)
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        if (
+            self._tekmar_tha.humidity_setpoint_min is not None and
+            self._tekmar_tha.humidity_setpoint_min != THA_NA_8 and
+            self._tekmar_tha.humidity_setpoint_max != THA_NA_8
+        ):
+            return True
+        else:
+            return False
 
     @property
     def available(self) -> bool:        
