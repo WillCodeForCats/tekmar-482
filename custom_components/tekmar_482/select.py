@@ -20,6 +20,7 @@ from .const import (
     DEVICE_TYPES, DEVICE_FEATURES,
     ATTR_MANUFACTURER,
     THA_NA_8, THA_NA_16, NETWORK_ERRORS, 
+    THA_TYPE_THERMOSTAT,
 )
 
 
@@ -34,8 +35,9 @@ async def async_setup_entry(
     entities = []
 
     for device in hub.tha_devices:
-        if DEVICE_FEATURES[device.tha_device['type']]['fan']:
-            entities.append(ThaFanSelect(device, config_entry))
+        if DEVICE_TYPES[device.tha_device['type']] == THA_TYPE_THERMOSTAT:
+            if DEVICE_FEATURES[device.tha_device['type']]['fan']:
+                entities.append(ThaFanSelect(device, config_entry))
 
     if entities:
         async_add_entities(entities)

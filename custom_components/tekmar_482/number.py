@@ -15,8 +15,9 @@ from homeassistant.helpers.typing import ConfigType, StateType
 
 from .const import (
     DOMAIN,
-    DEVICE_FEATURES,
-    THA_NA_8, THA_NA_16
+    DEVICE_FEATURES, DEVICE_TYPES,
+    THA_NA_8, THA_NA_16,
+    THA_TYPE_THERMOSTAT
 )
 
 
@@ -31,9 +32,10 @@ async def async_setup_entry(
     entities = []
 
     for device in hub.tha_devices:
-        if DEVICE_FEATURES[device.tha_device['type']]['humid']:
-            entities.append(TheHumiditySetMax(device, config_entry))
-            entities.append(TheHumiditySetMin(device, config_entry))
+        if DEVICE_TYPES[device.tha_device['type']] == THA_TYPE_THERMOSTAT:
+            if DEVICE_FEATURES[device.tha_device['type']]['humid']:
+                entities.append(TheHumiditySetMax(device, config_entry))
+                entities.append(TheHumiditySetMin(device, config_entry))
 
     if entities:
         async_add_entities(entities)

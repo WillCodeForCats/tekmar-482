@@ -17,7 +17,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     DOMAIN,
-    DEVICE_FEATURES,
+    DEVICE_FEATURES, DEVICE_TYPES, THA_TYPE_THERMOSTAT,
     THA_NA_8, THA_NA_16,
 )
 
@@ -60,7 +60,8 @@ async def async_setup_entry(
     entities = []
 
     for device in hub.tha_devices:
-        entities.append(ThaClimateThermostat(device, config_entry))
+        if DEVICE_TYPES[device.tha_device['type']] == THA_TYPE_THERMOSTAT:
+            entities.append(ThaClimateThermostat(device, config_entry))
 
     if entities:
         async_add_entities(entities)
@@ -125,7 +126,15 @@ class ThaClimateThermostat(ThaClimateBase):
         
     @property
     def supported_features(self):
-        supported_features = SUPPORT_TARGET_TEMPERATURE_RANGE
+        supported_features = 0
+        
+        if (
+            DEVICE_FEATURES[self._tekmar_tha.tha_device['type']]['heat'] and
+            DEVICE_FEATURES[self._tekmar_tha.tha_device['type']]['cool']
+        ):
+            supported_features = supported_features | SUPPORT_TARGET_TEMPERATURE_RANGE
+        else:
+            supported_features = supported_features | SUPPORT_TARGET_TEMPERATURE
     
         if DEVICE_FEATURES[self._tekmar_tha.tha_device['type']]['fan']:
             supported_features = supported_features | SUPPORT_FAN_MODE

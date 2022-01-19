@@ -21,7 +21,8 @@ async def async_setup_entry(
 
     for gateway in hub.tha_gateway:
         entities.append(ReportingState(gateway, config_entry))
-        entities.append(SetbackEnable(gateway, config_entry))
+        if hub.tha_pr_ver in [2,3]:
+            entities.append(SetbackEnable(gateway, config_entry))
 
     if entities:
         async_add_entities(entities)

@@ -222,12 +222,13 @@ class TekmarHub:
                     )
 
                 elif DEVICE_TYPES[self._tha_inventory[address]['type']] == THA_TYPE_SETPOINT:
-                    #TekmarSetpoint(address, self._tha_inventory[address], self)
-                    _LOGGER.warning("Unhandeled device: %s", THA_TYPE_SETPOINT)
+                    self.tha_devices.append(
+                        TekmarSetpoint(address, self._tha_inventory[address], self)
+                    )
 
                 elif DEVICE_TYPES[self._tha_inventory[address]['type']] == THA_TYPE_SNOWMELT:
                     #TekmarSnowmelt(address, self._tha_inventory[address], self)
-                    _LOGGER.warning("Unhandeled device: %s", THA_TYPE_SNOWMELT)
+                    _LOGGER.warning("Unhandeled device: %s %s", THA_TYPE_SNOWMELT, self._tha_inventory[address])
                 
                 else:
                     _LOGGER.error("Unknown device at address %s", address)
@@ -302,13 +303,14 @@ class TekmarHub:
                             await device.set_relative_humidity(p.body['percent'])
 
                 elif tha_method in ['ActiveDemand']:
-                    self._tx_queue.append(
-                        TrpcPacket(
-                            service = 'Request',
-                            method = 'ModeSetting',
-                            address = b['address']
+                    if DEVICE_TYPES[self._tha_inventory[b['address']]['type']] == THA_TYPE_THERMOSTAT:
+                        self._tx_queue.append(
+                            TrpcPacket(
+                                service = 'Request',
+                                method = 'ModeSetting',
+                                address = b['address']
+                            )
                         )
-                    )
                     for device in self.tha_devices:
                         if device.device_id == b['address']:
                             await device.set_active_demand(p.body['demand'])
@@ -350,6 +352,11 @@ class TekmarHub:
                 elif tha_method in ['SetpointGroupEnable']:
                     for gateway in self.tha_gateway:
                         await gateway.set_setpoint_group(p.body['groupid'], p.body['enable'])
+                        
+                elif tha_method in ['SetpointDevice']:
+                    for device in self.tha_devices:
+                        if device.device_id == b['address']:
+                            await device.set_setpoint_target(p.body['temp'], p.body['setback'])
                     
                 elif tha_method in ['TakingAddress']:
                     _LOGGER.error("Device at address %s moved to %s; please reload integration!", p.body['old_address'], p.body['new_address'])
@@ -458,6 +465,10 @@ class TekmarThermostat:
         self._tha_mode_setting = None
         self._tha_humidity_setpoint_min = None
         self._tha_humidity_setpoint_max = None
+        
+        self._config_emergency_heat = False
+        self._config_cooling = False
+        self._config_heating = False
 
         self._tha_heat_setpoint = None #degE
         self._tha_heat_setpoints = { #degE
@@ -700,13 +711,13 @@ class TekmarThermostat:
         self._tha_heat_setpoints[SETBACK_SETPOINT_MAP[self._tha_setback_state]] = setpoint
         await self.publish_updates()
 
-    async def set_heat_setpoint_txqueue(self, value: int) -> None:
+    async def set_heat_setpoint_txqueue(self, value: int, setback: int = THA_CURRENT) -> None:
         await self.hub.async_queue_message(
             TrpcPacket(
                 service = 'Update',
                 method = 'HeatSetpoint',
                 address = self._id,
-                setback = self._tha_setback_state,
+                setback = setback,
                 setpoint = value
             )
         )
@@ -716,13 +727,13 @@ class TekmarThermostat:
         self._tha_cool_setpoints[SETBACK_SETPOINT_MAP[self._tha_setback_state]] = setpoint
         await self.publish_updates()
 
-    async def set_cool_setpoint_txqueue(self, value: int) -> None:
+    async def set_cool_setpoint_txqueue(self, value: int, setback: int = THA_CURRENT) -> None:
         await self.hub.async_queue_message(
             TrpcPacket(
                 service = 'Update',
                 method = 'CoolSetpoint',
                 address = self._id,
-                setback = self._tha_setback_state,
+                setback = setback,
                 setpoint = value
             )
         )
@@ -736,13 +747,13 @@ class TekmarThermostat:
         self._tha_fan_percent[SETBACK_FAN_MAP[setback]] = percent
         await self.publish_updates()
 
-    async def set_fan_percent_txqueue(self, percent: int) -> None:
+    async def set_fan_percent_txqueue(self, percent: int, setback: int = THA_CURRENT) -> None:
         await self.hub.async_queue_message(
             TrpcPacket(
                 service = 'Update',
                 method = 'FanPercent',
                 address = self._id,
-                setback = self._tha_setback_state,
+                setback = setback,
                 percent = percent
             )
         )
@@ -811,6 +822,148 @@ class TekmarThermostat:
 
     async def publish_updates(self) -> None:
         """Schedule call all registered callbacks."""
+        for callback in self._callbacks:
+            callback()
+
+    @property
+    def online(self) -> float:
+        """Device is online."""
+        return True
+
+    @property
+    def device_info(self) -> Optional[Dict[str, Any]]:
+        return self._device_info        
+
+class TekmarSetpoint:
+    def __init__(self, address: int, tha_device: [], hub: TekmarHub) -> None:
+        self._id = address
+        self.hub = hub
+        self.tha_device = tha_device
+        self._callbacks = set()
+        
+        self._tha_current_temperature = None #degH
+        self._tha_current_floor_temperature = None #degH
+        self._tha_setpoint_target_temperature = None #degH
+        self._tha_active_demand = None
+        self._tha_setback_state = None
+
+        # Some static information about this device
+        self._device_type = DEVICE_TYPES[self.tha_device['type']]
+        self._tha_full_device_name = self.tha_device['entity']
+        self.firmware_version = self.tha_device['version']
+        self.model = DEVICE_FEATURES[self.tha_device['type']]['model']
+
+        self._device_info = {
+            "identifiers": {(DOMAIN, self._id)},
+            "name": f"{hub.hub_id.capitalize()} {self._device_type.capitalize()} {self.model} {self._id}",
+            "manufacturer": ATTR_MANUFACTURER,
+            "model": self.model,
+            "sw_version": self.firmware_version,
+        }
+
+        self.hub.queue_message(
+            TrpcPacket(
+                service = 'Request',
+                method = 'SetbackState',
+                address = self._id,
+            )
+        )
+
+        self.hub.queue_message(
+            TrpcPacket(
+                service = 'Request',
+                method = 'ActiveDemand',
+                address = self._id,
+            )
+        )
+
+        self.hub.queue_message(
+            TrpcPacket(
+                service = 'Request',
+                method = 'CurrentTemperature',
+                address = self._id,
+            )
+        )
+
+        #self.hub.queue_message(
+        #    TrpcPacket(
+        #        service = 'Request',
+        #        method = 'CurrentFloorTemperature',
+        #        address = self._id,
+        #    )
+        #)
+
+        self.hub.queue_message(
+            TrpcPacket(
+                service = 'Request',
+                method = 'SetpointDevice',
+                setback = THA_CURRENT,
+                address = self._id,
+            )
+        )
+
+    @property
+    def device_id(self) -> str:
+        return self._id
+
+    @property
+    def tha_device_type(self) -> str:
+        return self._device_type
+
+    @property
+    def tha_full_device_name(self) -> str:
+        return self._tha_full_device_name
+
+    @property
+    def current_temperature(self) -> str:
+        return self._tha_current_temperature
+
+    @property
+    def current_floor_temperature(self) -> str:
+        if self.hub.tha_pr_ver not in [3]:
+            return None
+        else:
+            return self._tha_current_floor_temperature
+
+    @property
+    def setpoint_target(self) -> str:
+        return self._tha_setpoint_target_temperature
+
+    @property
+    def setback_state(self) -> str:
+        return self._tha_setback_state
+
+    @property
+    def active_demand(self) -> str:
+        return self._tha_active_demand
+
+    async def set_current_temperature(self, temp: int) -> None:
+        self._tha_current_temperature = temp
+        await self.publish_updates()
+
+    async def set_current_floor_temperature(self, temp: int) -> None:
+        self._tha_current_floor_temperature = temp
+        await self.publish_updates()
+
+    async def set_setpoint_target(self, temp: int, setback: int) -> None:
+        self._tha_setpoint_target_temperature = temp
+        await self.publish_updates()
+
+    async def set_active_demand(self, demand: int) -> None:
+        self._tha_active_demand = demand
+        await self.publish_updates()
+        
+    async def set_setback_state(self, setback: int) -> None:
+        self._tha_setback_state = setback
+        await self.publish_updates()
+
+    def register_callback(self, callback: Callable[[], None]) -> None:
+        self._callbacks.add(callback)
+
+    def remove_callback(self, callback: Callable[[], None]) -> None:
+        self._callbacks.discard(callback)
+
+    async def publish_updates(self) -> None:
         for callback in self._callbacks:
             callback()
 

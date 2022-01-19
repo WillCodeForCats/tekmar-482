@@ -13,11 +13,16 @@ from homeassistant.helpers.entity import (
 )
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from homeassistant.components.climate.const import (
+    CURRENT_HVAC_IDLE, CURRENT_HVAC_HEAT, CURRENT_HVAC_COOL,
+)
+
 from .const import (
     DOMAIN,
     DEVICE_TYPES, DEVICE_FEATURES,
     SETBACK_STATE, SETBACK_DESCRIPTION,
     THA_NA_8, THA_NA_16, NETWORK_ERRORS, 
+    THA_TYPE_THERMOSTAT, THA_TYPE_SETPOINT,
 )
 
 def regBytes(integer):
@@ -61,22 +66,32 @@ async def async_setup_entry(
         entities.append(LastPing(gateway, config_entry))
 
     for device in hub.tha_devices:
-        entities.append(CurrentTemperature(device, config_entry))
         
-        if hub.tha_setback_enable == 0x01:
-            entities.append(SetbackState(device, config_entry))
+        if DEVICE_TYPES[device.tha_device['type']] == THA_TYPE_THERMOSTAT:
+            entities.append(CurrentTemperature(device, config_entry))
+
+            if hub.tha_setback_enable == 0x01:
+                entities.append(SetbackState(device, config_entry))
         
-        if (
-            DEVICE_FEATURES[device.tha_device['type']]['humid'] and
-            hub.tha_pr_ver in [2,3]
-        ):
-            entities.append(RelativeHumidity(device, config_entry))
+            if (
+                DEVICE_FEATURES[device.tha_device['type']]['humid'] and
+                hub.tha_pr_ver in [2,3]
+            ):
+                entities.append(RelativeHumidity(device, config_entry))
             
-        if (
-            device.tha_device['attributes'].Slab_Setpoint and
-            hub.tha_pr_ver in [3]
-        ):
-            entities.append(CurrentFloorTemperature(device, config_entry))
+            if (
+                device.tha_device['attributes'].Slab_Setpoint and
+                hub.tha_pr_ver in [3]
+            ):
+                entities.append(CurrentFloorTemperature(device, config_entry))
+                
+        if DEVICE_TYPES[device.tha_device['type']] == THA_TYPE_SETPOINT:
+            entities.append(CurrentTemperature(device, config_entry))
+            #entities.append(CurrentFloorTemperature(device, config_entry))
+            entities.append(SetbackState(device, config_entry))
+            entities.append(SetpointTarget(device, config_entry))
+            entities.append(SetpointDemand(device, config_entry))
+
 
     if entities:
         async_add_entities(entities)
@@ -167,6 +182,7 @@ class LastPing(ThaSensorBase):
     """Representation of a Sensor."""
     entity_category = EntityCategory.DIAGNOSTIC
     device_class = SensorDeviceClass.TIMESTAMP
+    icon = 'mdi:heart-pulse'
 
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
@@ -210,20 +226,28 @@ class NetworkError(ThaSensorBase):
         err_high, err_low = regBytes(self._tekmar_tha.network_error)
         try:
             if err_low != 0x00:
-                if err_high in [0x80, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x8A, 0x8B, 0x8C, 0x8D, 0x8E, 0x8F, 0x90, 0x91, 0x92, 0x93, 0x94]:
+                if err_low in [0x80, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x8A, 0x8B, 0x8C, 0x8D, 0x8E, 0x8F, 0x90, 0x91, 0x92, 0x93, 0x94]:
                     if err_high & 0x20 != 0:
                         sen_err = "open"
                     else:
                         sen_err = "short"
-                    if err_high in [0x90, 0x92, 0x93, 0x94]:
+                    
+                    if err_low in [0x90, 0x92, 0x93, 0x94]:
                         ag_id = err_high & 0x0F
                         return {"description": f"{NETWORK_ERRORS[err_low]} {sen_err} {ag_id}"}
                     else:
                         return {"description": f"{NETWORK_ERRORS[err_low]} {sen_err}"}
+                
+                elif err_low in [0x04]:
+                    device_id = err_high & 0x1F
+                    return {"description": f"{NETWORK_ERRORS[err_low]}: device {device_id}"}
+                
                 else:
                     return {"description": f"{NETWORK_ERRORS[err_low]}"}
+            
             else:
                 return {"description": f"{NETWORK_ERRORS[err_low]}"}
+        
         except KeyError:
             return {"description": "Unknown Error"}
 
@@ -243,6 +267,8 @@ class CurrentTemperature(ThaSensorBase):
     @property
     def available(self) -> bool:
         if self._tekmar_tha.current_temperature == THA_NA_16:
+            return False
+        elif self._tekmar_tha.current_temperature == 0x00:
             return False
         else:
             return True
@@ -279,7 +305,10 @@ class CurrentFloorTemperature(ThaSensorBase):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.current_floor_temperature == THA_NA_16:
+        if (
+            self._tekmar_tha.current_floor_temperature == THA_NA_16 or
+            self._tekmar_tha.current_floor_temperature == 0x00
+        ):
             return False
         else:
             return True
@@ -368,3 +397,84 @@ class SetbackState(ThaSensorBase):
             return {"description": SETBACK_DESCRIPTION[self._tekmar_tha.setback_state]}
         except KeyError:
             return None
+            
+class SetpointTarget(ThaSensorBase):
+    """Representation of a Sensor."""
+    device_class = SensorDeviceClass.TEMPERATURE
+    state_class = STATE_CLASS_MEASUREMENT
+    native_unit_of_measurement = TEMP_CELSIUS
+
+    def __init__(self, tekmar_tha, config_entry):
+        """Initialize the sensor."""
+        super().__init__(tekmar_tha, config_entry)
+        
+        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-setpoint-target"
+        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Setpoint Target"
+
+    @property
+    def available(self) -> bool:
+        if (
+            self._tekmar_tha.setpoint_target == THA_NA_16 or
+            self._tekmar_tha.setpoint_target == 0x00
+        ):
+            return False
+        else:
+            return True
+
+    @property
+    def native_value(self):
+        """Return the state of the sensor."""
+        if (
+            self._tekmar_tha.setpoint_target == THA_NA_16 or
+            self._tekmar_tha.setpoint_target == None or
+            self._tekmar_tha.setpoint_target == 0x00
+        ):
+            return None
+
+        else:
+            try:
+                temp = degHtoC(self._tekmar_tha.setpoint_target)
+                return round(temp, 1)
+
+            except TypeError:
+                return None
+
+class SetpointDemand(ThaSensorBase):
+
+    """Representation of a Sensor."""
+    icon = 'mdi:format-list-bulleted'
+
+    def __init__(self, tekmar_tha, config_entry):
+        """Initialize the sensor."""
+        super().__init__(tekmar_tha, config_entry)
+        
+        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-active-demand"
+        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Active Demand"
+
+    @property
+    def available(self) -> bool:
+        if self._tekmar_tha.active_demand == THA_NA_8:
+            return False
+        else:
+            return True
+
+    @property
+    def native_value(self):
+        if self._tekmar_tha.active_demand == 0x00:
+            return CURRENT_HVAC_IDLE
+            
+        elif self._tekmar_tha.active_demand == 0x01:
+            return CURRENT_HVAC_HEAT
+        
+        elif self._tekmar_tha.active_demand == 0x03:
+            return CURRENT_HVAC_COOL
+            
+        else:
+            return None
+
+    #@property
+    #def extra_state_attributes(self):
+        #try:
+        #    return {"description": SETBACK_DESCRIPTION[self._tekmar_tha.setback_state]}
+        #except KeyError:
+        #    return None
