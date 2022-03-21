@@ -14,6 +14,9 @@ This Integration requires the Tekmar Packet Server Add-On:
 
 https://github.com/WillCodeForCats/tekmar-packetserv
 
+If you are installing from HACS you will need to manually install this add-on since HACS doesn't support add-ons.
+The Tekmar Packet Server Add-On is required for this integration to work.
+
 ## Credits
 
 Implemented using "tN4 Gateway 482 - Custom Integration Tools" and "Tekmar Home Automation
