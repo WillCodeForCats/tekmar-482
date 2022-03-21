@@ -1,3 +1,5 @@
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
+
 # Tekmar Gateway 482 (tekmar-482)
 
 Home Assistant Integration for the Tekmar Gateway 482
@@ -8,7 +10,13 @@ Documentation Wiki:
 
 https://github.com/WillCodeForCats/tekmar-482/wiki
 
-## Add-On
+## Compatible Equipment
+
+For a list of compatible equipment see the wiki.
+
+https://github.com/WillCodeForCats/tekmar-482/wiki/Compatible-Equipment
+
+## Required Add-On
 
 This Integration requires the Tekmar Packet Server Add-On:
 
@@ -16,6 +24,15 @@ https://github.com/WillCodeForCats/tekmar-packetserv
 
 If you are installing from HACS you will need to manually install this add-on since HACS doesn't support add-ons.
 The Tekmar Packet Server Add-On is required for this integration to work.
+
+## Installation
+
+Copy the contents of the custom_components folder into to your Home Assistant config/custom_components folder or install through HACS.
+After rebooting Home Assistant, this integration can be configured through the integration setup UI.
+
+## Configuration
+
+https://github.com/WillCodeForCats/tekmar-482/wiki/Configuration
 
 ## Credits
 
