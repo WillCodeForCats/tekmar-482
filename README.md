@@ -1,30 +1,25 @@
-# tekmar-482
-Home Assistant integration for the Tekmar 482 Gateway
+# Tekmar Gateway 482 (tekmar-482)
 
-Works with Add On Tekmar Packet Server:
-https://github.com/WillCodeForCats/tekmar-packetserv
+Home Assistant Integration for the Tekmar Gateway 482
 
-## Progress Updates
-Please visit the wiki section. Documentation is being developed "on the fly" as the integration is developed. Once I have something that's relatively complete and tested, the first version of the integration will be made available on github and we'll see what happens with bug reports. I won't have hands on discontinued thermostats and snow melt controls (as much as I'd love a heated driveway to avoid shoveling snow, I don't have one) so these will probably rely on bug reports if I haven't interpreted the user manuals correctly.
+https://github.com/WillCodeForCats/tekmar-482
+
+Documentation Wiki:
 
 https://github.com/WillCodeForCats/tekmar-482/wiki
 
-Once I'm comfortable with my test platform I will connect it to my real home system and give it the "friends and family" test.
+## Add-On
 
-Jan 18, 2022: The Setpoint 161 control I ordered should be here by Friday.
+This Integration requires the Tekmar Packet Server Add-On:
 
-Jan 8, 2022:
+https://github.com/WillCodeForCats/tekmar-packetserv
 
-Purchased a Setpoint 161 and Thermostat 553 for additional testing (currently waiting for them to arrive).
+If you are installing from HACS you will need to manually install this add-on since HACS doesn't support add-ons.
+The Tekmar Packet Server Add-On is required for this integration to work.
 
-* Added a User Swith 480 to my test platform for scene control.
-* Initally tested and developed with a single Thermostat 557
-* Outdoor tempeature is being provided by an sensor configured on the 577. On my real system, a 423 boiler control with the outdoor sensor.
+## Credits
 
-Supports basic controls with the Home Assistant Climate entity:
+Implemented using "tN4 Gateway 482 - Custom Integration Tools" and "Tekmar Home Automation
+(tHA) Protocol" from: https://www.watts.com/products/hvac-hot-water-solutions/controls/control-accessories/482/482
 
-<img width="401" alt="Screen Shot 2022-01-08 at 11 51 31 AM" src="https://user-images.githubusercontent.com/48533968/148657876-dcc1dddb-ddf3-40fd-91b7-4af45682efa5.png">
-
-Additional controls will be exposed as other entity types, such as select for Fan Percent, switches for Setpoint or Snowmelt Enable/Disable, and useful sensors:
-
-<img width="1119" alt="Screen Shot 2022-01-08 at 11 50 10 AM" src="https://user-images.githubusercontent.com/48533968/148657815-16713767-5a05-4201-b884-843376bba374.png">
+Tekmar, tekmarNet, tN4, tN2, and related logos and trademarks are copyright 2021 Watts.
