@@ -7,7 +7,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
+from .const import (
+    DOMAIN,
+    THA_NA_8, 
+)
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -21,8 +24,7 @@ async def async_setup_entry(
 
     for gateway in hub.tha_gateway:
         entities.append(ReportingState(gateway, config_entry))
-        if hub.tha_pr_ver in [2,3]:
-            entities.append(SetbackEnable(gateway, config_entry))
+        entities.append(SetbackEnable(gateway, config_entry))
 
     if entities:
         async_add_entities(entities)
@@ -101,8 +103,18 @@ class SetbackEnable(ThaBinarySensorBase):
         self._attr_name = f"{self.config_entry_name.capitalize()} Gateway Setback Enable"
 
     @property
+    def available(self) -> bool:        
+        if (
+            self._tekmar_tha.setback_enable == None or
+            self._tekmar_tha.setback_enable == THA_NA_8
+        ):
+            return False
+            
+        else:
+            return True
+
+    @property
     def is_on(self):
-        """Return the state of the sensor."""
         if self._tekmar_tha.setback_enable == 0x01:
             return True
         else:

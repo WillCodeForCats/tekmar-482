@@ -59,7 +59,6 @@ class TekmarHub:
         
         self._tx_queue = []
         
-
     async def _async_init_tha(self) -> None:
         
         self._inSetup = True
@@ -101,6 +100,7 @@ class TekmarHub:
             )
         )
 
+        # inventory must be last
         self._tx_queue.append(
             TrpcPacket(
                 service = 'Request',
@@ -448,7 +448,7 @@ class TekmarHub:
     @property
     def tha_setback_enable(self) -> int:
         return self._tha_setback_enable
-        
+
 
 class TekmarThermostat:
     def __init__(self, address: int, tha_device: [], hub: TekmarHub) -> None:
@@ -660,6 +660,10 @@ class TekmarThermostat:
     @property
     def active_demand(self) -> str:
         return self._tha_active_demand
+
+    @property
+    def setback_enable(self) -> str:
+        return self.hub.tha_setback_enable
 
     @property
     def setback_state(self) -> str:
@@ -930,6 +934,10 @@ class TekmarSetpoint:
         return self._tha_setpoint_target_temperature
 
     @property
+    def setback_enable(self) -> str:
+        return self.hub.tha_setback_enable
+
+    @property
     def setback_state(self) -> str:
         return self._tha_setback_state
 
@@ -976,7 +984,6 @@ class TekmarSetpoint:
     def device_info(self) -> Optional[Dict[str, Any]]:
         return self._device_info        
 
-
 class TekmarGateway:
     def __init__(
         self,
@@ -1008,7 +1015,6 @@ class TekmarGateway:
             12: None
         }
             
-
         # Some static information about this device
         self.firmware_version = f"{hub.tha_fw_ver} protocol {hub.tha_pr_ver}"
         self.model = "482"
@@ -1020,7 +1026,7 @@ class TekmarGateway:
             "model": self.model,
             "sw_version": self.firmware_version,
         }
-     
+             
         self.hub.queue_message(
             TrpcPacket(
                 service = 'Request',

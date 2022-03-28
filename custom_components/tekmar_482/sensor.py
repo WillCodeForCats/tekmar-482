@@ -8,9 +8,7 @@ from homeassistant.const import (
     PERCENTAGE, TEMP_CELSIUS
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import (
-    EntityCategory,
-)
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from homeassistant.components.climate.const import (
@@ -69,9 +67,7 @@ async def async_setup_entry(
         
         if DEVICE_TYPES[device.tha_device['type']] == THA_TYPE_THERMOSTAT:
             entities.append(CurrentTemperature(device, config_entry))
-
-            if hub.tha_setback_enable == 0x01:
-                entities.append(SetbackState(device, config_entry))
+            entities.append(SetbackState(device, config_entry))
         
             if (
                 DEVICE_FEATURES[device.tha_device['type']]['humid'] and
@@ -119,12 +115,10 @@ class ThaSensorBase(SensorEntity):
     # If an entity is offline (return False), the UI will refelect this.
     @property
     def available(self) -> bool:
-        """Return True if roller and hub is available."""
         return self._tekmar_tha.online and self._tekmar_tha.hub.online
 
     @property
     def config_entry_id(self):
-        """Return True if roller and hub is available."""
         return self._config_entry.entry_id
 
     @property
@@ -375,8 +369,12 @@ class SetbackState(ThaSensorBase):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.setback_state == THA_NA_8:
+        if (
+            self._tekmar_tha.setback_state == THA_NA_8 or
+            self._tekmar_tha.setback_enable == 0x00
+        ):
             return False
+
         else:
             return True
 
