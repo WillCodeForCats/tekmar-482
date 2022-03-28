@@ -984,6 +984,68 @@ class TekmarSetpoint:
     def device_info(self) -> Optional[Dict[str, Any]]:
         return self._device_info        
 
+class TekmarSnowmelt:
+    def __init__(self, address: int, tha_device: [], hub: TekmarHub) -> None:
+        self._id = address
+        self.hub = hub
+        self.tha_device = tha_device
+        self._callbacks = set()
+        
+        self._tha_active_demand = None
+
+        # Some static information about this device
+        self._device_type = DEVICE_TYPES[self.tha_device['type']]
+        self._tha_full_device_name = self.tha_device['entity']
+        self.firmware_version = self.tha_device['version']
+        self.model = DEVICE_FEATURES[self.tha_device['type']]['model']
+
+        self._device_info = {
+            "identifiers": {(DOMAIN, self._id)},
+            "name": f"{hub.hub_id.capitalize()} {self._device_type.capitalize()} {self.model} {self._id}",
+            "manufacturer": ATTR_MANUFACTURER,
+            "model": self.model,
+            "sw_version": self.firmware_version,
+        }
+
+    @property
+    def device_id(self) -> str:
+        return self._id
+
+    @property
+    def tha_device_type(self) -> str:
+        return self._device_type
+
+    @property
+    def tha_full_device_name(self) -> str:
+        return self._tha_full_device_name
+
+    @property
+    def active_demand(self) -> str:
+        return self._tha_active_demand
+
+    async def set_active_demand(self, demand: int) -> None:
+        self._tha_active_demand = demand
+        await self.publish_updates()
+        
+    def register_callback(self, callback: Callable[[], None]) -> None:
+        self._callbacks.add(callback)
+
+    def remove_callback(self, callback: Callable[[], None]) -> None:
+        self._callbacks.discard(callback)
+
+    async def publish_updates(self) -> None:
+        for callback in self._callbacks:
+            callback()
+
+    @property
+    def online(self) -> float:
+        """Device is online."""
+        return True
+
+    @property
+    def device_info(self) -> Optional[Dict[str, Any]]:
+        return self._device_info        
+
 class TekmarGateway:
     def __init__(
         self,
