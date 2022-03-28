@@ -227,8 +227,9 @@ class TekmarHub:
                     )
 
                 elif DEVICE_TYPES[self._tha_inventory[address]['type']] == THA_TYPE_SNOWMELT:
-                    #TekmarSnowmelt(address, self._tha_inventory[address], self)
-                    _LOGGER.warning("Unhandeled device: %s %s", THA_TYPE_SNOWMELT, self._tha_inventory[address])
+                    self.tha_devices.append(
+                        TekmarSnowmelt(address, self._tha_inventory[address], self)
+                    )
                 
                 else:
                     _LOGGER.error("Unknown device at address %s", address)
