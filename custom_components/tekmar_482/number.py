@@ -34,8 +34,8 @@ async def async_setup_entry(
     for device in hub.tha_devices:
         if DEVICE_TYPES[device.tha_device['type']] == THA_TYPE_THERMOSTAT:
             if DEVICE_FEATURES[device.tha_device['type']]['humid']:
-                entities.append(TheHumiditySetMax(device, config_entry))
-                entities.append(TheHumiditySetMin(device, config_entry))
+                entities.append(ThaHumiditySetMax(device, config_entry))
+                entities.append(ThaHumiditySetMin(device, config_entry))
 
     if entities:
         async_add_entities(entities)
@@ -77,7 +77,7 @@ class ThaNumberBase(NumberEntity):
         """Entity being removed from hass."""
         self._tekmar_tha.remove_callback(self.async_write_ha_state)
 
-class TheHumiditySetMax(ThaNumberBase):
+class ThaHumiditySetMax(ThaNumberBase):
 
     unit_of_measurement = PERCENTAGE
     icon = 'mdi:water-percent'
@@ -117,7 +117,7 @@ class TheHumiditySetMax(ThaNumberBase):
     def value(self):
         return self._tekmar_tha.humidity_setpoint_max
 
-class TheHumiditySetMin(ThaNumberBase):
+class ThaHumiditySetMin(ThaNumberBase):
 
     unit_of_measurement = PERCENTAGE
     icon = 'mdi:water-percent'
