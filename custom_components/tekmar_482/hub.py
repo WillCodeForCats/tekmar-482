@@ -14,7 +14,7 @@ from homeassistant.core import HomeAssistant
 from .const import (
     DOMAIN,
     DEVICE_TYPES, DEVICE_FEATURES, DEVICE_ATTRIBUTES,
-    ATTR_MANUFACTURER,
+    DEFAULT_SETBACK_ENABLE, ATTR_MANUFACTURER,
     THA_TYPE_THERMOSTAT, THA_TYPE_SETPOINT, THA_TYPE_SNOWMELT, THA_CURRENT,
     SETBACK_SETPOINT_MAP, SETBACK_FAN_MAP
 )
@@ -38,9 +38,13 @@ class TekmarHub:
         self._name = name
         self._host = host
         self._port = port
-        self._setback_enable = setback_enable
-        self._id = name.lower()
         
+        if setback_enable is None:
+            self._setback_enable = DEFAULT_SETBACK_ENABLE
+        else:
+            self._setback_enable = setback_enable
+
+        self._id = name.lower()  
         self._sock = TrpcSocket(host, port)
         
         self._tha_inventory = {}

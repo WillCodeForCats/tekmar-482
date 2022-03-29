@@ -93,6 +93,7 @@ class ReportingState(ThaBinarySensorBase):
             return False
 
 class SetbackEnable(ThaBinarySensorBase):
+
     entity_category = EntityCategory.DIAGNOSTIC
     device_class = BinarySensorDeviceClass.RUNNING
 
