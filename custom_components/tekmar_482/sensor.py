@@ -83,7 +83,7 @@ async def async_setup_entry(
                 
         if DEVICE_TYPES[device.tha_device['type']] == THA_TYPE_SETPOINT:
             entities.append(CurrentTemperature(device, config_entry))
-            #entities.append(CurrentFloorTemperature(device, config_entry))
+            entities.append(CurrentFloorTemperature(device, config_entry))
             entities.append(SetbackState(device, config_entry))
             entities.append(SetpointTarget(device, config_entry))
             entities.append(SetpointDemand(device, config_entry))
@@ -166,8 +166,9 @@ class OutdoorTemprature(ThaSensorBase):
 
         else:
             try:
-                temp = degHtoC(self._tekmar_tha.outdoor_temprature) # degH need degC
-                return round(temp, 1)
+                return degHtoC(self._tekmar_tha.outdoor_temprature) # degH need degC
+                #temp = degHtoC(self._tekmar_tha.outdoor_temprature) # degH need degC
+                #return round(temp, 1)
 
             except TypeError:
                 return None
@@ -278,8 +279,9 @@ class CurrentTemperature(ThaSensorBase):
 
         else:
             try:
-                temp = degHtoC(self._tekmar_tha.current_temperature)
-                return round(temp, 1)
+                return degHtoC(self._tekmar_tha.current_temperature)
+                #temp = degHtoC(self._tekmar_tha.current_temperature)
+                #return round(temp, 1)
 
             except TypeError:
                 return None
@@ -318,8 +320,9 @@ class CurrentFloorTemperature(ThaSensorBase):
 
         else:
             try:
-                temp = degHtoC(self._tekmar_tha.current_floor_temperature)
-                return round(temp, 1)
+                return degHtoC(self._tekmar_tha.current_floor_temperature)
+                #temp = degHtoC(self._tekmar_tha.current_floor_temperature)
+                #return round(temp, 1)
 
             except TypeError:
                 return None
@@ -438,8 +441,9 @@ class SetpointTarget(ThaSensorBase):
 
         else:
             try:
-                temp = degHtoC(self._tekmar_tha.setpoint_target)
-                return round(temp, 1)
+                return degHtoC(self._tekmar_tha.setpoint_target)
+                #temp = degHtoC(self._tekmar_tha.setpoint_target)
+                #return round(temp, 1)
 
             except TypeError:
                 return None
