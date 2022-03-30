@@ -129,14 +129,14 @@ class ThaClimateThermostat(ThaClimateBase):
         supported_features = 0
         
         if (
-            DEVICE_FEATURES[self._tekmar_tha.tha_device['type']]['heat'] and
-            DEVICE_FEATURES[self._tekmar_tha.tha_device['type']]['cool']
+            self._tekmar_tha.tha_device['attributes'].Zone_Heating == 1 and
+            self._tekmar_tha.tha_device['attributes'].Zone_Cooling == 1
         ):
             supported_features = supported_features | SUPPORT_TARGET_TEMPERATURE_RANGE
         else:
             supported_features = supported_features | SUPPORT_TARGET_TEMPERATURE
     
-        if DEVICE_FEATURES[self._tekmar_tha.tha_device['type']]['fan']:
+        if self._tekmar_tha.tha_device['attributes'].Fan_Percent == 1:
             supported_features = supported_features | SUPPORT_FAN_MODE
 
         if DEVICE_FEATURES[self._tekmar_tha.tha_device['type']]['humid']:
@@ -160,8 +160,9 @@ class ThaClimateThermostat(ThaClimateBase):
 
         else:
             try:
-                temp = degHtoC(self._tekmar_tha.current_temperature) # degH need degC
-                return round(temp, 0)
+                return degHtoC(self._tekmar_tha.current_temperature)
+                #temp = degHtoC(self._tekmar_tha.current_temperature)
+                #return round(temp, 0)
 
             except TypeError:
                 return None
@@ -183,15 +184,15 @@ class ThaClimateThermostat(ThaClimateBase):
 
         hvac_modes = [HVAC_MODE_OFF]
         
-        if self._tekmar_tha.tha_device['attributes'].Zone_Heating:
+        if self._tekmar_tha.tha_device['attributes'].Zone_Heating == 1:
             hvac_modes.append(HVAC_MODE_HEAT)
 
-        if self._tekmar_tha.tha_device['attributes'].Zone_Cooling:
+        if self._tekmar_tha.tha_device['attributes'].Zone_Cooling == 1:
             hvac_modes.append(HVAC_MODE_COOL)
             
         if (
-            self._tekmar_tha.tha_device['attributes'].Zone_Heating and
-            self._tekmar_tha.tha_device['attributes'].Zone_Cooling
+            self._tekmar_tha.tha_device['attributes'].Zone_Heating == 1 and
+            self._tekmar_tha.tha_device['attributes'].Zone_Cooling == 1
         ):
             hvac_modes.append(HVAC_MODE_HEAT_COOL)
 
@@ -219,7 +220,7 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def fan_modes(self):
-        if DEVICE_FEATURES[self._tekmar_tha.tha_device['type']]['fan']:
+        if self._tekmar_tha.tha_device['attributes'].Fan_Percent == 1:
             return [FAN_ON, FAN_AUTO]
         else:
             return None
@@ -313,16 +314,10 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def target_temperature(self):
-        if (
-            self._tekmar_tha.tha_device['attributes'].Zone_Heating and
-            self._tekmar_tha.mode_setting == 0x03
-        ):
+        if self._tekmar_tha.tha_device['attributes'].Zone_Heating == 1:
             this_device_setpoint = self._tekmar_tha.heat_setpoint
     
-        elif (
-            self._tekmar_tha.tha_device['attributes'].Zone_Cooling and
-            self._tekmar_tha.mode_setting == 0x01
-        ):
+        elif self._tekmar_tha.tha_device['attributes'].Zone_Cooling == 1:
             this_device_setpoint = self._tekmar_tha.cool_setpoint
         
         else:
@@ -336,6 +331,8 @@ class ThaClimateThermostat(ThaClimateBase):
 
         else:
             try:
+                #temp = degEtoC(this_device_setpoint)
+                #return round(temp, 0)
                 return degEtoC(this_device_setpoint)
 
             except TypeError:
@@ -380,10 +377,20 @@ class ThaClimateThermostat(ThaClimateBase):
         # ATTR_TARGET_TEMP_LOW, ATTR_TARGET_TEMP_HIGH
         #value = kwargs[ATTR_TEMPERATURE]
         #await self._tekmar_tha.async_set_temperature(value)
+        heat_setpoint = None
+        cool_setpoint = None
         
-        heat_setpoint = kwargs.get(ATTR_TARGET_TEMP_LOW)
-        cool_setpoint = kwargs.get(ATTR_TARGET_TEMP_HIGH)
-        
+        if self.supported_features & SUPPORT_TARGET_TEMPERATURE:
+            if self._tekmar_tha.tha_device['attributes'].Zone_Heating == 1:
+                heat_setpoint = kwargs.get(ATTR_TEMPERATURE)
+
+            elif self._tekmar_tha.tha_device['attributes'].Zone_Cooling == 1:
+                cool_setpoint = kwargs.get(ATTR_TEMPERATURE)
+     
+        elif self.supported_features & SUPPORT_TARGET_TEMPERATURE_RANGE:        
+            heat_setpoint = kwargs.get(ATTR_TARGET_TEMP_LOW)
+            cool_setpoint = kwargs.get(ATTR_TARGET_TEMP_HIGH)
+                 
         if heat_setpoint is not None:
             heat_setpoint = int(degCtoE(heat_setpoint))
             await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint)

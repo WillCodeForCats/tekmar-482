@@ -109,6 +109,10 @@ class ThaFanSelect(ThaSelectBase):
     def available(self) -> bool:        
         if self._tekmar_tha.fan_percent == THA_NA_8:
             return False
+
+        elif self._tekmar_tha.tha_device['attributes'].Fan_Percent == 0:
+            return False
+
         else:
             return True
 

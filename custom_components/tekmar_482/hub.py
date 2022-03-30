@@ -473,23 +473,24 @@ class TekmarThermostat:
         
         self._config_emergency_heat = False
         self._config_cooling = False
-        self._config_heating = False
+        self._config_heating = None
+        self._config_cool_setpoint_max = 38
+        self._config_cool_setpoint_min = 10
+        self._config_heat_setpoint_max = 29.5
+        self._config_heat_setpoint_min = 4.5
 
-        self._tha_heat_setpoint = None #degE
         self._tha_heat_setpoints = { #degE
             0x00: None, #day
             0x01: None, #night
             0x02: None, #away
             }
 
-        self._tha_cool_setpoint = None #degE
         self._tha_cool_setpoints = { #degE
             0x00: None,
             0x01: None,
             0x02: None,
             }
 
-        self._tha_slab_setpoint = None #degE
         self._tha_slab_setpoints = { #degE
             0x00: None,
             0x01: None,
@@ -652,11 +653,41 @@ class TekmarThermostat:
 
     @property
     def cool_setpoint(self) -> str:
-        return self._tha_cool_setpoint
+        try:
+            return self._tha_cool_setpoints[SETBACK_SETPOINT_MAP[self._tha_setback_state]]
+        except KeyError:
+            return None
+
+    @property
+    def cool_setpoint_day(self) -> str:
+        return self._tha_cool_setpoints[0x00]
+
+    @property
+    def cool_setpoint_night(self) -> str:
+        return self._tha_cool_setpoints[0x01]
+
+    @property
+    def cool_setpoint_away(self) -> str:
+        return self._tha_cool_setpoints[0x02]
 
     @property
     def heat_setpoint(self) -> str:
-        return self._tha_heat_setpoint
+        try:
+            return self._tha_heat_setpoints[SETBACK_SETPOINT_MAP[self._tha_setback_state]]
+        except KeyError:
+            return None
+
+    @property
+    def heat_setpoint_day(self) -> str:
+        return self._tha_heat_setpoints[0x00]
+
+    @property
+    def heat_setpoint_night(self) -> str:
+        return self._tha_heat_setpoints[0x01]
+
+    @property
+    def heat_setpoint_away(self) -> str:
+        return self._tha_heat_setpoints[0x02]
 
     @property
     def slab_setpoint(self) -> str:
@@ -716,7 +747,6 @@ class TekmarThermostat:
         await self.publish_updates()
 
     async def set_heat_setpoint(self, setpoint: int) -> None:
-        self._tha_heat_setpoint = setpoint
         self._tha_heat_setpoints[SETBACK_SETPOINT_MAP[self._tha_setback_state]] = setpoint
         await self.publish_updates()
 
@@ -732,7 +762,6 @@ class TekmarThermostat:
         )
 
     async def set_cool_setpoint(self, setpoint: int) -> None:
-        self._tha_cool_setpoint = setpoint
         self._tha_cool_setpoints[SETBACK_SETPOINT_MAP[self._tha_setback_state]] = setpoint
         await self.publish_updates()
 
@@ -749,7 +778,6 @@ class TekmarThermostat:
         
     async def set_slab_setpoint(self, setpoint: int) -> None:
         self._tha_slab_setpoints[SETBACK_SETPOINT_MAP[self._tha_setback_state]] = setpoint
-        self._tha_slab_setpoint = setpoint
         await self.publish_updates()
 
     async def set_fan_percent(self, percent: int, setback: int) -> None:

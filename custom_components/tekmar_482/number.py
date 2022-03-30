@@ -20,6 +20,33 @@ from .const import (
     THA_TYPE_THERMOSTAT
 )
 
+def degCtoF(degC):
+    """ convert Celcius to degF """
+    return ((degC * 9/5) + 32)
+
+def degEtoC(degE):
+    """ convert degE to degC """
+    #degE = 2*(degC)
+    return (degE / 2)
+
+def degCtoE(degC):
+    """ convert degE to degC """
+    #degE = 2*(degC)
+    return (2 * degC)
+
+def degHtoF(degH):
+    """ convert degH to degF """
+    #degH = 10*(degF) + 850
+    return ((degH - 850) / 10)
+
+def degFtoC(degF):
+    """ convert degF to degC """
+    #degC = (degF - 32) / 1.8
+    return ((degF - 32) / 1.8)
+    
+def degHtoC(degH):
+    return degFtoC(degHtoF(degH))
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -32,6 +59,17 @@ async def async_setup_entry(
     entities = []
 
     for device in hub.tha_devices:
+        if hub.tha_setback_enable is True:
+            entities.append(ThaHeatSetpointDay(device, config_entry))
+            entities.append(ThaHeatSetpointNight(device, config_entry))
+            entities.append(ThaHeatSetpointAway(device, config_entry))
+            entities.append(ThaCoolSetpointDay(device, config_entry))
+            entities.append(ThaCoolSetpointNight(device, config_entry))
+            entities.append(ThaCoolSetpointAway(device, config_entry))
+        else:
+            entities.append(ThaHeatSetpoint(device, config_entry))
+            entities.append(ThaCoolSetpoint(device, config_entry))
+
         if DEVICE_TYPES[device.tha_device['type']] == THA_TYPE_THERMOSTAT:
             if DEVICE_FEATURES[device.tha_device['type']]['humid']:
                 entities.append(ThaHumiditySetMax(device, config_entry))
@@ -57,12 +95,10 @@ class ThaNumberBase(NumberEntity):
 
     @property
     def available(self) -> bool:
-        """Return True if roller and hub is available."""
         return self._tekmar_tha.online and self._tekmar_tha.hub.online
 
     @property
     def config_entry_id(self):
-        """Return True if roller and hub is available."""
         return self._config_entry.entry_id
 
     @property
@@ -76,6 +112,7 @@ class ThaNumberBase(NumberEntity):
     async def async_will_remove_from_hass(self):
         """Entity being removed from hass."""
         self._tekmar_tha.remove_callback(self.async_write_ha_state)
+
 
 class ThaHumiditySetMax(ThaNumberBase):
 
@@ -156,3 +193,93 @@ class ThaHumiditySetMin(ThaNumberBase):
     @property
     def value(self):
         return self._tekmar_tha.humidity_setpoint_min
+
+
+
+class ThaHeatSetpoint(ThaNumberBase):
+
+    unit_of_measurement = TEMP_CELSIUS
+    icon = 'mdi:thermostat'
+    mode = 'box'
+    min_value = 20
+    max_value = 80
+    
+    def __init__(self, tekmar_tha, config_entry):
+        """Initialize the sensor."""
+        super().__init__(tekmar_tha, config_entry)
+
+        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-heat-setpoint"
+        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint"
+
+    #async def async_set_value(self, value: float) -> None:
+    #    value = int(value)
+    #    await self._tekmar_tha.set_humidity_setpoint_min_txqueue(value)
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        if self._tekmar_tha.setback_state is False:
+            return True
+        else:
+            return False
+
+    @property
+    def available(self) -> bool:        
+        if self._tekmar_tha.heat_setpoint == THA_NA_8:
+            return False
+
+        elif self._tekmar_tha.tha_device['attributes'].Zone_Heating == 0:
+            return False
+            
+        else:
+            return True
+
+    @property
+    def value(self):
+        try:
+            return degEtoC(self._tekmar_tha.heat_setpoint)
+        except TypeError:
+            return None
+
+class ThaCoolSetpoint(ThaNumberBase):
+
+    unit_of_measurement = TEMP_CELSIUS
+    icon = 'mdi:thermostat'
+    mode = 'box'
+    min_value = 20
+    max_value = 80
+    
+    def __init__(self, tekmar_tha, config_entry):
+        """Initialize the sensor."""
+        super().__init__(tekmar_tha, config_entry)
+
+        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-cool-setpoint"
+        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint"
+
+    #async def async_set_value(self, value: float) -> None:
+    #    value = int(value)
+    #    await self._tekmar_tha.set_humidity_setpoint_min_txqueue(value)
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        if self._tekmar_tha.setback_state is False:
+            return True
+        else:
+            return False
+
+    @property
+    def available(self) -> bool:        
+        if self._tekmar_tha.cool_setpoint == THA_NA_8:
+            return False
+        
+        elif self._tekmar_tha.tha_device['attributes'].Zone_Cooling == 0:
+            return False
+            
+        else:
+            return True
+
+    @property
+    def value(self):
+        try:
+            return degEtoC(self._tekmar_tha.cool_setpoint)
+        except TypeError:
+            return None
