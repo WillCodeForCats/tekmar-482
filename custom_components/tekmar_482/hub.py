@@ -91,7 +91,7 @@ class TekmarHub:
             )
         )
         
-        if self._setback_enable:
+        if self._setback_enable is True:
             packet_setback_enable = 0x01
         else:
             packet_setback_enable = 0x00
