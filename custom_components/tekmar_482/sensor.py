@@ -368,6 +368,13 @@ class SetbackState(ThaSensorBase):
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Setback State"
 
     @property
+    def entity_registry_enabled_default(self) -> bool:
+        if self._tekmar_tha.setback_enable is True:
+            return True
+        else:
+            return False
+
+    @property
     def available(self) -> bool:
         if (
             self._tekmar_tha.setback_state == THA_NA_8 or

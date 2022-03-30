@@ -59,18 +59,18 @@ async def async_setup_entry(
     entities = []
 
     for device in hub.tha_devices:
-        if hub.tha_setback_enable is True:
-            entities.append(ThaHeatSetpointDay(device, config_entry))
-            entities.append(ThaHeatSetpointNight(device, config_entry))
-            entities.append(ThaHeatSetpointAway(device, config_entry))
-            entities.append(ThaCoolSetpointDay(device, config_entry))
-            entities.append(ThaCoolSetpointNight(device, config_entry))
-            entities.append(ThaCoolSetpointAway(device, config_entry))
-        else:
-            entities.append(ThaHeatSetpoint(device, config_entry))
-            entities.append(ThaCoolSetpoint(device, config_entry))
-
         if DEVICE_TYPES[device.tha_device['type']] == THA_TYPE_THERMOSTAT:
+            if hub.tha_setback_enable is True:
+                entities.append(ThaHeatSetpointDay(device, config_entry))
+                entities.append(ThaHeatSetpointNight(device, config_entry))
+                entities.append(ThaHeatSetpointAway(device, config_entry))
+                entities.append(ThaCoolSetpointDay(device, config_entry))
+                entities.append(ThaCoolSetpointNight(device, config_entry))
+                entities.append(ThaCoolSetpointAway(device, config_entry))
+            else:
+                entities.append(ThaHeatSetpoint(device, config_entry))
+                entities.append(ThaCoolSetpoint(device, config_entry))
+
             if DEVICE_FEATURES[device.tha_device['type']]['humid']:
                 entities.append(ThaHumiditySetMax(device, config_entry))
                 entities.append(ThaHumiditySetMin(device, config_entry))
@@ -194,8 +194,6 @@ class ThaHumiditySetMin(ThaNumberBase):
     def value(self):
         return self._tekmar_tha.humidity_setpoint_min
 
-
-
 class ThaHeatSetpoint(ThaNumberBase):
 
     unit_of_measurement = TEMP_CELSIUS
@@ -217,7 +215,7 @@ class ThaHeatSetpoint(ThaNumberBase):
 
     @property
     def entity_registry_enabled_default(self) -> bool:
-        if self._tekmar_tha.setback_state is False:
+        if self._tekmar_tha.setback_enable is False:
             return True
         else:
             return False
@@ -261,7 +259,7 @@ class ThaCoolSetpoint(ThaNumberBase):
 
     @property
     def entity_registry_enabled_default(self) -> bool:
-        if self._tekmar_tha.setback_state is False:
+        if self._tekmar_tha.setback_enable is False:
             return True
         else:
             return False
