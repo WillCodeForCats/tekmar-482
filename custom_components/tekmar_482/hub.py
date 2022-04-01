@@ -308,14 +308,18 @@ class TekmarHub:
                             await device.set_relative_humidity(p.body['percent'])
 
                 elif tha_method in ['ActiveDemand']:
-                    if DEVICE_TYPES[self._tha_inventory[b['address']]['type']] == THA_TYPE_THERMOSTAT:
-                        self._tx_queue.append(
-                            TrpcPacket(
-                                service = 'Request',
-                                method = 'ModeSetting',
-                                address = b['address']
+                    try:
+                        if DEVICE_TYPES[self._tha_inventory[b['address']]['type']] == THA_TYPE_THERMOSTAT:
+                            self._tx_queue.append(
+                                TrpcPacket(
+                                    service = 'Request',
+                                    method = 'ModeSetting',
+                                    address = b['address']
+                                )
                             )
-                        )
+                    except KeyError:
+                        pass
+                
                     for device in self.tha_devices:
                         if device.device_id == b['address']:
                             await device.set_active_demand(p.body['demand'])
@@ -365,10 +369,6 @@ class TekmarHub:
                     
                 elif tha_method in ['TakingAddress']:
                     _LOGGER.error("Device at address %s moved to %s; please reload integration!", p.body['old_address'], p.body['new_address'])
-                    #for device in self.tha_devices:
-                    #   if device.device_id == b['old_address']:
-                    #       disable entire device since we can't re-address due to need for address in unique_id
-                    #       integration will need to be restarted/reloaded
 
                 elif tha_method in ['DeviceAttributes']:
                     _LOGGER.error("Device attributes for %s changed; please reload integration!", b['address'])
