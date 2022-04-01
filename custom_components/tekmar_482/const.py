@@ -194,11 +194,11 @@ DEVICE_FEATURES = {
         "heat": 0, "cool": 0, "fan": 0, "humid": 0, "snow": 1
         },
     108401: {
-        "model": "670", "type": DEVICE_TYPES[??????],
+        "model": "670", "type": DEVICE_TYPES[108401],
         "heat": 0, "cool": 0, "fan": 0, "humid": 0, "snow": 1
         },
     108402: {
-        "model": "671", "type": DEVICE_TYPES[??????],
+        "model": "671", "type": DEVICE_TYPES[108402],
         "heat": 0, "cool": 0, "fan": 0, "humid": 0, "snow": 1
         },
 }
