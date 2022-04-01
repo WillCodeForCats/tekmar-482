@@ -104,8 +104,8 @@ DEVICE_TYPES = {
     105101: THA_TYPE_THERMOSTAT,
     104401: THA_TYPE_THERMOSTAT,
     105801: THA_TYPE_SNOWMELT,
-    #??????: THA_TYPE_SNOWMELT, for snowmelt 670
-    #??????: THA_TYPE_SNOWMELT, for snowmelt 671
+    108401: THA_TYPE_SNOWMELT,
+    108402: THA_TYPE_SNOWMELT,
 }
 
 DEVICE_FEATURES = {
@@ -193,14 +193,14 @@ DEVICE_FEATURES = {
         "model": "654", "type": DEVICE_TYPES[105801],
         "heat": 0, "cool": 0, "fan": 0, "humid": 0, "snow": 1
         },
-#    ??????: {
-#        "model": "670", "type": DEVICE_TYPES[??????],
-#        "heat": 0, "cool": 0, "fan": 0, "humid": 0, "snow": 1
-#        },
-#    ??????: {
-#        "model": "671", "type": DEVICE_TYPES[??????],
-#        "heat": 0, "cool": 0, "fan": 0, "humid": 0, "snow": 1
-#        },
+    108401: {
+        "model": "670", "type": DEVICE_TYPES[??????],
+        "heat": 0, "cool": 0, "fan": 0, "humid": 0, "snow": 1
+        },
+    108402: {
+        "model": "671", "type": DEVICE_TYPES[??????],
+        "heat": 0, "cool": 0, "fan": 0, "humid": 0, "snow": 1
+        },
 }
 
 class _DEVICE_ATTRIBUTES( ctypes.LittleEndianStructure ):
