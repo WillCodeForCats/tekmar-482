@@ -111,95 +111,95 @@ DEVICE_TYPES = {
 DEVICE_FEATURES = {
     101101: {
         "model": "161", "type": DEVICE_TYPES[101101],
-        "heat": 1, "cool": 0, "fan": 0, "humid": 0, "snow": 0
+        "heat": 1, "cool": 0, "fan": 0, "humid": 0, "snow": 0, "emer": 0
     },
     101102: {
         "model": "162", "type": DEVICE_TYPES[101102],
-        "heat": 1, "cool": 1, "fan": 0, "humid": 0, "snow": 0
+        "heat": 1, "cool": 1, "fan": 0, "humid": 0, "snow": 0, "emer": 0
     },
     102301: {
         "model": "527", "type": DEVICE_TYPES[102301],
-        "heat": 1, "cool": 0, "fan": 0, "humid": 0, "snow": 0
+        "heat": 1, "cool": 0, "fan": 0, "humid": 0, "snow": 0, "emer": 0
         },
     102302: {
         "model": "528", "type": DEVICE_TYPES[102302],
-        "heat": 1, "cool": 0, "fan": 0, "humid": 0, "snow": 0
+        "heat": 1, "cool": 0, "fan": 0, "humid": 0, "snow": 0, "emer": 0
         },
     102303: {
         "model": "529", "type": DEVICE_TYPES[102303],
-        "heat": 2, "cool": 0, "fan": 0, "humid": 0, "snow": 0
+        "heat": 2, "cool": 0, "fan": 0, "humid": 0, "snow": 0, "emer": 0
         },
     102304: {
         "model": "530", "type": DEVICE_TYPES[102304],
-        "heat": 1, "cool": 1, "fan": 1, "humid": 0, "snow": 0
+        "heat": 1, "cool": 1, "fan": 1, "humid": 0, "snow": 0, "emer": 0
         },
     100102: {
         "model": "537", "type": DEVICE_TYPES[100102],
-        "heat": 1, "cool": 0, "fan": 0, "humid": 0, "snow": 0
+        "heat": 1, "cool": 0, "fan": 0, "humid": 0, "snow": 0, "emer": 0
         },
     100103: {
         "model": "538", "type": DEVICE_TYPES[100103],
-        "heat": 1, "cool": 0, "fan": 0, "humid": 0, "snow": 0
+        "heat": 1, "cool": 0, "fan": 0, "humid": 0, "snow": 0, "emer": 0
         },
     100101: {
         "model": "540", "type": DEVICE_TYPES[100101],
-        "heat": 1, "cool": 1, "fan": 1, "humid": 0, "snow": 0
+        "heat": 1, "cool": 1, "fan": 1, "humid": 0, "snow": 0, "emer": 0
         },
     99301: {
         "model": "541", "type": DEVICE_TYPES[99301],
-        "heat": 1, "cool": 0, "fan": 0, "humid": 0, "snow": 0
+        "heat": 1, "cool": 0, "fan": 0, "humid": 0, "snow": 0, "emer": 0
         },
     99302: {
         "model": "542", "type": DEVICE_TYPES[99302],
-        "heat": 1, "cool": 0, "fan": 0, "humid": 0, "snow": 0
+        "heat": 1, "cool": 0, "fan": 0, "humid": 0, "snow": 0, "emer": 0
         },
     99401: {
         "model": "543", "type": DEVICE_TYPES[99401],
-        "heat": 2, "cool": 0, "fan": 0, "humid": 0, "snow": 0
+        "heat": 2, "cool": 0, "fan": 0, "humid": 0, "snow": 0, "emer": 0
         },
     99203: { 
         "model": "544", "type": DEVICE_TYPES[99203],
-        "heat": 1, "cool": 1, "fan": 1, "humid": 0, "snow": 0
+        "heat": 1, "cool": 1, "fan": 1, "humid": 0, "snow": 0, "emer": 0
         },
     99202: {
         "model": "545", "type": DEVICE_TYPES[99202],
-        "heat": 2, "cool": 1, "fan": 1, "humid": 0, "snow": 0
+        "heat": 2, "cool": 1, "fan": 1, "humid": 0, "snow": 0, "emer": 0
         },
     99201: {
         "model": "546", "type": DEVICE_TYPES[99201],
-        "heat": 2, "cool": 2, "fan": 2, "humid": 0, "snow": 0
+        "heat": 2, "cool": 2, "fan": 2, "humid": 0, "snow": 0, "emer": 0
         },
     107201: {
         "model": "532", "type": DEVICE_TYPES[107201],
-        "heat": 1, "cool": 0, "fan": 0, "humid": 0, "snow": 0
+        "heat": 1, "cool": 0, "fan": 0, "humid": 0, "snow": 0, "emer": 0
         },
     105103: {
         "model": "552", "type": DEVICE_TYPES[105103],
-        "heat": 1, "cool": 0, "fan": 0, "humid": 0, "snow": 0
+        "heat": 1, "cool": 0, "fan": 0, "humid": 0, "snow": 0, "emer": 0
         },
     105102: {
         "model": "553", "type": DEVICE_TYPES[105102],
-        "heat": 2, "cool": 1, "fan": 1, "humid": 1, "snow": 0
+        "heat": 2, "cool": 1, "fan": 1, "humid": 1, "snow": 0, "emer": 0
         },
     105101: {
         "model": "554", "type": DEVICE_TYPES[105101],
-        "heat": 1, "cool": 1, "fan": 1, "humid": 0, "snow": 0
+        "heat": 1, "cool": 1, "fan": 1, "humid": 0, "snow": 0, "emer": 0
         },
     104401: {
         "model": "557", "type": DEVICE_TYPES[104401],
-        "heat": 2, "cool": 2, "fan": 1, "humid": 1, "snow": 0
+        "heat": 2, "cool": 2, "fan": 1, "humid": 1, "snow": 0, "emer": 1
         },
     105801: {
         "model": "654", "type": DEVICE_TYPES[105801],
-        "heat": 0, "cool": 0, "fan": 0, "humid": 0, "snow": 1
+        "heat": 0, "cool": 0, "fan": 0, "humid": 0, "snow": 1, "emer": 0
         },
     108401: {
         "model": "670", "type": DEVICE_TYPES[108401],
-        "heat": 0, "cool": 0, "fan": 0, "humid": 0, "snow": 1
+        "heat": 0, "cool": 0, "fan": 0, "humid": 0, "snow": 1, "emer": 0
         },
     108402: {
         "model": "671", "type": DEVICE_TYPES[108402],
-        "heat": 0, "cool": 0, "fan": 0, "humid": 0, "snow": 1
+        "heat": 0, "cool": 0, "fan": 0, "humid": 0, "snow": 1, "emer": 0
         },
 }
 

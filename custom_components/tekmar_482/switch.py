@@ -36,6 +36,7 @@ async def async_setup_entry(
             entities.append(ThaSetpointGroup(gateway, config_entry, 0x0A))
             entities.append(ThaSetpointGroup(gateway, config_entry, 0x0B))
             entities.append(ThaSetpointGroup(gateway, config_entry, 0x0C))
+        ConfigEmergencyHeat
 
     if entities:
         async_add_entities(entities)
@@ -117,3 +118,38 @@ class ThaSetpointGroup(ThaSwitchBase):
             return True
         else:
             raise NotImplementedError
+
+class ConfigEmergencyHeat(ThaSwitchBase):
+
+    entity_category = EntityCategory.CONFIG
+
+    def __init__(self, tekmar_tha, config_entry):
+        """Initialize the sensor."""
+        super().__init__(tekmar_tha, config_entry)
+        
+        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-conf-emer-heat"
+        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Has Emergency Heat"
+
+    async def async_turn_on(self, **kwargs):
+        await self._tekmar_tha.set_conf_emer_heat(True)
+
+    async def async_turn_off(self, **kwargs):
+        await self._tekmar_tha.set_conf_emer_heat(False)
+
+    @property
+    def available(self) -> bool:        
+        if setpoint_groups[self._setpoint_group] == None:
+            return False
+            
+        elif setpoint_groups[self._setpoint_group] == THA_NA_8:
+            return False
+            
+        else:
+            return True
+
+    @property
+    def is_on(self):        
+        if self.conf_emer_heat is True:
+            return True
+        else:
+            return False
