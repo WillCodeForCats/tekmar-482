@@ -480,10 +480,3 @@ class SetpointDemand(ThaSensorBase):
             
         else:
             return None
-
-    #@property
-    #def extra_state_attributes(self):
-        #try:
-        #    return {"description": SETBACK_DESCRIPTION[self._tekmar_tha.setback_state]}
-        #except KeyError:
-        #    return None
