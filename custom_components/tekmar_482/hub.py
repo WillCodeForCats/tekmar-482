@@ -678,10 +678,6 @@ class TekmarThermostat:
             return None
 
     @property
-    def config_emergency_heat(self) -> bool:
-        return self._config_emergency_heat
-
-    @property
     def heat_setpoint_day(self) -> str:
         return self._tha_heat_setpoints[0x00]
 
@@ -692,6 +688,10 @@ class TekmarThermostat:
     @property
     def heat_setpoint_away(self) -> str:
         return self._tha_heat_setpoints[0x02]
+
+    @property
+    def config_emergency_heat(self) -> bool:
+        return self._config_emergency_heat
 
     @property
     def slab_setpoint(self) -> str:
