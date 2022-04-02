@@ -1,7 +1,7 @@
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     SUPPORT_TARGET_TEMPERATURE, SUPPORT_TARGET_TEMPERATURE_RANGE, SUPPORT_FAN_MODE,
-    SUPPORT_TARGET_HUMIDITY,
+    SUPPORT_TARGET_HUMIDITY, SUPPORT_AUX_HEAT,
     HVAC_MODE_OFF, HVAC_MODE_HEAT, HVAC_MODE_COOL, HVAC_MODE_HEAT_COOL, HVAC_MODE_FAN_ONLY,
     CURRENT_HVAC_OFF, CURRENT_HVAC_IDLE, CURRENT_HVAC_HEAT, CURRENT_HVAC_COOL,
     ATTR_TARGET_TEMP_LOW, ATTR_TARGET_TEMP_HIGH,
@@ -124,6 +124,8 @@ class ThaClimateThermostat(ThaClimateBase):
         self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-climate"
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Climate"
         
+        self._last_mode_setting = 0x00
+        
     @property
     def supported_features(self):
         supported_features = 0
@@ -147,6 +149,9 @@ class ThaClimateThermostat(ThaClimateBase):
                 self._tekmar_tha.humidity_setpoint_max != THA_NA_8)
             ):
                 supported_features =  supported_features | SUPPORT_TARGET_HUMIDITY
+        
+        if self._tekmar_tha.config_emergency_heat is True:
+            supported_features = supported_features | SUPPORT_AUX_HEAT
         
         return supported_features
 
@@ -213,7 +218,6 @@ class ThaClimateThermostat(ThaClimateBase):
         elif self._tekmar_tha.mode_setting == 0x05:
             return None
         elif self._tekmar_tha.mode_setting == 0x06:
-            #tekmar "emergency" mode, HA does not have equivalent
             return HVAC_MODE_HEAT
         else:
             return None
@@ -371,12 +375,6 @@ class ThaClimateThermostat(ThaClimateBase):
                 return None
 
     async def async_set_temperature(self, **kwargs):
-        # for SUPPORT_TARGET_TEMPERATURE
-        # ATTR_TEMPERATURE
-        # for SUPPORT_TARGET_TEMPERATURE_RANGE
-        # ATTR_TARGET_TEMP_LOW, ATTR_TARGET_TEMP_HIGH
-        #value = kwargs[ATTR_TEMPERATURE]
-        #await self._tekmar_tha.async_set_temperature(value)
         heat_setpoint = None
         cool_setpoint = None
         
@@ -448,3 +446,10 @@ class ThaClimateThermostat(ThaClimateBase):
         
         else:
             pass
+
+    async def async_turn_aux_heat_on(self):
+        self._last_mode_setting = self._tekmar_tha.mode_setting
+        await self._tekmar_tha.set_mode_setting_txqueue(0x06)
+        
+    async def async_turn_aux_heat_off(self):
+        await self._tekmar_tha.set_mode_setting_txqueue(self._last_mode_setting)

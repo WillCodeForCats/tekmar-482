@@ -473,7 +473,7 @@ class TekmarThermostat:
         
         self._config_emergency_heat = False
         self._config_cooling = False
-        self._config_heating = None
+        self._config_heating = False
         self._config_cool_setpoint_max = 38
         self._config_cool_setpoint_min = 10
         self._config_heat_setpoint_max = 29.5
@@ -678,6 +678,10 @@ class TekmarThermostat:
             return None
 
     @property
+    def config_emergency_heat(self) -> bool:
+        return self._config_emergency_heat
+
+    @property
     def heat_setpoint_day(self) -> str:
         return self._tha_heat_setpoints[0x00]
 
@@ -734,6 +738,10 @@ class TekmarThermostat:
         else:
             return self._tha_humidity_setpoint_max
 
+    async def set_config_emer_heat(self, config: bool) -> None:
+        self._config_emergency_heat = config
+        await self.publish_updates()
+    
     async def set_current_temperature(self, temp: int) -> None:
         self._tha_current_temperature = temp
         await self.publish_updates()
@@ -805,6 +813,10 @@ class TekmarThermostat:
         
     async def set_mode_setting(self, mode: int) -> None:
         self._tha_mode_setting = mode
+        
+        if mode == 0x06:
+            self._config_emergency_heat = True
+            
         await self.publish_updates()
         
     async def set_mode_setting_txqueue(self, value: int) -> None:

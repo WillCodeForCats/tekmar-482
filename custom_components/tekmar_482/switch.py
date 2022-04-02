@@ -8,7 +8,9 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity import EntityCategory
 from .const import (
     DOMAIN,
-    THA_NA_8, 
+    DEVICE_FEATURES, DEVICE_TYPES,
+    THA_TYPE_THERMOSTAT,
+    THA_NA_8
 )
 
 
@@ -36,7 +38,11 @@ async def async_setup_entry(
             entities.append(ThaSetpointGroup(gateway, config_entry, 0x0A))
             entities.append(ThaSetpointGroup(gateway, config_entry, 0x0B))
             entities.append(ThaSetpointGroup(gateway, config_entry, 0x0C))
-        ConfigEmergencyHeat
+
+    for device in hub.tha_devices:
+        if DEVICE_TYPES[device.tha_device['type']] == THA_TYPE_THERMOSTAT:
+            if DEVICE_FEATURES[device.tha_device['type']]['emer']:
+                entities.append(ConfigEmergencyHeat(device, config_entry))
 
     if entities:
         async_add_entities(entities)
@@ -127,29 +133,25 @@ class ConfigEmergencyHeat(ThaSwitchBase):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
         
-        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-conf-emer-heat"
+        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-config-emer-heat"
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Has Emergency Heat"
 
     async def async_turn_on(self, **kwargs):
-        await self._tekmar_tha.set_conf_emer_heat(True)
+        await self._tekmar_tha.set_config_emer_heat(True)
 
     async def async_turn_off(self, **kwargs):
-        await self._tekmar_tha.set_conf_emer_heat(False)
+        await self._tekmar_tha.set_config_emer_heat(False)
 
     @property
     def available(self) -> bool:        
-        if setpoint_groups[self._setpoint_group] == None:
-            return False
-            
-        elif setpoint_groups[self._setpoint_group] == THA_NA_8:
-            return False
-            
-        else:
+        if DEVICE_FEATURES[self._tekmar_tha.tha_device['type']]['emer']:
             return True
+        else:
+            return False
 
     @property
     def is_on(self):        
-        if self.conf_emer_heat is True:
+        if self._tekmar_tha.config_emergency_heat is True:
             return True
         else:
             return False
