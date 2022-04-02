@@ -1,6 +1,10 @@
 from .trpc_sock import TrpcSocket
 from .trpc_msg import TrpcPacket, name_from_methodID
 
+from os.path import exists
+from threading import Lock
+
+import pickle
 import asyncio
 import logging
 import datetime
@@ -46,7 +50,11 @@ class TekmarHub:
 
         self._id = name.lower()  
         self._sock = TrpcSocket(host, port)
-        
+
+        self._data_file = hass.config.path(f"{format(DOMAIN)}.pickle")
+        self._storage = StoredData(self._data_file)
+        self.storage_put(f"{format(DOMAIN)}.pickle", True)
+
         self._tha_inventory = {}
         self.tha_gateway = []
         self.tha_devices = []
@@ -73,7 +81,7 @@ class TekmarHub:
             TrpcPacket(
                 service = 'Update',
                 method = 'ReportingState',
-                states = 0x0
+                states = 0x00
             )
         )
 
@@ -119,6 +127,7 @@ class TekmarHub:
                 # that gets cleared as we get respones back, then retry
                 # messages we didn't get a response for
                 await self._sock.write(self._tx_queue.pop(0))
+                await asyncio.sleep(0.1)
 
             p = await self._sock.read()
             
@@ -250,6 +259,7 @@ class TekmarHub:
                 # that gets cleared as we get respones back, then retry
                 # messages we didn't get a response for
                 await self._sock.write(self._tx_queue.pop(0))
+                await asyncio.sleep(0.1)
 
             p = await self._sock.read()
             if p is not None:            
@@ -453,6 +463,12 @@ class TekmarHub:
     @property
     def tha_setback_enable(self) -> int:
         return self._tha_setback_enable
+        
+    def storage_get(self, key: Any) -> Any:
+        return self._storage.get_setting(key)
+
+    def storage_put(self, key: Any, value: Any) -> None:
+        self._storage.put_setting(key, value)
 
 
 class TekmarThermostat:
@@ -471,7 +487,7 @@ class TekmarThermostat:
         self._tha_humidity_setpoint_min = None
         self._tha_humidity_setpoint_max = None
         
-        self._config_emergency_heat = False
+        self._config_emergency_heat = self.hub.storage_get(f"{self._id}_config_emergency_heat")
         self._config_cooling = False
         self._config_heating = False
         self._config_cool_setpoint_max = 38
@@ -738,8 +754,9 @@ class TekmarThermostat:
         else:
             return self._tha_humidity_setpoint_max
 
-    async def set_config_emer_heat(self, config: bool) -> None:
-        self._config_emergency_heat = config
+    async def set_config_emer_heat(self, value: bool) -> None:
+        self._config_emergency_heat = value
+        self.hub.storage_put(f"{self._id}_config_emergency_heat", value)
         await self.publish_updates()
     
     async def set_current_temperature(self, temp: int) -> None:
@@ -815,6 +832,7 @@ class TekmarThermostat:
         self._tha_mode_setting = mode
         
         if mode == 0x06:
+            self.hub.storage_put(f"{self._id}_config_emergency_heat", True)
             self._config_emergency_heat = True
             
         await self.publish_updates()
@@ -1234,3 +1252,43 @@ class TekmarGateway:
     @property
     def device_info(self) -> Optional[Dict[str, Any]]:
         return self._device_info        
+
+class StoredData(object):
+    """Abstraction over pickle data storage."""
+
+    def __init__(self, data_file):
+        """Initialize pickle data storage."""
+        self._data_file = data_file
+        self._lock = Lock()
+        self._cache_outdated = True
+        self._data = {}
+        self._fetch_data()
+
+    def _fetch_data(self):
+        """Fetch data stored into pickle file."""
+        if self._cache_outdated and exists(self._data_file):
+            try:
+                _LOGGER.debug(f"Fetching data from file {self._data_file}")
+                with self._lock, open(self._data_file, 'rb') as myfile:
+                    self._data = pickle.load(myfile) or {}
+                    self._cache_outdated = False
+            # pylint: disable=bare-except
+            except:
+                _LOGGER.error(f"Error loading data from pickled file {self._data_file}")
+
+    def get_setting(self, key):
+        self._fetch_data()
+        return self._data.get(key)
+
+    def put_setting(self, key, value):
+        self._fetch_data()
+        with self._lock, open(self._data_file, 'wb') as myfile:
+            self._data.update({key: value})
+            _LOGGER.debug(f"Writing {key}:{value} in storage file {self._data_file}")
+            try:
+                pickle.dump(self._data, myfile)
+            # pylint: disable=bare-except
+            except:
+                _LOGGER.error(f"Error saving pickled data to {self._data_file}")
+
+        self._cache_outdated = True
