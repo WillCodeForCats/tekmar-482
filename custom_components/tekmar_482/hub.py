@@ -15,6 +15,9 @@ from typing import Any, Callable, Optional, Dict
 from homeassistant.util import dt
 from homeassistant.core import HomeAssistant
 
+from homeassistant.helpers.temperature import display_temp
+from homeassistant.const import TEMP_CELSIUS
+
 from .const import (
     DOMAIN,
     DEVICE_TYPES, DEVICE_FEATURES, DEVICE_ATTRIBUTES,
@@ -51,9 +54,9 @@ class TekmarHub:
         self._id = name.lower()  
         self._sock = TrpcSocket(host, port)
 
-        self._data_file = hass.config.path(f"{format(DOMAIN)}.pickle")
+        self._data_file = hass.config.path(f"{format(DOMAIN)}.{format(self._name)}.pickle")
         self._storage = StoredData(self._data_file)
-        self.storage_put(f"{format(DOMAIN)}.pickle", True)
+        self.storage_put(f"{format(DOMAIN)}.{format(self._name)}.pickle", True)
 
         self._tha_inventory = {}
         self.tha_gateway = []
@@ -70,7 +73,17 @@ class TekmarHub:
         self._inReconnect = False
         
         self._tx_queue = []
+
         
+    def convert_temp(
+        self,
+        temperature: float,
+        unit: str = TEMP_CELSIUS,
+        precision: float = 0
+    ):
+        return display_temp(self._hass, temperature, unit, precision)
+    
+    
     async def _async_init_tha(self) -> None:
         
         self._inSetup = True
@@ -488,12 +501,12 @@ class TekmarThermostat:
         self._tha_humidity_setpoint_max = None
         
         self._config_emergency_heat = self.hub.storage_get(f"{self._id}_config_emergency_heat")
-        self._config_cooling = False
-        self._config_heating = False
-        self._config_cool_setpoint_max = 38
-        self._config_cool_setpoint_min = 10
-        self._config_heat_setpoint_max = 29.5
-        self._config_heat_setpoint_min = 4.5
+        self._config_cooling = self.hub.storage_get(f"{self._id}_config_cooling")
+        self._config_heating = self.hub.storage_get(f"{self._id}_config_heating")
+        self._config_cool_setpoint_max = self.hub.storage_get(f"{self._id}_config_cool_setpoint_max")
+        self._config_cool_setpoint_min = self.hub.storage_get(f"{self._id}_config_cool_setpoint_min")
+        self._config_heat_setpoint_max = self.hub.storage_get(f"{self._id}_config_heat_setpoint_max")
+        self._config_heat_setpoint_min = self.hub.storage_get(f"{self._id}_config_heat_setpoint_min")
 
         self._tha_heat_setpoints = { #degE
             0x00: None, #day

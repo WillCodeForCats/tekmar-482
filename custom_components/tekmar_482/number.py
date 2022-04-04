@@ -15,9 +15,10 @@ from homeassistant.helpers.typing import ConfigType, StateType
 
 from .const import (
     DOMAIN,
-    DEVICE_FEATURES, DEVICE_TYPES,
     THA_NA_8, THA_NA_16,
-    THA_TYPE_THERMOSTAT
+    DEVICE_FEATURES, DEVICE_TYPES, THA_TYPE_THERMOSTAT,
+    THA_DEFAULT_COOL_SETPOINT_MAX, THA_DEFAULT_COOL_SETPOINT_MIN,
+    THA_DEFAULT_HEAT_SETPOINT_MAX, THA_DEFAULT_HEAT_SETPOINT_MIN
 )
 
 def degCtoF(degC):
@@ -198,9 +199,6 @@ class ThaHeatSetpoint(ThaNumberBase):
 
     unit_of_measurement = TEMP_CELSIUS
     icon = 'mdi:thermostat'
-    mode = 'box'
-    min_value = 20
-    max_value = 80
     
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
@@ -238,13 +236,24 @@ class ThaHeatSetpoint(ThaNumberBase):
         except TypeError:
             return None
 
+    @property
+    def min_value(self):
+        if self._tekmar_tha._config_heat_setpoint_min is None:
+            return self._tekmar_tha.hub.convert_temp(THA_DEFAULT_HEAT_SETPOINT_MIN)
+        else:
+            return self._tekmar_tha.hub.convert_temp(self._tekmar_tha._config_heat_setpoint_min)
+    
+    @property
+    def max_value(self):
+        if self._tekmar_tha._config_heat_setpoint_max is None:
+            return self._tekmar_tha.hub.convert_temp(THA_DEFAULT_HEAT_SETPOINT_MAX)
+        else:
+            return self._tekmar_tha.hub.convert_temp(self._tekmar_tha._config_heat_setpoint_max)
+    
 class ThaCoolSetpoint(ThaNumberBase):
 
     unit_of_measurement = TEMP_CELSIUS
     icon = 'mdi:thermostat'
-    mode = 'box'
-    min_value = 20
-    max_value = 80
     
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
@@ -281,3 +290,17 @@ class ThaCoolSetpoint(ThaNumberBase):
             return degEtoC(self._tekmar_tha.cool_setpoint)
         except TypeError:
             return None
+    
+    @property
+    def min_value(self):
+        if self._tekmar_tha._config_cool_setpoint_min is None:
+            return self._tekmar_tha.hub.convert_temp(THA_DEFAULT_COOL_SETPOINT_MIN)
+        else:
+            return self._tekmar_tha.hub.convert_temp(self._tekmar_tha._config_cool_setpoint_min)
+    
+    @property
+    def max_value(self):
+        if self._tekmar_tha._config_cool_setpoint_max is None:
+            return self._tekmar_tha.hub.convert_temp(THA_DEFAULT_COOL_SETPOINT_MAX)
+        else:
+            return self._tekmar_tha.hub.convert_temp(self._tekmar_tha._config_cool_setpoint_max)
