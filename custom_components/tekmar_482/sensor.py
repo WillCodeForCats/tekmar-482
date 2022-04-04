@@ -11,12 +11,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from homeassistant.components.climate.const import (
-    CURRENT_HVAC_IDLE, CURRENT_HVAC_HEAT, CURRENT_HVAC_COOL,
-)
-
 from .const import (
-    DOMAIN,
+    DOMAIN, ACTIVE_DEMAND,
     DEVICE_TYPES, DEVICE_FEATURES,
     SETBACK_STATE, SETBACK_DESCRIPTION,
     THA_NA_8, THA_NA_16, NETWORK_ERRORS, 
@@ -469,14 +465,8 @@ class SetpointDemand(ThaSensorBase):
 
     @property
     def native_value(self):
-        if self._tekmar_tha.active_demand == 0x00:
-            return CURRENT_HVAC_IDLE
+        try:
+            return ACTIVE_DEMAND[self._tekmar_tha.active_demand]
             
-        elif self._tekmar_tha.active_demand == 0x01:
-            return CURRENT_HVAC_HEAT
-        
-        elif self._tekmar_tha.active_demand == 0x03:
-            return CURRENT_HVAC_COOL
-            
-        else:
-            return None
+        except KeyError:
+            return None            
