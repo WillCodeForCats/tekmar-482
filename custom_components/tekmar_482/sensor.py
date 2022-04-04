@@ -11,6 +11,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .helpers import (
+    regBytes, degHtoC
+)
+
 from .const import (
     DOMAIN, ACTIVE_DEMAND,
     DEVICE_TYPES, DEVICE_FEATURES,
@@ -19,30 +23,6 @@ from .const import (
     THA_TYPE_THERMOSTAT, THA_TYPE_SETPOINT,
 )
 
-def regBytes(integer):
-    return divmod(integer, 0x100)
-
-def degCtoF(degC):
-    """ convert Celcius to degF """
-    return ((degC * 9/5) + 32)
-
-def degEtoC(degE):
-    """ convert degE to degC """
-    #degE = 2*(degC)
-    return (degE / 2)
-
-def degHtoF(degH):
-    """ convert degH to degF """
-    #degH = 10*(degF) + 850
-    return ((degH - 850) / 10)
-
-def degFtoC(degF):
-    """ convert degF to degC """
-    #degC = (degF - 32) / 1.8
-    return ((degF - 32) / 1.8)
-    
-def degHtoC(degH):
-    return degFtoC(degHtoF(degH))
 
 async def async_setup_entry(
     hass: HomeAssistant,

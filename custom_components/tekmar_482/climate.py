@@ -15,39 +15,15 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .helpers import (
+    degEtoC, degHtoC, degCtoE
+)
+
 from .const import (
     DOMAIN,
     DEVICE_FEATURES, DEVICE_TYPES, THA_TYPE_THERMOSTAT,
     THA_NA_8, THA_NA_16,
 )
-
-def degCtoF(degC):
-    """ convert Celcius to degF """
-    return ((degC * 9/5) + 32)
-
-def degEtoC(degE):
-    """ convert degE to degC """
-    #degE = 2*(degC)
-    return (degE / 2)
-
-def degCtoE(degC):
-    """ convert degE to degC """
-    #degE = 2*(degC)
-    return (2 * degC)
-
-def degHtoF(degH):
-    """ convert degH to degF """
-    #degH = 10*(degF) + 850
-    return ((degH - 850) / 10)
-
-def degFtoC(degF):
-    """ convert degF to degC """
-    #degC = (degF - 32) / 1.8
-    return ((degF - 32) / 1.8)
-    
-def degHtoC(degH):
-    return degFtoC(degHtoF(degH))
-
 
 async def async_setup_entry(
     hass: HomeAssistant,

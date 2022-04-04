@@ -13,6 +13,8 @@ from homeassistant.helpers.entity import (
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, StateType
 
+from .helpers import degEtoC
+
 from .const import (
     DOMAIN,
     THA_NA_8, THA_NA_16,
@@ -20,34 +22,6 @@ from .const import (
     THA_DEFAULT_COOL_SETPOINT_MAX, THA_DEFAULT_COOL_SETPOINT_MIN,
     THA_DEFAULT_HEAT_SETPOINT_MAX, THA_DEFAULT_HEAT_SETPOINT_MIN
 )
-
-def degCtoF(degC):
-    """ convert Celcius to degF """
-    return ((degC * 9/5) + 32)
-
-def degEtoC(degE):
-    """ convert degE to degC """
-    #degE = 2*(degC)
-    return (degE / 2)
-
-def degCtoE(degC):
-    """ convert degE to degC """
-    #degE = 2*(degC)
-    return (2 * degC)
-
-def degHtoF(degH):
-    """ convert degH to degF """
-    #degH = 10*(degF) + 850
-    return ((degH - 850) / 10)
-
-def degFtoC(degF):
-    """ convert degF to degC """
-    #degC = (degF - 32) / 1.8
-    return ((degF - 32) / 1.8)
-    
-def degHtoC(degH):
-    return degFtoC(degHtoF(degH))
-
 
 async def async_setup_entry(
     hass: HomeAssistant,
