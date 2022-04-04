@@ -136,9 +136,6 @@ class TekmarHub:
 
         while self._inSetup == True:
             if len(self._tx_queue) != 0:
-                # do something here where we add messages to another list
-                # that gets cleared as we get respones back, then retry
-                # messages we didn't get a response for
                 await self._sock.write(self._tx_queue.pop(0))
                 await asyncio.sleep(0.1)
 
@@ -268,9 +265,6 @@ class TekmarHub:
         while self._inRun == True:  
 
             if len(self._tx_queue) != 0:
-                # do something here where we add messages to another list
-                # that gets cleared as we get respones back, then retry
-                # messages we didn't get a response for
                 await self._sock.write(self._tx_queue.pop(0))
                 await asyncio.sleep(0.1)
 
