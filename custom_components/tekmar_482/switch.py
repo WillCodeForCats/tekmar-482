@@ -50,7 +50,6 @@ async def async_setup_entry(
         async_add_entities(entities)
 
 class ThaSwitchBase(SwitchEntity):
-
     should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
@@ -60,17 +59,14 @@ class ThaSwitchBase(SwitchEntity):
 
     @property
     def device_info(self):
-        """Return information to link this entity with the correct device."""
         return self._tekmar_tha.device_info
 
     @property
     def available(self) -> bool:
-        """Return True if roller and hub is available."""
         return self._tekmar_tha.online and self._tekmar_tha.hub.online
 
     @property
     def config_entry_id(self):
-        """Return True if roller and hub is available."""
         return self._config_entry.entry_id
 
     @property
@@ -78,15 +74,12 @@ class ThaSwitchBase(SwitchEntity):
         return self._config_entry.data['name']
 
     async def async_added_to_hass(self):
-        """Run when this Entity has been added to HA."""
         self._tekmar_tha.register_callback(self.async_write_ha_state)
 
     async def async_will_remove_from_hass(self):
-        """Entity being removed from hass."""
         self._tekmar_tha.remove_callback(self.async_write_ha_state)
 
 class ThaSetpointGroup(ThaSwitchBase):
-
     icon = 'mdi:select-group'
 
     def __init__(self, tekmar_tha, config_entry, group: int):
@@ -128,15 +121,15 @@ class ThaSetpointGroup(ThaSwitchBase):
             raise NotImplementedError
 
 class ConfigEmergencyHeat(ThaSwitchBase):
-
     entity_category = EntityCategory.CONFIG
+    icon = 'mdi:hvac'
 
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
         
         self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-config-emer-heat"
-        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Has Emergency Heat"
+        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Emergency/Aux Heat"
 
     async def async_turn_on(self, **kwargs):
         await self._tekmar_tha.set_config_emer_heat(True)
@@ -159,8 +152,8 @@ class ConfigEmergencyHeat(ThaSwitchBase):
             return False
 
 class ConfigVentMode(ThaSwitchBase):
-
     entity_category = EntityCategory.CONFIG
+    icon = 'mdi:fan-plus'
 
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""

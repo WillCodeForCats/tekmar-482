@@ -57,17 +57,14 @@ async def async_setup_entry(
 
 
 class ThaNumberBase(NumberEntity):
-
     should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
         self._tekmar_tha = tekmar_tha
         self._config_entry = config_entry
 
     @property
     def device_info(self):
-        """Return information to link this entity with the correct device."""
         return self._tekmar_tha.device_info
 
     @property
@@ -83,16 +80,13 @@ class ThaNumberBase(NumberEntity):
         return self._config_entry.data['name']
 
     async def async_added_to_hass(self):
-        """Run when this Entity has been added to HA."""
         self._tekmar_tha.register_callback(self.async_write_ha_state)
 
     async def async_will_remove_from_hass(self):
-        """Entity being removed from hass."""
         self._tekmar_tha.remove_callback(self.async_write_ha_state)
 
 
 class ThaHumiditySetMax(ThaNumberBase):
-
     unit_of_measurement = PERCENTAGE
     icon = 'mdi:water-percent'
     min_value = 20
@@ -132,7 +126,6 @@ class ThaHumiditySetMax(ThaNumberBase):
         return self._tekmar_tha.humidity_setpoint_max
 
 class ThaHumiditySetMin(ThaNumberBase):
-
     unit_of_measurement = PERCENTAGE
     icon = 'mdi:water-percent'
     min_value = 20
@@ -172,7 +165,6 @@ class ThaHumiditySetMin(ThaNumberBase):
         return self._tekmar_tha.humidity_setpoint_min
 
 class ThaHeatSetpoint(ThaNumberBase):
-
     unit_of_measurement = TEMP_CELSIUS
     icon = 'mdi:thermostat'
     
@@ -227,7 +219,6 @@ class ThaHeatSetpoint(ThaNumberBase):
             return self._tekmar_tha.hub.display_temp(self._tekmar_tha._config_heat_setpoint_max)
     
 class ThaHeatSetpointDay(ThaHeatSetpoint):
-
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
@@ -258,7 +249,6 @@ class ThaHeatSetpointDay(ThaHeatSetpoint):
             return None
 
 class ThaHeatSetpointNight(ThaHeatSetpoint):
-
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
@@ -289,7 +279,6 @@ class ThaHeatSetpointNight(ThaHeatSetpoint):
             return None
 
 class ThaHeatSetpointAway(ThaHeatSetpoint):
-
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
@@ -320,7 +309,6 @@ class ThaHeatSetpointAway(ThaHeatSetpoint):
             return None
 
 class ThaCoolSetpoint(ThaNumberBase):
-
     unit_of_measurement = TEMP_CELSIUS
     icon = 'mdi:thermostat'
     
@@ -375,7 +363,6 @@ class ThaCoolSetpoint(ThaNumberBase):
             return self._tekmar_tha.hub.display_temp(self._tekmar_tha._config_cool_setpoint_max)
             
 class ThaCoolSetpointDay(ThaCoolSetpoint):
-
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
@@ -406,7 +393,6 @@ class ThaCoolSetpointDay(ThaCoolSetpoint):
             return None
 
 class ThaCoolSetpointNight(ThaCoolSetpoint):
-
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
@@ -437,7 +423,6 @@ class ThaCoolSetpointNight(ThaCoolSetpoint):
             return None
 
 class ThaCoolSetpointAway(ThaCoolSetpoint):
-
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)

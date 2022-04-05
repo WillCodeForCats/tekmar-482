@@ -70,7 +70,6 @@ async def async_setup_entry(
 
 
 class ThaSensorBase(SensorEntity):
-
     should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
@@ -78,17 +77,10 @@ class ThaSensorBase(SensorEntity):
         self._tekmar_tha = tekmar_tha
         self._config_entry = config_entry
 
-    # To link this entity to the cover device, this property must return an
-    # identifiers value matching that used in the cover, but no other information such
-    # as name. If name is returned, this entity will then also become a device in the
-    # HA UI.
     @property
     def device_info(self):
-        """Return information to link this entity with the correct device."""
         return self._tekmar_tha.device_info
 
-    # This property is important to let HA know if this entity is online or not.
-    # If an entity is offline (return False), the UI will refelect this.
     @property
     def available(self) -> bool:
         return self._tekmar_tha.online and self._tekmar_tha.hub.online
@@ -102,17 +94,12 @@ class ThaSensorBase(SensorEntity):
         return self._config_entry.data['name']
 
     async def async_added_to_hass(self):
-        """Run when this Entity has been added to HA."""
-        # Sensors should also register callbacks to HA when their state changes
         self._tekmar_tha.register_callback(self.async_write_ha_state)
 
     async def async_will_remove_from_hass(self):
-        """Entity being removed from hass."""
-        # The opposite of async_added_to_hass. Remove any registered call backs here.
         self._tekmar_tha.remove_callback(self.async_write_ha_state)
 
 class OutdoorTemprature(ThaSensorBase):
-    """Representation of a Sensor."""
     device_class = SensorDeviceClass.TEMPERATURE
     state_class = STATE_CLASS_MEASUREMENT
     native_unit_of_measurement = TEMP_CELSIUS
@@ -133,7 +120,6 @@ class OutdoorTemprature(ThaSensorBase):
 
     @property
     def native_value(self):
-        """Return the state of the sensor."""
         if (
             self._tekmar_tha.outdoor_temprature == THA_NA_16 or
             self._tekmar_tha.outdoor_temprature == None
@@ -150,7 +136,6 @@ class OutdoorTemprature(ThaSensorBase):
                 return None
 
 class LastPing(ThaSensorBase):
-    """Representation of a Sensor."""
     entity_category = EntityCategory.DIAGNOSTIC
     device_class = SensorDeviceClass.TIMESTAMP
     icon = 'mdi:heart-pulse'
@@ -171,7 +156,6 @@ class LastPing(ThaSensorBase):
 
     @property
     def native_value(self):
-        """Return the state of the sensor."""
         if self._tekmar_tha.last_ping == None:
             return None
         else:
@@ -189,7 +173,6 @@ class NetworkError(ThaSensorBase):
 
     @property
     def native_value(self):
-        """Return the state of the sensor."""
         return hex(self._tekmar_tha.network_error)
 
     @property
@@ -223,7 +206,6 @@ class NetworkError(ThaSensorBase):
             return {"description": "Unknown Error"}
 
 class CurrentTemperature(ThaSensorBase):
-    """Representation of a Sensor."""
     device_class = SensorDeviceClass.TEMPERATURE
     state_class = STATE_CLASS_MEASUREMENT
     native_unit_of_measurement = TEMP_CELSIUS
@@ -246,7 +228,6 @@ class CurrentTemperature(ThaSensorBase):
 
     @property
     def native_value(self):
-        """Return the state of the sensor."""
         if (
             self._tekmar_tha.current_temperature == THA_NA_16 or
             self._tekmar_tha.current_temperature == None
@@ -263,7 +244,6 @@ class CurrentTemperature(ThaSensorBase):
                 return None
 
 class CurrentFloorTemperature(ThaSensorBase):
-    """Representation of a Sensor."""
     device_class = SensorDeviceClass.TEMPERATURE
     state_class = STATE_CLASS_MEASUREMENT
     native_unit_of_measurement = TEMP_CELSIUS
@@ -287,7 +267,6 @@ class CurrentFloorTemperature(ThaSensorBase):
 
     @property
     def native_value(self):
-        """Return the state of the sensor."""
         if (
             self._tekmar_tha.current_floor_temperature == THA_NA_16 or
             self._tekmar_tha.current_floor_temperature == None
@@ -304,7 +283,6 @@ class CurrentFloorTemperature(ThaSensorBase):
                 return None
 
 class RelativeHumidity(ThaSensorBase):
-    """Representation of a Sensor."""
     device_class = SensorDeviceClass.HUMIDITY
     state_class = STATE_CLASS_MEASUREMENT
     native_unit_of_measurement = PERCENTAGE
@@ -325,7 +303,6 @@ class RelativeHumidity(ThaSensorBase):
 
     @property
     def native_value(self):
-        """Return the state of the sensor."""
         if (
             self._tekmar_tha.relative_humidity == THA_NA_8 or
             self._tekmar_tha.relative_humidity == None
@@ -336,11 +313,9 @@ class RelativeHumidity(ThaSensorBase):
             return self._tekmar_tha.relative_humidity
 
 class SetbackState(ThaSensorBase):
-    """Representation of a Sensor."""
     icon = 'mdi:format-list-bulleted'
 
     def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
         
         self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-setback-state"
@@ -366,7 +341,6 @@ class SetbackState(ThaSensorBase):
 
     @property
     def native_value(self):
-        """Return the state of the sensor."""
         if self._tekmar_tha.setback_state == THA_NA_8:
             return None
             
@@ -383,7 +357,6 @@ class SetbackState(ThaSensorBase):
             return None
             
 class SetpointTarget(ThaSensorBase):
-    """Representation of a Sensor."""
     device_class = SensorDeviceClass.TEMPERATURE
     state_class = STATE_CLASS_MEASUREMENT
     native_unit_of_measurement = TEMP_CELSIUS
@@ -407,7 +380,6 @@ class SetpointTarget(ThaSensorBase):
 
     @property
     def native_value(self):
-        """Return the state of the sensor."""
         if (
             self._tekmar_tha.setpoint_target == THA_NA_16 or
             self._tekmar_tha.setpoint_target == None or
@@ -425,8 +397,6 @@ class SetpointTarget(ThaSensorBase):
                 return None
 
 class SetpointDemand(ThaSensorBase):
-
-    """Representation of a Sensor."""
     icon = 'mdi:format-list-bulleted'
 
     def __init__(self, tekmar_tha, config_entry):
