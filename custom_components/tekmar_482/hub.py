@@ -15,7 +15,9 @@ from typing import Any, Callable, Optional, Dict
 from homeassistant.util import dt
 from homeassistant.core import HomeAssistant
 
-from homeassistant.helpers.temperature import display_temp
+from homeassistant.helpers.temperature import display_temp as hass_display_temp
+from homeassistant.util.temperature import convert as hass_convert_temperature
+
 from homeassistant.const import TEMP_CELSIUS
 
 from .const import (
@@ -37,7 +39,7 @@ class TekmarHub:
         name: str,
         host: str,
         port: int,
-        setback_enable: bool
+        opt_setback_enable: bool
     ) -> None:
 
         self._hass = hass
@@ -46,10 +48,10 @@ class TekmarHub:
         self._host = host
         self._port = port
         
-        if setback_enable is None:
-            self._setback_enable = DEFAULT_SETBACK_ENABLE
+        if opt_setback_enable is None:
+            self._opt_setback_enable = DEFAULT_SETBACK_ENABLE
         else:
-            self._setback_enable = setback_enable
+            self._opt_setback_enable = opt_setback_enable
 
         self._id = name.lower()  
         self._sock = TrpcSocket(host, port)
@@ -75,14 +77,20 @@ class TekmarHub:
         self._tx_queue = []
 
         
-    def convert_temp(
+    def display_temp(
         self,
         temperature: float,
         unit: str = TEMP_CELSIUS,
         precision: float = 0
     ):
-        return display_temp(self._hass, temperature, unit, precision)
+        return hass_display_temp(self._hass, temperature, unit, precision)
     
+    def convert_temp(
+        self,
+        temperature: float,
+        to_unit: str = TEMP_CELSIUS
+    ):
+        return hass_convert_temperature(temperature, self._hass.config.units.temperature_unit, to_unit)
     
     async def _async_init_tha(self) -> None:
         
@@ -112,7 +120,7 @@ class TekmarHub:
             )
         )
         
-        if self._setback_enable is True:
+        if self._opt_setback_enable is True:
             packet_setback_enable = 0x01
         else:
             packet_setback_enable = 0x00
@@ -299,20 +307,20 @@ class TekmarHub:
                 elif tha_method in ['HeatSetpoint']:
                     for device in self.tha_devices:
                         if device.device_id == b['address']:
-                            await device.set_setback_state(p.body['setback'])
-                            await device.set_heat_setpoint(p.body['setpoint'])
+                            #await device.set_setback_state(p.body['setback'])
+                            await device.set_heat_setpoint(p.body['setpoint'], p.body['setback'])
             
                 elif tha_method in ['CoolSetpoint']:
                     for device in self.tha_devices:
                         if device.device_id == b['address']:
-                            await device.set_setback_state(p.body['setback'])
-                            await device.set_cool_setpoint(p.body['setpoint'])
+                            #await device.set_setback_state(p.body['setback'])
+                            await device.set_cool_setpoint(p.body['setpoint'], p.body['setback'])
             
                 elif tha_method in ['SlabSetpoint']:
                     for device in self.tha_devices:
                         if device.device_id == b['address']:
-                            await device.set_setback_state(p.body['setback'])
-                            await device.set_slab_setpoint(p.body['setpoint'])
+                            #await device.set_setback_state(p.body['setback'])
+                            await device.set_slab_setpoint(p.body['setpoint'], p.body['setback'])
             
                 elif tha_method in ['FanPercent']:
                     for device in self.tha_devices:
@@ -468,8 +476,11 @@ class TekmarHub:
         return self._tha_reporting_state
 
     @property
-    def tha_setback_enable(self) -> int:
-        return self._tha_setback_enable
+    def tha_setback_enable(self) -> bool:
+        if self._tha_setback_enable:
+            return True
+        else:
+            return False
         
     def storage_get(self, key: Any) -> Any:
         return self._storage.get_setting(key)
@@ -570,25 +581,79 @@ class TekmarThermostat:
             )
         )
 
-        if self.tha_device['attributes'].Zone_Cooling:
-            self.hub.queue_message(
-                TrpcPacket(
-                    service = 'Request',
-                    method = 'CoolSetpoint',
-                    address = self._id,
-                    setback = THA_CURRENT
+        if self.setback_enable is True:
+            if self.tha_device['attributes'].Zone_Cooling:
+                self.hub.queue_message(
+                    TrpcPacket(
+                        service = 'Request',
+                        method = 'CoolSetpoint',
+                        address = self._id,
+                        setback = 0x00
+                    )
                 )
-            )
+                self.hub.queue_message(
+                    TrpcPacket(
+                        service = 'Request',
+                        method = 'CoolSetpoint',
+                        address = self._id,
+                        setback = 0x03
+                    )
+                )
+                self.hub.queue_message(
+                    TrpcPacket(
+                        service = 'Request',
+                        method = 'CoolSetpoint',
+                        address = self._id,
+                        setback = 0x06
+                    )
+                )
             
-        if self.tha_device['attributes'].Zone_Heating:
-            self.hub.queue_message(
-                TrpcPacket(
-                    service = 'Request',
-                    method = 'HeatSetpoint',
-                    address = self._id,
-                    setback = THA_CURRENT
+            if self.tha_device['attributes'].Zone_Heating:
+                self.hub.queue_message(
+                    TrpcPacket(
+                        service = 'Request',
+                        method = 'HeatSetpoint',
+                        address = self._id,
+                        setback = 0x00
+                    )
                 )
-            )
+                self.hub.queue_message(
+                    TrpcPacket(
+                        service = 'Request',
+                        method = 'HeatSetpoint',
+                        address = self._id,
+                        setback = 0x03
+                    )
+                )
+                self.hub.queue_message(
+                    TrpcPacket(
+                        service = 'Request',
+                        method = 'HeatSetpoint',
+                        address = self._id,
+                        setback = 0x06
+                    )
+                )
+        
+        else:
+            if self.tha_device['attributes'].Zone_Cooling:
+                self.hub.queue_message(
+                    TrpcPacket(
+                        service = 'Request',
+                        method = 'CoolSetpoint',
+                        address = self._id,
+                        setback = THA_CURRENT
+                    )
+                )
+            
+            if self.tha_device['attributes'].Zone_Heating:
+                self.hub.queue_message(
+                    TrpcPacket(
+                        service = 'Request',
+                        method = 'HeatSetpoint',
+                        address = self._id,
+                        setback = THA_CURRENT
+                    )
+                )
 
         if self.tha_device['attributes'].Fan_Percent:
             self.hub.queue_message(
@@ -725,7 +790,7 @@ class TekmarThermostat:
         return self._tha_active_demand
 
     @property
-    def setback_enable(self) -> str:
+    def setback_enable(self) -> bool:
         return self.hub.tha_setback_enable
 
     @property
@@ -778,8 +843,8 @@ class TekmarThermostat:
         self._tha_relative_humidity = humidity
         await self.publish_updates()
 
-    async def set_heat_setpoint(self, setpoint: int) -> None:
-        self._tha_heat_setpoints[SETBACK_SETPOINT_MAP[self._tha_setback_state]] = setpoint
+    async def set_heat_setpoint(self, setpoint: int, setback: int) -> None:
+        self._tha_heat_setpoints[SETBACK_SETPOINT_MAP[setback]] = setpoint
         await self.publish_updates()
 
     async def set_heat_setpoint_txqueue(self, value: int, setback: int = THA_CURRENT) -> None:
@@ -793,8 +858,8 @@ class TekmarThermostat:
             )
         )
 
-    async def set_cool_setpoint(self, setpoint: int) -> None:
-        self._tha_cool_setpoints[SETBACK_SETPOINT_MAP[self._tha_setback_state]] = setpoint
+    async def set_cool_setpoint(self, setpoint: int, setback: int) -> None:
+        self._tha_cool_setpoints[SETBACK_SETPOINT_MAP[setback]] = setpoint
         await self.publish_updates()
 
     async def set_cool_setpoint_txqueue(self, value: int, setback: int = THA_CURRENT) -> None:
@@ -808,8 +873,8 @@ class TekmarThermostat:
             )
         )
         
-    async def set_slab_setpoint(self, setpoint: int) -> None:
-        self._tha_slab_setpoints[SETBACK_SETPOINT_MAP[self._tha_setback_state]] = setpoint
+    async def set_slab_setpoint(self, setpoint: int, setback: int) -> None:
+        self._tha_slab_setpoints[SETBACK_SETPOINT_MAP[setback]] = setpoint
         await self.publish_updates()
 
     async def set_fan_percent(self, percent: int, setback: int) -> None:
@@ -1004,7 +1069,7 @@ class TekmarSetpoint:
         return self._tha_setpoint_target_temperature
 
     @property
-    def setback_enable(self) -> str:
+    def setback_enable(self) -> bool:
         return self.hub.tha_setback_enable
 
     @property
@@ -1237,7 +1302,7 @@ class TekmarGateway:
         return self.hub.tha_reporting_state
 
     @property
-    def setback_enable(self) -> int:
+    def setback_enable(self) -> bool:
         return self.hub.tha_setback_enable
 
     @property

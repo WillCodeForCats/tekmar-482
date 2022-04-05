@@ -13,7 +13,9 @@ from homeassistant.helpers.entity import (
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, StateType
 
-from .helpers import degEtoC
+from .helpers import (
+    degEtoC, degCtoE
+)
 
 from .const import (
     DOMAIN,
@@ -181,9 +183,9 @@ class ThaHeatSetpoint(ThaNumberBase):
         self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-heat-setpoint"
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint"
 
-    #async def async_set_value(self, value: float) -> None:
-    #    value = int(value)
-    #    await self._tekmar_tha.set_humidity_setpoint_min_txqueue(value)
+    async def async_set_value(self, value: float) -> None:
+        heat_setpoint = int(degCtoE(self._tekmar_tha.hub.convert_temp(value)))
+        await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint)
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -213,17 +215,110 @@ class ThaHeatSetpoint(ThaNumberBase):
     @property
     def min_value(self):
         if self._tekmar_tha._config_heat_setpoint_min is None:
-            return self._tekmar_tha.hub.convert_temp(THA_DEFAULT_HEAT_SETPOINT_MIN)
+            return self._tekmar_tha.hub.display_temp(THA_DEFAULT_HEAT_SETPOINT_MIN)
         else:
-            return self._tekmar_tha.hub.convert_temp(self._tekmar_tha._config_heat_setpoint_min)
+            return self._tekmar_tha.hub.display_temp(self._tekmar_tha._config_heat_setpoint_min)
     
     @property
     def max_value(self):
         if self._tekmar_tha._config_heat_setpoint_max is None:
-            return self._tekmar_tha.hub.convert_temp(THA_DEFAULT_HEAT_SETPOINT_MAX)
+            return self._tekmar_tha.hub.display_temp(THA_DEFAULT_HEAT_SETPOINT_MAX)
         else:
-            return self._tekmar_tha.hub.convert_temp(self._tekmar_tha._config_heat_setpoint_max)
+            return self._tekmar_tha.hub.display_temp(self._tekmar_tha._config_heat_setpoint_max)
     
+class ThaHeatSetpointDay(ThaHeatSetpoint):
+
+    def __init__(self, tekmar_tha, config_entry):
+        """Initialize the sensor."""
+        super().__init__(tekmar_tha, config_entry)
+
+        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-heat-setpoint-day"
+        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint Day"
+
+    async def async_set_value(self, value: float) -> None:
+        heat_setpoint = int(degCtoE(self._tekmar_tha.hub.convert_temp(value)))
+        await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint, 0x00)
+
+    @property
+    def available(self) -> bool:        
+        if self._tekmar_tha.heat_setpoint_day == THA_NA_8:
+            return False
+        
+        elif self._tekmar_tha.tha_device['attributes'].Zone_Heating == 0:
+            return False
+            
+        else:
+            return True
+
+    @property
+    def value(self):
+        try:
+            return degEtoC(self._tekmar_tha.heat_setpoint_day)
+        except TypeError:
+            return None
+
+class ThaHeatSetpointNight(ThaHeatSetpoint):
+
+    def __init__(self, tekmar_tha, config_entry):
+        """Initialize the sensor."""
+        super().__init__(tekmar_tha, config_entry)
+
+        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-heat-setpoint-night"
+        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint Night"
+
+    async def async_set_value(self, value: float) -> None:
+        heat_setpoint = int(degCtoE(self._tekmar_tha.hub.convert_temp(value)))
+        await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint, 0x03)
+
+    @property
+    def available(self) -> bool:        
+        if self._tekmar_tha.heat_setpoint_day == THA_NA_8:
+            return False
+        
+        elif self._tekmar_tha.tha_device['attributes'].Zone_Heating == 0:
+            return False
+            
+        else:
+            return True
+
+    @property
+    def value(self):
+        try:
+            return degEtoC(self._tekmar_tha.heat_setpoint_night)
+        except TypeError:
+            return None
+
+class ThaHeatSetpointAway(ThaHeatSetpoint):
+
+    def __init__(self, tekmar_tha, config_entry):
+        """Initialize the sensor."""
+        super().__init__(tekmar_tha, config_entry)
+
+        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-heat-setpoint-away"
+        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint Away"
+
+    async def async_set_value(self, value: float) -> None:
+        heat_setpoint = int(degCtoE(self._tekmar_tha.hub.convert_temp(value)))
+        await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint, 0x06)
+
+    @property
+    def available(self) -> bool:        
+        if self._tekmar_tha.heat_setpoint_day == THA_NA_8:
+            return False
+        
+        elif self._tekmar_tha.tha_device['attributes'].Zone_Heating == 0:
+            return False
+            
+        else:
+            return True
+
+    @property
+    def value(self):
+        try:
+            return degEtoC(self._tekmar_tha.heat_setpoint_away)
+        except TypeError:
+            return None
+
 class ThaCoolSetpoint(ThaNumberBase):
 
     unit_of_measurement = TEMP_CELSIUS
@@ -236,9 +331,9 @@ class ThaCoolSetpoint(ThaNumberBase):
         self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-cool-setpoint"
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint"
 
-    #async def async_set_value(self, value: float) -> None:
-    #    value = int(value)
-    #    await self._tekmar_tha.set_humidity_setpoint_min_txqueue(value)
+    async def async_set_value(self, value: float) -> None:
+        cool_setpoint = int(degCtoE(self._tekmar_tha.hub.convert_temp(value)))
+        await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint)
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -268,13 +363,106 @@ class ThaCoolSetpoint(ThaNumberBase):
     @property
     def min_value(self):
         if self._tekmar_tha._config_cool_setpoint_min is None:
-            return self._tekmar_tha.hub.convert_temp(THA_DEFAULT_COOL_SETPOINT_MIN)
+            return self._tekmar_tha.hub.display_temp(THA_DEFAULT_COOL_SETPOINT_MIN)
         else:
-            return self._tekmar_tha.hub.convert_temp(self._tekmar_tha._config_cool_setpoint_min)
+            return self._tekmar_tha.hub.display_temp(self._tekmar_tha._config_cool_setpoint_min)
     
     @property
     def max_value(self):
         if self._tekmar_tha._config_cool_setpoint_max is None:
-            return self._tekmar_tha.hub.convert_temp(THA_DEFAULT_COOL_SETPOINT_MAX)
+            return self._tekmar_tha.hub.display_temp(THA_DEFAULT_COOL_SETPOINT_MAX)
         else:
-            return self._tekmar_tha.hub.convert_temp(self._tekmar_tha._config_cool_setpoint_max)
+            return self._tekmar_tha.hub.display_temp(self._tekmar_tha._config_cool_setpoint_max)
+            
+class ThaCoolSetpointDay(ThaCoolSetpoint):
+
+    def __init__(self, tekmar_tha, config_entry):
+        """Initialize the sensor."""
+        super().__init__(tekmar_tha, config_entry)
+
+        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-cool-setpoint-day"
+        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint Day"
+
+    async def async_set_value(self, value: float) -> None:
+        cool_setpoint = int(degCtoE(self._tekmar_tha.hub.convert_temp(value)))
+        await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint, 0x00)
+
+    @property
+    def available(self) -> bool:        
+        if self._tekmar_tha.cool_setpoint_day == THA_NA_8:
+            return False
+        
+        elif self._tekmar_tha.tha_device['attributes'].Zone_Cooling == 0:
+            return False
+            
+        else:
+            return True
+
+    @property
+    def value(self):
+        try:
+            return degEtoC(self._tekmar_tha.cool_setpoint_day)
+        except TypeError:
+            return None
+
+class ThaCoolSetpointNight(ThaCoolSetpoint):
+
+    def __init__(self, tekmar_tha, config_entry):
+        """Initialize the sensor."""
+        super().__init__(tekmar_tha, config_entry)
+
+        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-cool-setpoint-night"
+        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint Night"
+
+    async def async_set_value(self, value: float) -> None:
+        cool_setpoint = int(degCtoE(self._tekmar_tha.hub.convert_temp(value)))
+        await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint, 0x03)
+
+    @property
+    def available(self) -> bool:        
+        if self._tekmar_tha.cool_setpoint_day == THA_NA_8:
+            return False
+        
+        elif self._tekmar_tha.tha_device['attributes'].Zone_Cooling == 0:
+            return False
+            
+        else:
+            return True
+
+    @property
+    def value(self):
+        try:
+            return degEtoC(self._tekmar_tha.cool_setpoint_night)
+        except TypeError:
+            return None
+
+class ThaCoolSetpointAway(ThaCoolSetpoint):
+
+    def __init__(self, tekmar_tha, config_entry):
+        """Initialize the sensor."""
+        super().__init__(tekmar_tha, config_entry)
+
+        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-cool-setpoint-away"
+        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint Away"
+
+    async def async_set_value(self, value: float) -> None:
+        cool_setpoint = int(degCtoE(self._tekmar_tha.hub.convert_temp(value)))
+        await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint, 0x06)
+
+    @property
+    def available(self) -> bool:        
+        if self._tekmar_tha.cool_setpoint_day == THA_NA_8:
+            return False
+        
+        elif self._tekmar_tha.tha_device['attributes'].Zone_Cooling == 0:
+            return False
+            
+        else:
+            return True
+
+    @property
+    def value(self):
+        try:
+            return degEtoC(self._tekmar_tha.cool_setpoint_away)
+        except TypeError:
+            return None
