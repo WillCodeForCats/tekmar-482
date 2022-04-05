@@ -43,6 +43,8 @@ async def async_setup_entry(
         if DEVICE_TYPES[device.tha_device['type']] == THA_TYPE_THERMOSTAT:
             if DEVICE_FEATURES[device.tha_device['type']]['emer']:
                 entities.append(ConfigEmergencyHeat(device, config_entry))
+            if DEVICE_FEATURES[device.tha_device['type']]['fan']:
+                entities.append(ConfigVentMode(device, config_entry))
 
     if entities:
         async_add_entities(entities)
@@ -152,6 +154,37 @@ class ConfigEmergencyHeat(ThaSwitchBase):
     @property
     def is_on(self):        
         if self._tekmar_tha.config_emergency_heat is True:
+            return True
+        else:
+            return False
+
+class ConfigVentMode(ThaSwitchBase):
+
+    entity_category = EntityCategory.CONFIG
+
+    def __init__(self, tekmar_tha, config_entry):
+        """Initialize the sensor."""
+        super().__init__(tekmar_tha, config_entry)
+        
+        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-config-vent-mode"
+        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Enable Vent Mode"
+
+    async def async_turn_on(self, **kwargs):
+        await self._tekmar_tha.set_config_vent_mode(True)
+
+    async def async_turn_off(self, **kwargs):
+        await self._tekmar_tha.set_config_vent_mode(False)
+
+    @property
+    def available(self) -> bool:        
+        if DEVICE_FEATURES[self._tekmar_tha.tha_device['type']]['fan']:
+            return True
+        else:
+            return False
+
+    @property
+    def is_on(self):        
+        if self._tekmar_tha.config_vent_mode is True:
             return True
         else:
             return False

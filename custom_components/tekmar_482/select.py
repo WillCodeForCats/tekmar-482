@@ -118,7 +118,7 @@ class ThaFanSelect(ThaSelectBase):
 
     @property
     def options(self):
-        if self._tekmar_tha.tha_device['attributes'].Fan_Percent:
+        if self._tekmar_tha.config_vent_mode is True:
             return ['0','10','20','30','40','50','60','70','80','90','100']
         else:
             return ['0','100']
