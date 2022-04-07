@@ -20,9 +20,7 @@ from .helpers import (
 from .const import (
     DOMAIN,
     THA_NA_8, THA_NA_16,
-    DEVICE_FEATURES, DEVICE_TYPES, THA_TYPE_THERMOSTAT,
-    THA_DEFAULT_COOL_SETPOINT_MAX, THA_DEFAULT_COOL_SETPOINT_MIN,
-    THA_DEFAULT_HEAT_SETPOINT_MAX, THA_DEFAULT_HEAT_SETPOINT_MIN
+    DEVICE_FEATURES, DEVICE_TYPES, THA_TYPE_THERMOSTAT
 )
 
 async def async_setup_entry(
@@ -206,17 +204,11 @@ class ThaHeatSetpoint(ThaNumberBase):
 
     @property
     def min_value(self):
-        if self._tekmar_tha._config_heat_setpoint_min is None:
-            return self._tekmar_tha.hub.display_temp(THA_DEFAULT_HEAT_SETPOINT_MIN)
-        else:
-            return self._tekmar_tha.hub.display_temp(self._tekmar_tha._config_heat_setpoint_min)
+        return self._tekmar_tha.hub.display_temp(self._tekmar_tha.config_heat_setpoint_min)
     
     @property
     def max_value(self):
-        if self._tekmar_tha._config_heat_setpoint_max is None:
-            return self._tekmar_tha.hub.display_temp(THA_DEFAULT_HEAT_SETPOINT_MAX)
-        else:
-            return self._tekmar_tha.hub.display_temp(self._tekmar_tha._config_heat_setpoint_max)
+        return self._tekmar_tha.hub.display_temp(self._tekmar_tha.config_heat_setpoint_max)
     
 class ThaHeatSetpointDay(ThaHeatSetpoint):
     def __init__(self, tekmar_tha, config_entry):
@@ -350,17 +342,11 @@ class ThaCoolSetpoint(ThaNumberBase):
     
     @property
     def min_value(self):
-        if self._tekmar_tha._config_cool_setpoint_min is None:
-            return self._tekmar_tha.hub.display_temp(THA_DEFAULT_COOL_SETPOINT_MIN)
-        else:
-            return self._tekmar_tha.hub.display_temp(self._tekmar_tha._config_cool_setpoint_min)
+        return self._tekmar_tha.hub.display_temp(self._tekmar_tha.config_cool_setpoint_min)
     
     @property
     def max_value(self):
-        if self._tekmar_tha._config_cool_setpoint_max is None:
-            return self._tekmar_tha.hub.display_temp(THA_DEFAULT_COOL_SETPOINT_MAX)
-        else:
-            return self._tekmar_tha.hub.display_temp(self._tekmar_tha._config_cool_setpoint_max)
+        return self._tekmar_tha.hub.display_temp(self._tekmar_tha.config_cool_setpoint_max)
             
 class ThaCoolSetpointDay(ThaCoolSetpoint):
     def __init__(self, tekmar_tha, config_entry):

@@ -25,6 +25,8 @@ from .const import (
     DEVICE_TYPES, DEVICE_FEATURES, DEVICE_ATTRIBUTES,
     DEFAULT_SETBACK_ENABLE, ATTR_MANUFACTURER,
     THA_TYPE_THERMOSTAT, THA_TYPE_SETPOINT, THA_TYPE_SNOWMELT, THA_CURRENT,
+    THA_DEFAULT_COOL_SETPOINT_MAX, THA_DEFAULT_COOL_SETPOINT_MIN,
+    THA_DEFAULT_HEAT_SETPOINT_MAX, THA_DEFAULT_HEAT_SETPOINT_MIN,
     SETBACK_SETPOINT_MAP, SETBACK_FAN_MAP
 )
 
@@ -785,6 +787,34 @@ class TekmarThermostat:
     @property
     def config_vent_mode(self) -> bool:
         return self._config_vent_mode
+
+    @property
+    def config_heat_setpoint_max(self) -> int:
+        if self._config_heat_setpoint_max is None:
+            return THA_DEFAULT_HEAT_SETPOINT_MAX
+        else:
+            return self._config_heat_setpoint_max
+
+    @property
+    def config_heat_setpoint_min(self) -> int:
+        if self._config_heat_setpoint_min is None:
+            return THA_DEFAULT_HEAT_SETPOINT_MIN
+        else:
+            return self._config_heat_setpoint_min
+
+    @property
+    def config_cool_setpoint_max(self) -> int:
+        if self._config_cool_setpoint_max is None:
+            return THA_DEFAULT_COOL_SETPOINT_MAX
+        else:
+            return self._config_cool_setpoint_max
+
+    @property
+    def config_cool_setpoint_min(self) -> int:
+        if self._config_cool_setpoint_min is None:
+            return THA_DEFAULT_COOL_SETPOINT_MIN
+        else:
+            return self._config_cool_setpoint_min
 
     @property
     def slab_setpoint(self) -> str:

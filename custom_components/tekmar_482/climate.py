@@ -84,7 +84,29 @@ class ThaClimateThermostat(ThaClimateBase):
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Climate"
         
         self._last_mode_setting = 0x00
+    
+    @property
+    def max_temp(self):
+        if self.hvac_mode == HVAC_MODE_OFF:
+            return None
         
+        else:
+            if self._tekmar_tha.config_heat_setpoint_max >= self._tekmar_tha.config_cool_setpoint_max:
+                return self._tekmar_tha.config_heat_setpoint_max
+            else:
+                return self._tekmar_tha.config_cool_setpoint_max
+        
+    @property
+    def min_temp(self):
+        if self.hvac_mode == HVAC_MODE_OFF:
+            return None
+        
+        else:
+            if self._tekmar_tha.config_heat_setpoint_min <= self._tekmar_tha.config_cool_setpoint_min:
+                return self._tekmar_tha.config_heat_setpoint_min
+            else:
+                return self._tekmar_tha.config_cool_setpoint_min
+    
     @property
     def supported_features(self):
         supported_features = 0
