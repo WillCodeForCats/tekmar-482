@@ -163,7 +163,7 @@ class ThaHumiditySetMin(ThaNumberBase):
         return self._tekmar_tha.humidity_setpoint_min
 
 class ThaHeatSetpoint(ThaNumberBase):
-    unit_of_measurement = TEMP_CELSIUS
+    #unit_of_measurement = TEMP_CELSIUS
     icon = 'mdi:thermostat'
     
     def __init__(self, tekmar_tha, config_entry):
@@ -198,7 +198,7 @@ class ThaHeatSetpoint(ThaNumberBase):
     @property
     def value(self):
         try:
-            return degEtoC(self._tekmar_tha.heat_setpoint)
+            return self._tekmar_tha.hub.display_temp(degEtoC(self._tekmar_tha.heat_setpoint))
         except TypeError:
             return None
 
@@ -236,7 +236,7 @@ class ThaHeatSetpointDay(ThaHeatSetpoint):
     @property
     def value(self):
         try:
-            return degEtoC(self._tekmar_tha.heat_setpoint_day)
+            return self._tekmar_tha.hub.display_temp(degEtoC(self._tekmar_tha.heat_setpoint_day))
         except TypeError:
             return None
 
@@ -266,7 +266,7 @@ class ThaHeatSetpointNight(ThaHeatSetpoint):
     @property
     def value(self):
         try:
-            return degEtoC(self._tekmar_tha.heat_setpoint_night)
+            return self._tekmar_tha.hub.display_temp(degEtoC(self._tekmar_tha.heat_setpoint_night))
         except TypeError:
             return None
 
@@ -296,12 +296,12 @@ class ThaHeatSetpointAway(ThaHeatSetpoint):
     @property
     def value(self):
         try:
-            return degEtoC(self._tekmar_tha.heat_setpoint_away)
+            return self._tekmar_tha.hub.display_temp(degEtoC(self._tekmar_tha.heat_setpoint_away))
         except TypeError:
             return None
 
 class ThaCoolSetpoint(ThaNumberBase):
-    unit_of_measurement = TEMP_CELSIUS
+    #unit_of_measurement = TEMP_CELSIUS
     icon = 'mdi:thermostat'
     
     def __init__(self, tekmar_tha, config_entry):
@@ -336,7 +336,7 @@ class ThaCoolSetpoint(ThaNumberBase):
     @property
     def value(self):
         try:
-            return degEtoC(self._tekmar_tha.cool_setpoint)
+            return self._tekmar_tha.hub.display_temp(degEtoC(self._tekmar_tha.cool_setpoint))
         except TypeError:
             return None
     
@@ -374,7 +374,7 @@ class ThaCoolSetpointDay(ThaCoolSetpoint):
     @property
     def value(self):
         try:
-            return degEtoC(self._tekmar_tha.cool_setpoint_day)
+            return self._tekmar_tha.hub.display_temp(degEtoC(self._tekmar_tha.cool_setpoint_day))
         except TypeError:
             return None
 
@@ -404,7 +404,7 @@ class ThaCoolSetpointNight(ThaCoolSetpoint):
     @property
     def value(self):
         try:
-            return degEtoC(self._tekmar_tha.cool_setpoint_night)
+            return self._tekmar_tha.hub.display_temp(degEtoC(self._tekmar_tha.cool_setpoint_night))
         except TypeError:
             return None
 
@@ -434,6 +434,6 @@ class ThaCoolSetpointAway(ThaCoolSetpoint):
     @property
     def value(self):
         try:
-            return degEtoC(self._tekmar_tha.cool_setpoint_away)
+            return self._tekmar_tha.hub.display_temp(degEtoC(self._tekmar_tha.cool_setpoint_away))
         except TypeError:
             return None
