@@ -29,7 +29,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.options.get(CONF_SETBACK_ENABLE)
         )
     
-    await tekmar_gateway._async_init_tha()
+    await tekmar_gateway.async_init_tha()
     
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = tekmar_gateway
     
