@@ -78,7 +78,6 @@ class TekmarHub:
         
         self._tx_queue = []
 
-        
     def display_temp(
         self,
         temperature: float,
@@ -94,7 +93,7 @@ class TekmarHub:
     ):
         return hass_convert_temperature(temperature, self._hass.config.units.temperature_unit, to_unit)
     
-    async def _async_init_tha(self) -> None:
+    async def async_init_tha(self) -> None:
         
         self._inSetup = True
         
