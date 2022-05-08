@@ -6,7 +6,6 @@ def degCtoF(degC):
     return ((degC * 9/5) + 32)
 
 def degCtoE(degC):
-    #degE = 2*(degC)
     return (2 * degC)
 
 def degEtoC(degE):
@@ -18,7 +17,6 @@ def degHtoF(degH):
     return ((degH - 850) / 10)
 
 def degFtoC(degF):
-    #degC = (degF - 32) / 1.8
     return ((degF - 32) / 1.8)
     
 def degHtoC(degH):
