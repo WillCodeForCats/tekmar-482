@@ -1,0 +1,32 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Tekmar 482 Gateway Configuration",
+        "data": {
+          "name": "Sensor Prefix",
+          "host": "Packet Server Address",
+          "port": "Packet Server Port"
+        }
+      }
+    },
+    "error": {
+      "already_configured": "Gateway is already configured!",
+      "invalid_host": "Invalid IP address or host name.",
+      "invalid_tcp_port": "Valid port range is 1 to 65535."
+    },
+    "abort": {
+      "already_configured": "Gateway is already configured!"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Tekmar 482 Gateway Options",
+        "data": {
+          "setback_enable": "Enable Setback Support"
+        }
+      }
+    }
+  }
+}
