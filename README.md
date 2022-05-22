@@ -1,4 +1,4 @@
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
 
 # Tekmar Gateway 482 (tekmar-482)
 
@@ -16,7 +16,12 @@ The Tekmar Packet Server Add-On is required for this integration to communicate 
 
 ## Installation
 
-Copy the `tekmar_482` folder into to your Home Assistant `config/custom_components` folder or install through HACS.
+Copy the `tekmar_482` folder into to your Home Assistant `config/custom_components` folder,
+
+OR
+
+Install with HACS: Search for "Tekmar Gateway 482" in the default repository.
+
 After rebooting Home Assistant, this integration can be configured through the integration setup UI.
 
 ### Configuration
