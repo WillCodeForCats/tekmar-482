@@ -14,7 +14,7 @@ from typing import Any, Callable, Optional, Dict
 
 from homeassistant.util import dt
 from homeassistant.core import HomeAssistant
-
+from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.temperature import display_temp as hass_display_temp
 from homeassistant.util.temperature import convert as hass_convert_temperature
 
@@ -97,8 +97,10 @@ class TekmarHub:
         
         self._inSetup = True
         
-        await self._sock.open()
-
+        if await self._sock.open() == False:
+            _LOGGER.error(self._sock.error)
+            raise ConfigEntryNotReady(f"Could not connect to packet server {self._host}")
+            
         await self._sock.write(
             TrpcPacket(
                 service = 'Update',
