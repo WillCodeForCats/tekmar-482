@@ -147,7 +147,12 @@ class TekmarHub:
 
         while self._inSetup == True:
             if len(self._tx_queue) != 0:
-                await self._sock.write(self._tx_queue.pop(0))
+                try:
+                    await self._sock.write(self._tx_queue.pop(0))
+                except Exception as e:
+                    _LOGGER.error(e)
+                    raise ConfigEntryNotReady(f"Connection error while in setup.")
+                    
                 await asyncio.sleep(0.1)
 
             p = await self._sock.read()
