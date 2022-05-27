@@ -463,8 +463,6 @@ class TekmarHub:
                 states = 0)
             )
             await self._sock.close()
-        else:
-            _LOGGER.error("Could not set ReportingState=0 on %s", tha_socket_host)
 
     @property
     def hub_id(self) -> str:
