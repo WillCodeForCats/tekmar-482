@@ -451,9 +451,8 @@ class TekmarHub:
         self._tx_queue = []
         self._inRun = False
         
-        if self._sock.open():
-            # Disable reporting
-            self._sock.write(TrpcPacket(
+        if await self._sock.open():
+            await self._sock.write(TrpcPacket(
                 service = 'Update',
                 method = 'ReportingState',
                 states = 0)
