@@ -99,8 +99,8 @@ class TekmarHub:
         
         if await self._sock.open() == False:
             _LOGGER.error(self._sock.error)
-            raise ConfigEntryNotReady(f"Could not connect to packet server {self._host}")
-            
+            raise ConfigEntryNotReady(f"Connection to packet server '{self._host}' failed")
+        
         await self._sock.write(
             TrpcPacket(
                 service = 'Update',
