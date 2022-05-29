@@ -228,12 +228,17 @@ class TekmarHub:
 
                 elif tha_method in ['DeviceType']:
                     self._tha_inventory[b['address']]['type'] = b['type']
-                    self._tha_inventory[b['address']]['entity'] = \
-                        "{3} {0} {1} {2}".format(
-                            DEVICE_TYPES[self._tha_inventory[b['address']]['type']].capitalize(),
-                            DEVICE_FEATURES[self._tha_inventory[b['address']]['type']]['model'],
-                            b['address'], self._name.capitalize()
-                            )
+                    try:
+                        self._tha_inventory[b['address']]['entity'] = \
+                            "{3} {0} {1} {2}".format(
+                                DEVICE_TYPES[self._tha_inventory[b['address']]['type']].capitalize(),
+                                DEVICE_FEATURES[self._tha_inventory[b['address']]['type']]['model'],
+                                b['address'],
+                                self._name.capitalize()
+                                )
+                    except KeyError:
+                        _LOGGER.warning(f"Unknown device type {self._tha_inventory[b['address']]['type']}. Try power cycling your Gateway 482.")
+                        raise ConfigEntryNotReady(f"Unknown device type {self._tha_inventory[b['address']]['type']}.")
 
                 elif tha_method in ['DeviceAttributes']:
                     self._tha_inventory[b['address']]['attributes'].attrs = int(b['attributes'])
