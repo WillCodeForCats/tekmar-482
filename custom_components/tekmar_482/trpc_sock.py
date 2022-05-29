@@ -20,6 +20,7 @@ class TrpcSocket:
         self.is_open = False
         self.addr = addr
         self.port = port
+        self.error = None
         self.rx_queue = []
 
     #**************************************************************************
@@ -35,11 +36,11 @@ class TrpcSocket:
             self.is_open = True
             return True
 
-        except socket.error:
-            self.is_open = False
+        except Exception as e:
             self._sock_reader = None
             self._sock_writer = None
-            
+            self.is_open = False
+            self.error = e
             return False
     
     #**************************************************************************
@@ -51,7 +52,7 @@ class TrpcSocket:
                 self._sock_writer.close()
                 await self._sock_writer.wait_closed()
     
-            except socket.error:
+            except:
                 pass
 
             self._sock_writer = None

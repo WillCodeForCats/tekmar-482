@@ -12,15 +12,9 @@ Integrates your Tekmar communicating thermostats, setpoints, and snowmelt contro
 * View and update device setpoints.
 
 ## Required Add-On
-* Tekmar Packet Server Add-On: https://github.com/WillCodeForCats/tekmar-packetserv
+Tekmar Packet Server Add-On: [WillCodeForCats/tekmar-packetserv](https://github.com/WillCodeForCats/tekmar-packetserv)
 
-If you are installing from HACS you will need to manually install this add-on since HACS doesn't support add-ons.
-The Tekmar Packet Server Add-On is required for this integration to work.
+The Tekmar Packet Server Add-On is required for this integration to communicate with a Tekmar Gateway 482.
 
 ## Compatible Equipment
-For a list of compatible equipment see the wiki.
-
-https://github.com/WillCodeForCats/tekmar-482/wiki/Compatible-Equipment
-
-
-Requires Home Assistant 2022.3.1 and newer.
+[WillCodeForCats/tekmar-482/wiki/Compatible-Equipment](https://github.com/WillCodeForCats/tekmar-482/wiki/Compatible-Equipment)

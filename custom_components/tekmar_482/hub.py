@@ -14,7 +14,7 @@ from typing import Any, Callable, Optional, Dict
 
 from homeassistant.util import dt
 from homeassistant.core import HomeAssistant
-
+from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.temperature import display_temp as hass_display_temp
 from homeassistant.util.temperature import convert as hass_convert_temperature
 
@@ -97,8 +97,10 @@ class TekmarHub:
         
         self._inSetup = True
         
-        await self._sock.open()
-
+        if await self._sock.open() == False:
+            _LOGGER.error(self._sock.error)
+            raise ConfigEntryNotReady(f"Connection to packet server '{self._host}' failed")
+        
         await self._sock.write(
             TrpcPacket(
                 service = 'Update',
@@ -145,8 +147,12 @@ class TekmarHub:
 
         while self._inSetup == True:
             if len(self._tx_queue) != 0:
-                await self._sock.write(self._tx_queue.pop(0))
-                await asyncio.sleep(0.1)
+                try:
+                    await self._sock.write(self._tx_queue.pop(0))
+                    await asyncio.sleep(0.1)
+                except Exception as e:
+                    _LOGGER.error(e)
+                    raise ConfigEntryNotReady(f"Connection error while in setup.")
 
             p = await self._sock.read()
             
@@ -274,8 +280,12 @@ class TekmarHub:
         while self._inRun == True:  
 
             if len(self._tx_queue) != 0:
-                await self._sock.write(self._tx_queue.pop(0))
-                await asyncio.sleep(0.1)
+                try:
+                    await self._sock.write(self._tx_queue.pop(0))
+                    await asyncio.sleep(0.1)
+                except Exception as e:
+                    _LOGGER.warning(f"{e} - reloading integration...")
+                    await self._hass.config_entries.async_reload(self._entry_id)
 
             p = await self._sock.read()
             if p is not None:            
@@ -449,16 +459,13 @@ class TekmarHub:
         self._tx_queue = []
         self._inRun = False
         
-        if self._sock.open():
-            # Disable reporting
-            self._sock.write(TrpcPacket(
+        if await self._sock.open():
+            await self._sock.write(TrpcPacket(
                 service = 'Update',
                 method = 'ReportingState',
                 states = 0)
             )
             await self._sock.close()
-        else:
-            _LOGGER.error("Could not set ReportingState=0 on %s", tha_socket_host)
 
     @property
     def hub_id(self) -> str:
