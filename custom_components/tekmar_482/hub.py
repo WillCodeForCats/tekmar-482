@@ -280,8 +280,12 @@ class TekmarHub:
         while self._inRun == True:  
 
             if len(self._tx_queue) != 0:
-                await self._sock.write(self._tx_queue.pop(0))
-                await asyncio.sleep(0.1)
+                try:
+                    await self._sock.write(self._tx_queue.pop(0))
+                    await asyncio.sleep(0.1)
+                except Exception as e:
+                    _LOGGER.warning(f"{e} - reloading integration...")
+                    await self._hass.config_entries.async_reload(self._entry_id)
 
             p = await self._sock.read()
             if p is not None:            
