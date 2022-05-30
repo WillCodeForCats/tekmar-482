@@ -151,10 +151,14 @@ class TekmarHub:
                     await self._sock.write(self._tx_queue.pop(0))
                     await asyncio.sleep(0.1)
                 except Exception as e:
-                    _LOGGER.error(e)
-                    raise ConfigEntryNotReady(f"Connection error while in setup.")
-
-            p = await self._sock.read()
+                    _LOGGER.error(f"Write error: {e}")
+                    raise ConfigEntryNotReady(f"Write error while in setup.")
+            
+            try:
+                p = await self._sock.read()
+            except Exception as e:
+                _LOGGER.error(f"Read error: {e}")
+                raise ConfigEntryNotReady(f"Read error while in setup.")
             
             if p is not None:
                 h = p.header
@@ -227,8 +231,8 @@ class TekmarHub:
                         )
 
                 elif tha_method in ['DeviceType']:
-                    self._tha_inventory[b['address']]['type'] = b['type']
                     try:
+                        self._tha_inventory[b['address']]['type'] = b['type']
                         self._tha_inventory[b['address']]['entity'] = \
                             "{3} {0} {1} {2}".format(
                                 DEVICE_TYPES[self._tha_inventory[b['address']]['type']].capitalize(),
@@ -237,8 +241,8 @@ class TekmarHub:
                                 self._name.capitalize()
                                 )
                     except KeyError:
-                        _LOGGER.warning(f"Unknown device type {self._tha_inventory[b['address']]['type']}. Try power cycling your Gateway 482.")
-                        raise ConfigEntryNotReady(f"Unknown device type {self._tha_inventory[b['address']]['type']}.")
+                        _LOGGER.warning(f"Unknown device type {b['type']}. Try power cycling your Gateway 482.")
+                        raise ConfigEntryNotReady(f"Unknown device type {b['type']}.")
 
                 elif tha_method in ['DeviceAttributes']:
                     self._tha_inventory[b['address']]['attributes'].attrs = int(b['attributes'])
@@ -289,10 +293,15 @@ class TekmarHub:
                     await self._sock.write(self._tx_queue.pop(0))
                     await asyncio.sleep(0.1)
                 except Exception as e:
-                    _LOGGER.warning(f"{e} - reloading integration...")
+                    _LOGGER.warning(f"Write error: {e} - reloading integration...")
                     await self._hass.config_entries.async_reload(self._entry_id)
-
-            p = await self._sock.read()
+            
+            try:
+                p = await self._sock.read()
+            except Exception as e:
+                _LOGGER.warning(f"Read error: {e} - reloading integration...")
+                await self._hass.config_entries.async_reload(self._entry_id)
+            
             if p is not None:            
                 h = p.header
                 b = p.body
@@ -358,7 +367,8 @@ class TekmarHub:
                                     address = b['address']
                                 )
                             )
-                    except KeyError:
+                    except KeyError as e:
+                        _LOGGER.error(f"Device address {e} not in inventory. Please reload integration.")
                         pass
                 
                     for device in self.tha_devices:
@@ -366,18 +376,22 @@ class TekmarHub:
                             await device.set_active_demand(p.body['demand'])
 
                 elif tha_method in ['SetbackState']:
-                    if self._tha_inventory[b['address']]['attributes'].Fan_Percent:
-                        self._tx_queue.append(
-                            TrpcPacket(
-                                service = 'Request',
-                                method = 'FanPercent',
-                                setback = THA_CURRENT,
-                                address = b['address']
+                    try:
+                        if self._tha_inventory[b['address']]['attributes'].Fan_Percent:
+                            self._tx_queue.append(
+                                TrpcPacket(
+                                    service = 'Request',
+                                    method = 'FanPercent',
+                                    setback = THA_CURRENT,
+                                    address = b['address']
+                                )
                             )
-                        )
-                    for device in self.tha_devices:
-                        if device.device_id == b['address']:
-                            await device.set_setback_state(p.body['setback'])
+                        for device in self.tha_devices:
+                            if device.device_id == b['address']:
+                                await device.set_setback_state(p.body['setback'])
+                    except KeyError as e:
+                        _LOGGER.error(f"Device address {e} not in inventory. Please reload integration.")
+                        pass
           
                 elif tha_method in ['SetbackEvents']:
                     for device in self.tha_devices:
