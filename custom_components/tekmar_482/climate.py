@@ -1,7 +1,6 @@
 from homeassistant.components.climate import ClimateEntity
+from homeassistant.components.climate.const import ClimateEntityFeature as Feature
 from homeassistant.components.climate.const import (
-    SUPPORT_TARGET_TEMPERATURE, SUPPORT_TARGET_TEMPERATURE_RANGE, SUPPORT_FAN_MODE,
-    SUPPORT_TARGET_HUMIDITY, SUPPORT_AUX_HEAT,
     HVAC_MODE_OFF, HVAC_MODE_HEAT, HVAC_MODE_COOL, HVAC_MODE_HEAT_COOL, HVAC_MODE_FAN_ONLY,
     CURRENT_HVAC_OFF, CURRENT_HVAC_IDLE, CURRENT_HVAC_HEAT, CURRENT_HVAC_COOL,
     ATTR_TARGET_TEMP_LOW, ATTR_TARGET_TEMP_HIGH,
@@ -115,12 +114,12 @@ class ThaClimateThermostat(ThaClimateBase):
             self._tekmar_tha.tha_device['attributes'].Zone_Heating == 1 and
             self._tekmar_tha.tha_device['attributes'].Zone_Cooling == 1
         ):
-            supported_features = supported_features | SUPPORT_TARGET_TEMPERATURE_RANGE
+            supported_features = supported_features | Feature.SUPPORT_TARGET_TEMPERATURE_RANGE
         else:
-            supported_features = supported_features | SUPPORT_TARGET_TEMPERATURE
+            supported_features = supported_features | Feature.SUPPORT_TARGET_TEMPERATURE
     
         if self._tekmar_tha.tha_device['attributes'].Fan_Percent == 1:
-            supported_features = supported_features | SUPPORT_FAN_MODE
+            supported_features = supported_features | Feature.SUPPORT_FAN_MODE
 
         if DEVICE_FEATURES[self._tekmar_tha.tha_device['type']]['humid']:
             if (
@@ -129,10 +128,10 @@ class ThaClimateThermostat(ThaClimateBase):
                 (self._tekmar_tha.humidity_setpoint_min != THA_NA_8 and
                 self._tekmar_tha.humidity_setpoint_max != THA_NA_8)
             ):
-                supported_features =  supported_features | SUPPORT_TARGET_HUMIDITY
+                supported_features =  supported_features | Feature.SUPPORT_TARGET_HUMIDITY
         
         if self._tekmar_tha.config_emergency_heat is True:
-            supported_features = supported_features | SUPPORT_AUX_HEAT
+            supported_features = supported_features | Feature.SUPPORT_AUX_HEAT
         
         return supported_features
 
@@ -358,14 +357,14 @@ class ThaClimateThermostat(ThaClimateBase):
         heat_setpoint = None
         cool_setpoint = None
         
-        if self.supported_features & SUPPORT_TARGET_TEMPERATURE:
+        if self.supported_features & Feature.SUPPORT_TARGET_TEMPERATURE:
             if self._tekmar_tha.tha_device['attributes'].Zone_Heating == 1:
                 heat_setpoint = kwargs.get(ATTR_TEMPERATURE)
 
             elif self._tekmar_tha.tha_device['attributes'].Zone_Cooling == 1:
                 cool_setpoint = kwargs.get(ATTR_TEMPERATURE)
      
-        elif self.supported_features & SUPPORT_TARGET_TEMPERATURE_RANGE:        
+        elif self.supported_features & Feature.SUPPORT_TARGET_TEMPERATURE_RANGE:        
             heat_setpoint = kwargs.get(ATTR_TARGET_TEMP_LOW)
             cool_setpoint = kwargs.get(ATTR_TARGET_TEMP_HIGH)
                  
