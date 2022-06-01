@@ -114,12 +114,12 @@ class ThaClimateThermostat(ThaClimateBase):
             self._tekmar_tha.tha_device['attributes'].Zone_Heating == 1 and
             self._tekmar_tha.tha_device['attributes'].Zone_Cooling == 1
         ):
-            supported_features = supported_features | Feature.SUPPORT_TARGET_TEMPERATURE_RANGE
+            supported_features = supported_features | Feature.TARGET_TEMPERATURE_RANGE
         else:
-            supported_features = supported_features | Feature.SUPPORT_TARGET_TEMPERATURE
+            supported_features = supported_features | Feature.TARGET_TEMPERATURE
     
         if self._tekmar_tha.tha_device['attributes'].Fan_Percent == 1:
-            supported_features = supported_features | Feature.SUPPORT_FAN_MODE
+            supported_features = supported_features | Feature.FAN_MODE
 
         if DEVICE_FEATURES[self._tekmar_tha.tha_device['type']]['humid']:
             if (
@@ -128,10 +128,10 @@ class ThaClimateThermostat(ThaClimateBase):
                 (self._tekmar_tha.humidity_setpoint_min != THA_NA_8 and
                 self._tekmar_tha.humidity_setpoint_max != THA_NA_8)
             ):
-                supported_features =  supported_features | Feature.SUPPORT_TARGET_HUMIDITY
+                supported_features =  supported_features | Feature.TARGET_HUMIDITY
         
         if self._tekmar_tha.config_emergency_heat is True:
-            supported_features = supported_features | Feature.SUPPORT_AUX_HEAT
+            supported_features = supported_features | Feature.AUX_HEAT
         
         return supported_features
 
@@ -357,14 +357,14 @@ class ThaClimateThermostat(ThaClimateBase):
         heat_setpoint = None
         cool_setpoint = None
         
-        if self.supported_features & Feature.SUPPORT_TARGET_TEMPERATURE:
+        if self.supported_features & Feature.TARGET_TEMPERATURE:
             if self._tekmar_tha.tha_device['attributes'].Zone_Heating == 1:
                 heat_setpoint = kwargs.get(ATTR_TEMPERATURE)
 
             elif self._tekmar_tha.tha_device['attributes'].Zone_Cooling == 1:
                 cool_setpoint = kwargs.get(ATTR_TEMPERATURE)
      
-        elif self.supported_features & Feature.SUPPORT_TARGET_TEMPERATURE_RANGE:        
+        elif self.supported_features & Feature.TARGET_TEMPERATURE_RANGE:        
             heat_setpoint = kwargs.get(ATTR_TARGET_TEMP_LOW)
             cool_setpoint = kwargs.get(ATTR_TARGET_TEMP_HIGH)
                  
