@@ -3,7 +3,7 @@ c_uint = ctypes.c_uint
 
 DOMAIN = "tekmar_482"
 ATTR_MANUFACTURER = "Tekmar"
-DEFAULT_NAME = "tekmarnet"
+DEFAULT_NAME = "tekmarNet"
 DEFAULT_HOST = ""
 DEFAULT_PORT = 3000
 DEFAULT_SETBACK_ENABLE = False

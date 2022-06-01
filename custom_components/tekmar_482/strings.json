@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "Tekmar 482 Gateway Configuration",
+        "title": "Tekmar Gateway 482 Configuration",
         "data": {
           "name": "Sensor Prefix",
           "host": "Packet Server Address",
@@ -22,7 +22,7 @@
   "options": {
     "step": {
       "init": {
-        "title": "Tekmar 482 Gateway Options",
+        "title": "Tekmar Gateway 482 Options",
         "data": {
           "setback_enable": "Enable Setback Support"
         }
