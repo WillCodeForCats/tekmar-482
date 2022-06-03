@@ -1,11 +1,11 @@
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import ClimateEntityFeature as Feature
 from homeassistant.components.climate.const import (
-    HVAC_MODE_OFF, HVAC_MODE_HEAT, HVAC_MODE_COOL, HVAC_MODE_HEAT_COOL, HVAC_MODE_FAN_ONLY,
-    CURRENT_HVAC_OFF, CURRENT_HVAC_IDLE, CURRENT_HVAC_HEAT, CURRENT_HVAC_COOL,
     ATTR_TARGET_TEMP_LOW, ATTR_TARGET_TEMP_HIGH,
     PRESET_HOME, PRESET_AWAY, PRESET_SLEEP,
-    FAN_ON, FAN_AUTO
+    FAN_ON, FAN_AUTO,
+    HVACAction,
+    HVACMode,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -86,7 +86,7 @@ class ThaClimateThermostat(ThaClimateBase):
     
     @property
     def max_temp(self):
-        if self.hvac_mode == HVAC_MODE_OFF:
+        if self.hvac_mode == HVACMode.OFF:
             return None
         
         else:
@@ -97,7 +97,7 @@ class ThaClimateThermostat(ThaClimateBase):
         
     @property
     def min_temp(self):
-        if self.hvac_mode == HVAC_MODE_OFF:
+        if self.hvac_mode == HVACMode.OFF:
             return None
         
         else:
@@ -166,38 +166,38 @@ class ThaClimateThermostat(ThaClimateBase):
     @property
     def hvac_modes(self) -> list[str]:
 
-        hvac_modes = [HVAC_MODE_OFF]
+        hvac_modes = [HVACMode.OFF]
         
         if self._tekmar_tha.tha_device['attributes'].Zone_Heating == 1:
-            hvac_modes.append(HVAC_MODE_HEAT)
+            hvac_modes.append(HVACMode.HEAT)
 
         if self._tekmar_tha.tha_device['attributes'].Zone_Cooling == 1:
-            hvac_modes.append(HVAC_MODE_COOL)
+            hvac_modes.append(HVACMode.COOL)
             
         if (
             self._tekmar_tha.tha_device['attributes'].Zone_Heating == 1 and
             self._tekmar_tha.tha_device['attributes'].Zone_Cooling == 1
         ):
-            hvac_modes.append(HVAC_MODE_HEAT_COOL)
+            hvac_modes.append(HVACMode.HEAT_COOL)
 
         return hvac_modes
 
     @property
     def hvac_mode(self):
         if self._tekmar_tha.mode_setting == 0x00:
-            return HVAC_MODE_OFF
+            return HVACMode.OFF
         elif self._tekmar_tha.mode_setting == 0x01:
-            return HVAC_MODE_HEAT
+            return HVACMode.HEAT
         elif self._tekmar_tha.mode_setting == 0x02:
-            return HVAC_MODE_HEAT_COOL
+            return HVACMode.HEAT_COOL
         elif self._tekmar_tha.mode_setting == 0x03:
-            return HVAC_MODE_COOL
+            return HVACMode.COOL
         elif self._tekmar_tha.mode_setting == 0x04:
-            return HVAC_MODE_FAN_ONLY
+            return HVACMode.FAN_ONLY
         elif self._tekmar_tha.mode_setting == 0x05:
             return None
         elif self._tekmar_tha.mode_setting == 0x06:
-            return HVAC_MODE_HEAT
+            return HVACMode.HEAT
         else:
             return None
 
@@ -281,16 +281,16 @@ class ThaClimateThermostat(ThaClimateBase):
     @property
     def hvac_action(self):
         if self._tekmar_tha.mode_setting == 0x00:
-            return CURRENT_HVAC_OFF
+            return HVACAction.OFF
             
         elif self._tekmar_tha.active_demand == 0x00:
-            return CURRENT_HVAC_IDLE
+            return HVACAction.IDLE
             
         elif self._tekmar_tha.active_demand == 0x01:
-            return CURRENT_HVAC_HEAT
+            return HVACAction.HEATING
         
         elif self._tekmar_tha.active_demand == 0x03:
-            return CURRENT_HVAC_COOL
+            return HVACAction.COOLING
         
         else:
             return None
@@ -377,13 +377,13 @@ class ThaClimateThermostat(ThaClimateBase):
             await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint)
 
     async def async_set_hvac_mode(self, hvac_mode):
-        if hvac_mode == HVAC_MODE_OFF:
+        if hvac_mode == HVACMode.OFF:
             value = 0x00
-        elif hvac_mode == HVAC_MODE_HEAT:
+        elif hvac_mode == HVACMode.HEAT:
             value = 0x01
-        elif hvac_mode == HVAC_MODE_COOL:
+        elif hvac_mode == HVACMode.COOL:
             value = 0x03
-        elif hvac_mode == HVAC_MODE_HEAT_COOL:
+        elif hvac_mode == HVACMode.HEAT_COOL:
             value = 0x02
         else:
             raise NotImplementedError()
