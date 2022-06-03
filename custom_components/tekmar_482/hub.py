@@ -182,7 +182,7 @@ class TekmarHub:
 
                 elif tha_method in ['DeviceInventory']:
                     if b['address'] > 0:
-                        _LOGGER.info("Setting up address %s", b['address'])
+                        _LOGGER.debug("Setting up address %s", b['address'])
 
                         self._tha_inventory[b['address']] = {
                             "entity": "",
