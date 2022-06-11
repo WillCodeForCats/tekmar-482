@@ -1,5 +1,5 @@
 from homeassistant.components.sensor import (
-    STATE_CLASS_MEASUREMENT,
+    SensorStateClass,
     SensorDeviceClass,
     SensorEntity,
 )
@@ -101,7 +101,7 @@ class ThaSensorBase(SensorEntity):
 
 class OutdoorTemprature(ThaSensorBase):
     device_class = SensorDeviceClass.TEMPERATURE
-    state_class = STATE_CLASS_MEASUREMENT
+    state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = TEMP_CELSIUS
 
     def __init__(self, tekmar_tha, config_entry):
@@ -207,7 +207,7 @@ class NetworkError(ThaSensorBase):
 
 class CurrentTemperature(ThaSensorBase):
     device_class = SensorDeviceClass.TEMPERATURE
-    state_class = STATE_CLASS_MEASUREMENT
+    state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = TEMP_CELSIUS
 
     def __init__(self, tekmar_tha, config_entry):
@@ -245,7 +245,7 @@ class CurrentTemperature(ThaSensorBase):
 
 class CurrentFloorTemperature(ThaSensorBase):
     device_class = SensorDeviceClass.TEMPERATURE
-    state_class = STATE_CLASS_MEASUREMENT
+    state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = TEMP_CELSIUS
 
     def __init__(self, tekmar_tha, config_entry):
@@ -284,7 +284,7 @@ class CurrentFloorTemperature(ThaSensorBase):
 
 class RelativeHumidity(ThaSensorBase):
     device_class = SensorDeviceClass.HUMIDITY
-    state_class = STATE_CLASS_MEASUREMENT
+    state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = PERCENTAGE
 
     def __init__(self, tekmar_tha, config_entry):
@@ -358,7 +358,7 @@ class SetbackState(ThaSensorBase):
             
 class SetpointTarget(ThaSensorBase):
     device_class = SensorDeviceClass.TEMPERATURE
-    state_class = STATE_CLASS_MEASUREMENT
+    state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = TEMP_CELSIUS
 
     def __init__(self, tekmar_tha, config_entry):
