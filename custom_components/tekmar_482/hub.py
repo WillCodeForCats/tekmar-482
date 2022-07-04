@@ -15,10 +15,6 @@ from typing import Any, Callable, Optional, Dict
 from homeassistant.util import dt
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers.temperature import display_temp as hass_display_temp
-from homeassistant.util.temperature import convert as hass_convert_temperature
-
-from homeassistant.const import TEMP_CELSIUS
 
 from .const import (
     DOMAIN,
@@ -77,21 +73,6 @@ class TekmarHub:
         self._inReconnect = False
         
         self._tx_queue = []
-
-    def display_temp(
-        self,
-        temperature: float,
-        unit: str = TEMP_CELSIUS,
-        precision: float = 0
-    ):
-        return hass_display_temp(self._hass, temperature, unit, precision)
-    
-    def convert_temp(
-        self,
-        temperature: float,
-        to_unit: str = TEMP_CELSIUS
-    ):
-        return hass_convert_temperature(temperature, self._hass.config.units.temperature_unit, to_unit)
     
     async def async_init_tha(self) -> None:
         

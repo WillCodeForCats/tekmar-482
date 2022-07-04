@@ -1,4 +1,5 @@
 from homeassistant.components.number import (
+    NumberDeviceClass,
     NumberEntity,
 )
 from homeassistant.config_entries import ConfigEntry
@@ -85,10 +86,10 @@ class ThaNumberBase(NumberEntity):
 
 
 class ThaHumiditySetMax(ThaNumberBase):
-    unit_of_measurement = PERCENTAGE
+    native_unit_of_measurement = PERCENTAGE
     icon = 'mdi:water-percent'
-    min_value = 20
-    max_value = 80
+    native_min_value = 20
+    native_max_value = 80
     
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
@@ -120,14 +121,14 @@ class ThaHumiditySetMax(ThaNumberBase):
             return True
 
     @property
-    def value(self):
+    def native_value(self):
         return self._tekmar_tha.humidity_setpoint_max
 
 class ThaHumiditySetMin(ThaNumberBase):
-    unit_of_measurement = PERCENTAGE
+    native_unit_of_measurement = PERCENTAGE
     icon = 'mdi:water-percent'
-    min_value = 20
-    max_value = 80
+    native_min_value = 20
+    native_max_value = 80
     
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
@@ -159,11 +160,12 @@ class ThaHumiditySetMin(ThaNumberBase):
             return True
 
     @property
-    def value(self):
+    def native_value(self):
         return self._tekmar_tha.humidity_setpoint_min
 
 class ThaHeatSetpoint(ThaNumberBase):
-    #unit_of_measurement = TEMP_CELSIUS
+    device_class = NumberDeviceClass.TEMPERATURE
+    native_unit_of_measurement = TEMP_CELSIUS
     icon = 'mdi:thermostat'
     
     def __init__(self, tekmar_tha, config_entry):
@@ -174,7 +176,7 @@ class ThaHeatSetpoint(ThaNumberBase):
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint"
 
     async def async_set_value(self, value: float) -> None:
-        heat_setpoint = int(degCtoE(self._tekmar_tha.hub.convert_temp(value)))
+        heat_setpoint = int(degCtoE(value))
         await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint)
 
     @property
@@ -196,19 +198,19 @@ class ThaHeatSetpoint(ThaNumberBase):
             return True
 
     @property
-    def value(self):
+    def native_value(self):
         try:
-            return self._tekmar_tha.hub.display_temp(degEtoC(self._tekmar_tha.heat_setpoint))
+            return degEtoC(self._tekmar_tha.heat_setpoint)
         except TypeError:
             return None
 
     @property
-    def min_value(self):
-        return self._tekmar_tha.hub.display_temp(self._tekmar_tha.config_heat_setpoint_min)
+    def native_min_value(self):
+        return self._tekmar_tha.config_heat_setpoint_min
     
     @property
-    def max_value(self):
-        return self._tekmar_tha.hub.display_temp(self._tekmar_tha.config_heat_setpoint_max)
+    def native_max_value(self):
+        return self._tekmar_tha.config_heat_setpoint_max
     
 class ThaHeatSetpointDay(ThaHeatSetpoint):
     def __init__(self, tekmar_tha, config_entry):
@@ -219,7 +221,7 @@ class ThaHeatSetpointDay(ThaHeatSetpoint):
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint Day"
 
     async def async_set_value(self, value: float) -> None:
-        heat_setpoint = int(degCtoE(self._tekmar_tha.hub.convert_temp(value)))
+        heat_setpoint = int(degCtoE(value))
         await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint, 0x00)
 
     @property
@@ -234,9 +236,9 @@ class ThaHeatSetpointDay(ThaHeatSetpoint):
             return True
 
     @property
-    def value(self):
+    def native_value(self):
         try:
-            return self._tekmar_tha.hub.display_temp(degEtoC(self._tekmar_tha.heat_setpoint_day))
+            return degEtoC(self._tekmar_tha.heat_setpoint_day)
         except TypeError:
             return None
 
@@ -249,7 +251,7 @@ class ThaHeatSetpointNight(ThaHeatSetpoint):
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint Night"
 
     async def async_set_value(self, value: float) -> None:
-        heat_setpoint = int(degCtoE(self._tekmar_tha.hub.convert_temp(value)))
+        heat_setpoint = int(degCtoE(value))
         await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint, 0x03)
 
     @property
@@ -264,9 +266,9 @@ class ThaHeatSetpointNight(ThaHeatSetpoint):
             return True
 
     @property
-    def value(self):
+    def native_value(self):
         try:
-            return self._tekmar_tha.hub.display_temp(degEtoC(self._tekmar_tha.heat_setpoint_night))
+            return degEtoC(self._tekmar_tha.heat_setpoint_night)
         except TypeError:
             return None
 
@@ -279,7 +281,7 @@ class ThaHeatSetpointAway(ThaHeatSetpoint):
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint Away"
 
     async def async_set_value(self, value: float) -> None:
-        heat_setpoint = int(degCtoE(self._tekmar_tha.hub.convert_temp(value)))
+        heat_setpoint = int(degCtoE(value))
         await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint, 0x06)
 
     @property
@@ -294,14 +296,15 @@ class ThaHeatSetpointAway(ThaHeatSetpoint):
             return True
 
     @property
-    def value(self):
+    def native_value(self):
         try:
-            return self._tekmar_tha.hub.display_temp(degEtoC(self._tekmar_tha.heat_setpoint_away))
+            return degEtoC(self._tekmar_tha.heat_setpoint_away)
         except TypeError:
             return None
 
 class ThaCoolSetpoint(ThaNumberBase):
-    #unit_of_measurement = TEMP_CELSIUS
+    device_class = NumberDeviceClass.TEMPERATURE
+    native_unit_of_measurement = TEMP_CELSIUS
     icon = 'mdi:thermostat'
     
     def __init__(self, tekmar_tha, config_entry):
@@ -312,7 +315,7 @@ class ThaCoolSetpoint(ThaNumberBase):
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint"
 
     async def async_set_value(self, value: float) -> None:
-        cool_setpoint = int(degCtoE(self._tekmar_tha.hub.convert_temp(value)))
+        cool_setpoint = int(degCtoE(value))
         await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint)
 
     @property
@@ -334,19 +337,19 @@ class ThaCoolSetpoint(ThaNumberBase):
             return True
 
     @property
-    def value(self):
+    def native_value(self):
         try:
-            return self._tekmar_tha.hub.display_temp(degEtoC(self._tekmar_tha.cool_setpoint))
+            return degEtoC(self._tekmar_tha.cool_setpoint)
         except TypeError:
             return None
     
     @property
-    def min_value(self):
-        return self._tekmar_tha.hub.display_temp(self._tekmar_tha.config_cool_setpoint_min)
+    def native_min_value(self):
+        return self._tekmar_tha.config_cool_setpoint_min
     
     @property
-    def max_value(self):
-        return self._tekmar_tha.hub.display_temp(self._tekmar_tha.config_cool_setpoint_max)
+    def native_max_value(self):
+        return self._tekmar_tha.config_cool_setpoint_max
             
 class ThaCoolSetpointDay(ThaCoolSetpoint):
     def __init__(self, tekmar_tha, config_entry):
@@ -357,7 +360,7 @@ class ThaCoolSetpointDay(ThaCoolSetpoint):
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint Day"
 
     async def async_set_value(self, value: float) -> None:
-        cool_setpoint = int(degCtoE(self._tekmar_tha.hub.convert_temp(value)))
+        cool_setpoint = int(degCtoE(value))
         await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint, 0x00)
 
     @property
@@ -372,9 +375,9 @@ class ThaCoolSetpointDay(ThaCoolSetpoint):
             return True
 
     @property
-    def value(self):
+    def native_value(self):
         try:
-            return self._tekmar_tha.hub.display_temp(degEtoC(self._tekmar_tha.cool_setpoint_day))
+            return degEtoC(self._tekmar_tha.cool_setpoint_day)
         except TypeError:
             return None
 
@@ -387,7 +390,7 @@ class ThaCoolSetpointNight(ThaCoolSetpoint):
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint Night"
 
     async def async_set_value(self, value: float) -> None:
-        cool_setpoint = int(degCtoE(self._tekmar_tha.hub.convert_temp(value)))
+        cool_setpoint = int(degCtoE(value))
         await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint, 0x03)
 
     @property
@@ -402,9 +405,9 @@ class ThaCoolSetpointNight(ThaCoolSetpoint):
             return True
 
     @property
-    def value(self):
+    def native_value(self):
         try:
-            return self._tekmar_tha.hub.display_temp(degEtoC(self._tekmar_tha.cool_setpoint_night))
+            return degEtoC(self._tekmar_tha.cool_setpoint_night)
         except TypeError:
             return None
 
@@ -417,7 +420,7 @@ class ThaCoolSetpointAway(ThaCoolSetpoint):
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint Away"
 
     async def async_set_value(self, value: float) -> None:
-        cool_setpoint = int(degCtoE(self._tekmar_tha.hub.convert_temp(value)))
+        cool_setpoint = int(degCtoE(value))
         await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint, 0x06)
 
     @property
@@ -432,8 +435,8 @@ class ThaCoolSetpointAway(ThaCoolSetpoint):
             return True
 
     @property
-    def value(self):
+    def native_value(self):
         try:
-            return self._tekmar_tha.hub.display_temp(degEtoC(self._tekmar_tha.cool_setpoint_away))
+            return degEtoC(self._tekmar_tha.cool_setpoint_away)
         except TypeError:
             return None
