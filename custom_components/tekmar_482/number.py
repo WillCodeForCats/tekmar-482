@@ -98,7 +98,7 @@ class ThaHumiditySetMax(ThaNumberBase):
         self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-humidity-max-setpoint"
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Humidity Maximum Setpoint"
 
-    async def async_set_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: float) -> None:
         value = int(value)
         await self._tekmar_tha.set_humidity_setpoint_max_txqueue(value)
 
@@ -137,7 +137,7 @@ class ThaHumiditySetMin(ThaNumberBase):
         self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-humidity-min-setpoint"
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Humidity Minimum Setpoint"
 
-    async def async_set_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: float) -> None:
         value = int(value)
         await self._tekmar_tha.set_humidity_setpoint_min_txqueue(value)
 
@@ -175,7 +175,7 @@ class ThaHeatSetpoint(ThaNumberBase):
         self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-heat-setpoint"
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint"
 
-    async def async_set_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: float) -> None:
         heat_setpoint = int(degCtoE(value))
         await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint)
 
@@ -220,7 +220,7 @@ class ThaHeatSetpointDay(ThaHeatSetpoint):
         self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-heat-setpoint-day"
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint Day"
 
-    async def async_set_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: float) -> None:
         heat_setpoint = int(degCtoE(value))
         await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint, 0x00)
 
@@ -250,7 +250,7 @@ class ThaHeatSetpointNight(ThaHeatSetpoint):
         self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-heat-setpoint-night"
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint Night"
 
-    async def async_set_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: float) -> None:
         heat_setpoint = int(degCtoE(value))
         await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint, 0x03)
 
@@ -280,7 +280,7 @@ class ThaHeatSetpointAway(ThaHeatSetpoint):
         self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-heat-setpoint-away"
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint Away"
 
-    async def async_set_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: float) -> None:
         heat_setpoint = int(degCtoE(value))
         await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint, 0x06)
 
@@ -314,7 +314,7 @@ class ThaCoolSetpoint(ThaNumberBase):
         self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-cool-setpoint"
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint"
 
-    async def async_set_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: float) -> None:
         cool_setpoint = int(degCtoE(value))
         await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint)
 
@@ -359,7 +359,7 @@ class ThaCoolSetpointDay(ThaCoolSetpoint):
         self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-cool-setpoint-day"
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint Day"
 
-    async def async_set_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: float) -> None:
         cool_setpoint = int(degCtoE(value))
         await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint, 0x00)
 
@@ -389,7 +389,7 @@ class ThaCoolSetpointNight(ThaCoolSetpoint):
         self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-cool-setpoint-night"
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint Night"
 
-    async def async_set_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: float) -> None:
         cool_setpoint = int(degCtoE(value))
         await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint, 0x03)
 
@@ -419,7 +419,7 @@ class ThaCoolSetpointAway(ThaCoolSetpoint):
         self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-cool-setpoint-away"
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint Away"
 
-    async def async_set_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: float) -> None:
         cool_setpoint = int(degCtoE(value))
         await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint, 0x06)
 
