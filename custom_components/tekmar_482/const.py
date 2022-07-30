@@ -1,4 +1,5 @@
 import ctypes
+
 c_uint = ctypes.c_uint
 
 DOMAIN = "tekmar_482"

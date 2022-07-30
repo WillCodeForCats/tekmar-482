@@ -1,27 +1,16 @@
-from homeassistant.components.sensor import (
-    SensorStateClass,
-    SensorDeviceClass,
-    SensorEntity,
-)
+from homeassistant.components.sensor import (SensorDeviceClass, SensorEntity,
+                                             SensorStateClass)
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    PERCENTAGE, TEMP_CELSIUS
-)
+from homeassistant.const import PERCENTAGE, TEMP_CELSIUS
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .helpers import (
-    regBytes, degHtoC
-)
-
-from .const import (
-    DOMAIN, ACTIVE_DEMAND,
-    DEVICE_TYPES, DEVICE_FEATURES,
-    SETBACK_STATE, SETBACK_DESCRIPTION,
-    THA_NA_8, THA_NA_16, NETWORK_ERRORS, 
-    THA_TYPE_THERMOSTAT, THA_TYPE_SETPOINT,
-)
+from .const import (ACTIVE_DEMAND, DEVICE_FEATURES, DEVICE_TYPES, DOMAIN,
+                    NETWORK_ERRORS, SETBACK_DESCRIPTION, SETBACK_STATE,
+                    THA_NA_8, THA_NA_16, THA_TYPE_SETPOINT,
+                    THA_TYPE_THERMOSTAT)
+from .helpers import degHtoC, regBytes
 
 
 async def async_setup_entry(

@@ -1,27 +1,15 @@
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
-from homeassistant.components.select import (
-    SelectEntity,
-)
+from homeassistant.components.select import SelectEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    PERCENTAGE, TEMP_CELSIUS
-)
+from homeassistant.const import PERCENTAGE, TEMP_CELSIUS
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import (
-    DeviceInfo,
-    EntityCategory,
-)
+from homeassistant.helpers.entity import DeviceInfo, EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, StateType
 
-from .const import (
-    DOMAIN,
-    DEVICE_TYPES, DEVICE_FEATURES,
-    ATTR_MANUFACTURER,
-    THA_NA_8, THA_NA_16, NETWORK_ERRORS, 
-    THA_TYPE_THERMOSTAT,
-)
+from .const import (ATTR_MANUFACTURER, DEVICE_FEATURES, DEVICE_TYPES, DOMAIN,
+                    NETWORK_ERRORS, THA_NA_8, THA_NA_16, THA_TYPE_THERMOSTAT)
 
 
 async def async_setup_entry(

@@ -1,30 +1,26 @@
-from .trpc_sock import TrpcSocket
-from .trpc_msg import TrpcPacket, name_from_methodID
-
+import asyncio
+import datetime
+import logging
+import pickle
 from os.path import exists
 from threading import Lock
+from typing import Any, Callable, Dict, Optional
 
-import pickle
-import asyncio
-import logging
-import datetime
 import pytz
-
-from typing import Any, Callable, Optional, Dict
-
-from homeassistant.util import dt
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.util import dt
 
-from .const import (
-    DOMAIN,
-    DEVICE_TYPES, DEVICE_FEATURES, DEVICE_ATTRIBUTES,
-    DEFAULT_SETBACK_ENABLE, ATTR_MANUFACTURER,
-    THA_TYPE_THERMOSTAT, THA_TYPE_SETPOINT, THA_TYPE_SNOWMELT, THA_CURRENT,
-    THA_DEFAULT_COOL_SETPOINT_MAX, THA_DEFAULT_COOL_SETPOINT_MIN,
-    THA_DEFAULT_HEAT_SETPOINT_MAX, THA_DEFAULT_HEAT_SETPOINT_MIN,
-    SETBACK_SETPOINT_MAP, SETBACK_FAN_MAP
-)
+from .const import (ATTR_MANUFACTURER, DEFAULT_SETBACK_ENABLE,
+                    DEVICE_ATTRIBUTES, DEVICE_FEATURES, DEVICE_TYPES, DOMAIN,
+                    SETBACK_FAN_MAP, SETBACK_SETPOINT_MAP, THA_CURRENT,
+                    THA_DEFAULT_COOL_SETPOINT_MAX,
+                    THA_DEFAULT_COOL_SETPOINT_MIN,
+                    THA_DEFAULT_HEAT_SETPOINT_MAX,
+                    THA_DEFAULT_HEAT_SETPOINT_MIN, THA_TYPE_SETPOINT,
+                    THA_TYPE_SNOWMELT, THA_TYPE_THERMOSTAT)
+from .trpc_msg import TrpcPacket, name_from_methodID
+from .trpc_sock import TrpcSocket
 
 _LOGGER = logging.getLogger(__name__)
 
