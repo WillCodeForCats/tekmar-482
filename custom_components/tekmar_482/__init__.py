@@ -3,13 +3,13 @@
 import asyncio
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
+from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, Platform
 from homeassistant.core import HomeAssistant
 
 from . import hub
 from .const import CONF_SETBACK_ENABLE, DOMAIN
 
-PLATFORMS: list[str] = ["sensor", "climate", "select", "switch", "binary_sensor", "number"]
+PLATFORMS: list[str] = [Platform.SENSOR, Platform.CLIMATE, Platform.SELECT, Platform.SWITCH, Platform.BINARY_SENSOR, Platform.NUMBER]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up a Tekmar Gateway from config entry."""
@@ -26,7 +26,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = tekmar_gateway
     
-    hass.config_entries.async_setup_platforms(entry, PLATFORMS)
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     
     asyncio.create_task(tekmar_gateway.run())
     asyncio.create_task(tekmar_gateway.ping())
