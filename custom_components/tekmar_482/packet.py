@@ -1,20 +1,4 @@
-#!/usr/bin/env python3
-
-""" Packet object.
-
-    Basically a packet has a type and some data and is represented in two
-    forms: its raw (object) form and in string form.
-
-    In string form, it looks like a sequence of hex bytes, e.g.
-        0102030F\n
-
-    The 01 is the packet type and 02, 03, and 0F is the packet data.  A
-    packet is always delimited by a newline character (in string form).
-    """
-
-#******************************************************************************
 from .fields import Field, FieldList, Int8
-
 
 #******************************************************************************
 # Supported packet types.

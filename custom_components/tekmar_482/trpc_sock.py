@@ -2,6 +2,7 @@ import asyncio
 
 from .trpc_msg import TrpcPacket
 
+
 #******************************************************************************
 class TrpcSocket:
 

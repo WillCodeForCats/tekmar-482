@@ -1,26 +1,3 @@
-#!/usr/bin/env python3
-
-""" Field identifying and parsing.
-
-    The contents of this module allow the specifcation of formats of arrays
-    of bytes (similar to the python's struct module), but with more
-    granularity.
-
-    Each field basically has two properties:  a name and a size (in bytes).
-
-    Each field has basically two methods: pack and unpack.
-
-    The unpack method takes a sequence of bytes and unpacks the data into
-    a list of values.  The method returns the unpacked list and any trailing
-    (packed) data as a tuple.
-
-    The pack method takes a sequence of values and packs them into a list of
-    bytes.  The method returns the packed list and any extra values as a
-    tuple.
-    """
-
-
-#******************************************************************************
 LITTLE_ENDIAN = False
 BIG_ENDIAN = True
 

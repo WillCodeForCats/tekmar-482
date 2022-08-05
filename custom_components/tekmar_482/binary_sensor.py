@@ -1,16 +1,12 @@
-from homeassistant.components.binary_sensor import (
-    BinarySensorDeviceClass,
-    BinarySensorEntity,
-)
+from homeassistant.components.binary_sensor import (BinarySensorDeviceClass,
+                                                    BinarySensorEntity)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import (
-    DOMAIN,
-    THA_NA_8, 
-)
+from .const import DOMAIN, THA_NA_8
+
 
 async def async_setup_entry(
     hass: HomeAssistant,

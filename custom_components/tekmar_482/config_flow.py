@@ -1,19 +1,16 @@
-import voluptuous as vol
 import ipaddress
 import re
 
-from homeassistant import config_entries
-from homeassistant.const import (
-    CONF_NAME, CONF_HOST, CONF_PORT
-)
 import homeassistant.helpers.config_validation as cv
-from .const import (
-    DOMAIN, DEFAULT_NAME, DEFAULT_HOST, DEFAULT_PORT,
-    DEFAULT_SETBACK_ENABLE, CONF_SETBACK_ENABLE
-)
+import voluptuous as vol
+from homeassistant import config_entries
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
-from homeassistant.config_entries import ConfigEntry
+
+from .const import (CONF_SETBACK_ENABLE, DEFAULT_HOST, DEFAULT_NAME,
+                    DEFAULT_PORT, DEFAULT_SETBACK_ENABLE, DOMAIN)
 
 
 def host_valid(host):

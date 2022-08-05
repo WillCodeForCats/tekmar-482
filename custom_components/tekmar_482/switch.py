@@ -1,17 +1,11 @@
-from homeassistant.components.switch import (
-    SwitchDeviceClass,
-    SwitchEntity
-)
+from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity import EntityCategory
-from .const import (
-    DOMAIN,
-    DEVICE_FEATURES, DEVICE_TYPES,
-    THA_TYPE_THERMOSTAT,
-    THA_NA_8
-)
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
+from .const import (DEVICE_FEATURES, DEVICE_TYPES, DOMAIN, THA_NA_8,
+                    THA_TYPE_THERMOSTAT)
 
 
 async def async_setup_entry(

@@ -1,19 +1,5 @@
-#!/usr/bin/env python
-
-""" Main tRPC message formatter.
-
-    This defines the format for tRPC messages along with the key TrpcPacket
-    object that defines the packet core (header) and the message body.
-
-    A packet also keeps track of extra data that may need supplemental or
-    more dynamic formatting applied to it.
-    """
-
-
-#*****************************************************************************
-from .packet import (Packet, TYPE_TRPC)
-from .fields import Record, FieldList, Int8, Int16, Int32
-
+from .fields import FieldList, Int8, Int16, Int32, Record
+from .packet import TYPE_TRPC, Packet
 
 #*****************************************************************************
 # Define the formats of tRPC messages according to their method ID.
