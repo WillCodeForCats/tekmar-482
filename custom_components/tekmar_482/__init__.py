@@ -1,13 +1,21 @@
 """The Tekmar 482 Gateway Integration."""
 
+from . import hub
+
 import asyncio
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, Platform
+from homeassistant.const import (
+    CONF_NAME,
+    CONF_HOST,
+    CONF_PORT,
+    Platform,
+)
 from homeassistant.core import HomeAssistant
-
-from . import hub
-from .const import CONF_SETBACK_ENABLE, DOMAIN
+from .const import (
+    DOMAIN,
+    CONF_SETBACK_ENABLE
+)
 
 PLATFORMS: list[str] = [Platform.SENSOR, Platform.CLIMATE, Platform.SELECT, Platform.SWITCH, Platform.BINARY_SENSOR, Platform.NUMBER]
 
