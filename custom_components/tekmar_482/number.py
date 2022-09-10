@@ -4,13 +4,7 @@ from homeassistant.const import PERCENTAGE, TEMP_CELSIUS
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import (
-    DEVICE_FEATURES,
-    DEVICE_TYPES,
-    DOMAIN,
-    THA_NA_8,
-    THA_TYPE_THERMOSTAT,
-)
+from .const import DEVICE_FEATURES, DEVICE_TYPES, DOMAIN, THA_NA_8, THA_TYPE_THERMOSTAT
 from .helpers import degCtoE, degEtoC
 
 
