@@ -31,8 +31,8 @@ async def async_setup_entry(
     entities = []
 
     for device in hub.tha_devices:
-        if DEVICE_TYPES[device.tha_device['type']] == THA_TYPE_THERMOSTAT:
-            if DEVICE_FEATURES[device.tha_device['type']]['fan']:
+        if DEVICE_TYPES[device.tha_device["type"]] == THA_TYPE_THERMOSTAT:
+            if DEVICE_FEATURES[device.tha_device["type"]]["fan"]:
                 entities.append(ThaFanSelect(device, config_entry))
 
     if entities:
@@ -61,7 +61,7 @@ class ThaSelectBase(SelectEntity):
 
     @property
     def config_entry_name(self):
-        return self._config_entry.data['name']
+        return self._config_entry.data["name"]
 
     async def async_added_to_hass(self):
         self._tekmar_tha.register_callback(self.async_write_ha_state)
@@ -69,9 +69,10 @@ class ThaSelectBase(SelectEntity):
     async def async_will_remove_from_hass(self):
         self._tekmar_tha.remove_callback(self.async_write_ha_state)
 
+
 class ThaFanSelect(ThaSelectBase):
     unit_of_measurement = PERCENTAGE
-    icon = 'mdi:fan'
+    icon = "mdi:fan"
 
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
@@ -81,25 +82,25 @@ class ThaFanSelect(ThaSelectBase):
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Fan Percent"
 
     async def async_select_option(self, option: str) -> None:
-        if option in ['0','10','20','30','40','50','60','70','80','90','100']:
-        
-            if self._tekmar_tha.tha_device['type'] in [99203, 99202, 99201]:
+        if option in ["0", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100"]:
+
+            if self._tekmar_tha.tha_device["type"] in [99203, 99202, 99201]:
                 value = int(option / 10)
                 await self._tekmar_tha.set_fan_percent_txqueue(value)
-                
+
             else:
                 value = int(option)
                 await self._tekmar_tha.set_fan_percent_txqueue(value)
-        
+
         else:
             raise ValueError
 
     @property
-    def available(self) -> bool:        
+    def available(self) -> bool:
         if self._tekmar_tha.fan_percent == THA_NA_8:
             return False
 
-        elif self._tekmar_tha.tha_device['attributes'].Fan_Percent == 0:
+        elif self._tekmar_tha.tha_device["attributes"].Fan_Percent == 0:
             return False
 
         else:
@@ -108,11 +109,10 @@ class ThaFanSelect(ThaSelectBase):
     @property
     def options(self):
         if self._tekmar_tha.config_vent_mode is True:
-            return ['0','10','20','30','40','50','60','70','80','90','100']
+            return ["0", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100"]
         else:
-            return ['0','100']
+            return ["0", "100"]
 
     @property
     def current_option(self) -> str:
         return str(self._tekmar_tha.fan_percent)
-        

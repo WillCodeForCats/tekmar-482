@@ -28,12 +28,14 @@ def host_valid(host):
         disallowed = re.compile(r"[^a-zA-Z\d\-]")
         return all(x and not disallowed.search(x) for x in host.split("."))
 
+
 @callback
 def tekmar_482_entries(hass: HomeAssistant):
     """Return the hosts already configured."""
     return set(
         entry.data[CONF_HOST] for entry in hass.config_entries.async_entries(DOMAIN)
     )
+
 
 class TekmarGatewayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Tekmar Gateway configflow."""
@@ -52,12 +54,12 @@ class TekmarGatewayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return True
         return False
 
-    async def async_step_user(self, user_input = None) -> FlowResult:
+    async def async_step_user(self, user_input=None) -> FlowResult:
         """Handle the initial step."""
         errors = {}
 
         if user_input is not None:
-            
+
             if self._host_in_configuration_exists(user_input[CONF_HOST]):
                 errors[CONF_HOST] = "already_configured"
             elif not host_valid(user_input[CONF_HOST]):
@@ -80,57 +82,52 @@ class TekmarGatewayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             }
 
         return self.async_show_form(
-            step_id = "user",
-            data_schema = vol.Schema(
+            step_id="user",
+            data_schema=vol.Schema(
                 {
-                    vol.Required(
-                        CONF_NAME, default=user_input[CONF_NAME]
-                    ): cv.string,
-                    vol.Required(
-                        CONF_HOST, default=user_input[CONF_HOST]
-                    ): cv.string,
-                    vol.Required(
-                        CONF_PORT, default=user_input[CONF_PORT]
-                    ): vol.Coerce(int),
+                    vol.Required(CONF_NAME, default=user_input[CONF_NAME]): cv.string,
+                    vol.Required(CONF_HOST, default=user_input[CONF_HOST]): cv.string,
+                    vol.Required(CONF_PORT, default=user_input[CONF_PORT]): vol.Coerce(
+                        int
+                    ),
                 },
             ),
-            errors = errors
+            errors=errors,
         )
-    
+
 
 class TekmarGatewayOptionsFlowHandler(config_entries.OptionsFlow):
     def __init__(self, config_entry: ConfigEntry):
         """Initialize options flow."""
         self.config_entry = config_entry
 
-    async def async_step_init(self, user_input = None) -> FlowResult:
+    async def async_step_init(self, user_input=None) -> FlowResult:
         errors = {}
 
         """Manage the options."""
         if user_input is not None:
-            return self.async_create_entry(
-                title = "",
-                data = user_input
-            )
+            return self.async_create_entry(title="", data=user_input)
         else:
             if self.config_entry.options.get(CONF_SETBACK_ENABLE) is None:
                 user_input = {
                     CONF_SETBACK_ENABLE: DEFAULT_SETBACK_ENABLE,
                 }
-            
+
             else:
                 user_input = {
-                    CONF_SETBACK_ENABLE: self.config_entry.options.get(CONF_SETBACK_ENABLE),
+                    CONF_SETBACK_ENABLE: self.config_entry.options.get(
+                        CONF_SETBACK_ENABLE
+                    ),
                 }
 
         return self.async_show_form(
-            step_id = "init",
-            data_schema = vol.Schema(
+            step_id="init",
+            data_schema=vol.Schema(
                 {
                     vol.Optional(
                         CONF_SETBACK_ENABLE, default=user_input[CONF_SETBACK_ENABLE]
                     ): cv.boolean,
                 },
             ),
-            errors = errors
+            errors=errors,
         )

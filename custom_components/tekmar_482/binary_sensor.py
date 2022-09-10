@@ -17,7 +17,7 @@ async def async_setup_entry(
 ) -> None:
 
     hub = hass.data[DOMAIN][config_entry.entry_id]
-    
+
     entities = []
 
     for gateway in hub.tha_gateway:
@@ -50,13 +50,14 @@ class ThaBinarySensorBase(BinarySensorEntity):
 
     @property
     def config_entry_name(self):
-        return self._config_entry.data['name']
+        return self._config_entry.data["name"]
 
     async def async_added_to_hass(self):
         self._tekmar_tha.register_callback(self.async_write_ha_state)
 
     async def async_will_remove_from_hass(self):
         self._tekmar_tha.remove_callback(self.async_write_ha_state)
+
 
 class ReportingState(ThaBinarySensorBase):
     entity_category = EntityCategory.DIAGNOSTIC
@@ -66,7 +67,9 @@ class ReportingState(ThaBinarySensorBase):
         super().__init__(tekmar_tha, config_entry)
 
         self._attr_unique_id = f"{self.config_entry_id}-gateway-reporting-state"
-        self._attr_name = f"{self.config_entry_name.capitalize()} Gateway Reporting State"
+        self._attr_name = (
+            f"{self.config_entry_name.capitalize()} Gateway Reporting State"
+        )
 
     @property
     def is_on(self):
@@ -74,6 +77,7 @@ class ReportingState(ThaBinarySensorBase):
             return True
         else:
             return False
+
 
 class SetbackEnable(ThaBinarySensorBase):
     entity_category = EntityCategory.DIAGNOSTIC
@@ -83,16 +87,18 @@ class SetbackEnable(ThaBinarySensorBase):
         super().__init__(tekmar_tha, config_entry)
 
         self._attr_unique_id = f"{self.config_entry_id}-gateway-setback-enable"
-        self._attr_name = f"{self.config_entry_name.capitalize()} Gateway Setback Enable"
+        self._attr_name = (
+            f"{self.config_entry_name.capitalize()} Gateway Setback Enable"
+        )
 
     @property
-    def available(self) -> bool:        
+    def available(self) -> bool:
         if (
-            self._tekmar_tha.setback_enable == None or
-            self._tekmar_tha.setback_enable == THA_NA_8
+            self._tekmar_tha.setback_enable == None
+            or self._tekmar_tha.setback_enable == THA_NA_8
         ):
             return False
-            
+
         else:
             return True
 
