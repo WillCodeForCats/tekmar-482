@@ -8,8 +8,16 @@ from homeassistant.helpers.entity import DeviceInfo, EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, StateType
 
-from .const import (ATTR_MANUFACTURER, DEVICE_FEATURES, DEVICE_TYPES, DOMAIN,
-                    NETWORK_ERRORS, THA_NA_8, THA_NA_16, THA_TYPE_THERMOSTAT)
+from .const import (
+    ATTR_MANUFACTURER,
+    DEVICE_FEATURES,
+    DEVICE_TYPES,
+    DOMAIN,
+    NETWORK_ERRORS,
+    THA_NA_8,
+    THA_NA_16,
+    THA_TYPE_THERMOSTAT,
+)
 
 
 async def async_setup_entry(

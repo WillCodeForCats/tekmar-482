@@ -6,8 +6,14 @@ from homeassistant.helpers.entity import DeviceInfo, EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, StateType
 
-from .const import (DEVICE_FEATURES, DEVICE_TYPES, DOMAIN, THA_NA_8, THA_NA_16,
-                    THA_TYPE_THERMOSTAT)
+from .const import (
+    DEVICE_FEATURES,
+    DEVICE_TYPES,
+    DOMAIN,
+    THA_NA_8,
+    THA_NA_16,
+    THA_TYPE_THERMOSTAT,
+)
 from .helpers import degCtoE, degEtoC
 
 

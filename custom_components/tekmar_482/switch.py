@@ -4,8 +4,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import (DEVICE_FEATURES, DEVICE_TYPES, DOMAIN, THA_NA_8,
-                    THA_TYPE_THERMOSTAT)
+from .const import DEVICE_FEATURES, DEVICE_TYPES, DOMAIN, THA_NA_8, THA_TYPE_THERMOSTAT
 
 
 async def async_setup_entry(

@@ -11,14 +11,24 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.util import dt
 
-from .const import (ATTR_MANUFACTURER, DEFAULT_SETBACK_ENABLE,
-                    DEVICE_ATTRIBUTES, DEVICE_FEATURES, DEVICE_TYPES, DOMAIN,
-                    SETBACK_FAN_MAP, SETBACK_SETPOINT_MAP, THA_CURRENT,
-                    THA_DEFAULT_COOL_SETPOINT_MAX,
-                    THA_DEFAULT_COOL_SETPOINT_MIN,
-                    THA_DEFAULT_HEAT_SETPOINT_MAX,
-                    THA_DEFAULT_HEAT_SETPOINT_MIN, THA_TYPE_SETPOINT,
-                    THA_TYPE_SNOWMELT, THA_TYPE_THERMOSTAT)
+from .const import (
+    ATTR_MANUFACTURER,
+    DEFAULT_SETBACK_ENABLE,
+    DEVICE_ATTRIBUTES,
+    DEVICE_FEATURES,
+    DEVICE_TYPES,
+    DOMAIN,
+    SETBACK_FAN_MAP,
+    SETBACK_SETPOINT_MAP,
+    THA_CURRENT,
+    THA_DEFAULT_COOL_SETPOINT_MAX,
+    THA_DEFAULT_COOL_SETPOINT_MIN,
+    THA_DEFAULT_HEAT_SETPOINT_MAX,
+    THA_DEFAULT_HEAT_SETPOINT_MIN,
+    THA_TYPE_SETPOINT,
+    THA_TYPE_SNOWMELT,
+    THA_TYPE_THERMOSTAT,
+)
 from .trpc_msg import TrpcPacket, name_from_methodID
 from .trpc_sock import TrpcSocket
 

@@ -9,8 +9,14 @@ from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
 
-from .const import (CONF_SETBACK_ENABLE, DEFAULT_HOST, DEFAULT_NAME,
-                    DEFAULT_PORT, DEFAULT_SETBACK_ENABLE, DOMAIN)
+from .const import (
+    CONF_SETBACK_ENABLE,
+    DEFAULT_HOST,
+    DEFAULT_NAME,
+    DEFAULT_PORT,
+    DEFAULT_SETBACK_ENABLE,
+    DOMAIN,
+)
 
 
 def host_valid(host):
