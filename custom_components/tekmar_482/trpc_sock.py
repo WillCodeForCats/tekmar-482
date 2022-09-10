@@ -8,14 +8,6 @@ class TrpcSocket:
 
     # **************************************************************************
     def __init__(self, addr=None, port=None):
-
-        if addr is None or port is None:
-            a, p = get_trpc_host()
-            if addr is None:
-                addr = a
-            if port is None:
-                port = p
-
         self._sock_reader = None
         self._sock_writer = None
         self.is_open = False
