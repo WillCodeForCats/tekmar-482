@@ -1,12 +1,10 @@
 import asyncio
-import datetime
 import logging
 import pickle
 from os.path import exists
 from threading import Lock
 from typing import Any, Callable, Dict, Optional
 
-import pytz
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.util import dt
