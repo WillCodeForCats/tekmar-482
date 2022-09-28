@@ -44,3 +44,6 @@ Implemented using "tN4 Gateway 482 - Custom Integration Tools" and "Tekmar Home 
 (tHA) Protocol" from: https://www.watts.com/products/hvac-hot-water-solutions/controls/control-accessories/482/482
 
 Tekmar, tekmarNet, tN4, tN2, and related logos and trademarks are copyright 2021 Watts.
+
+## Project Sponsors
+None yet...
