@@ -65,22 +65,16 @@ class ThaFanSelect(ThaSelectBase):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
 
-        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-fan-percent"
-        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Fan Percent"
+    @property
+    def unique_id(self) -> str:
+        return (
+            f"{self.config_entry_id}-{self._tekmar_tha.model}-"
+            f"{self._tekmar_tha.device_id}-fan-percent"
+        )
 
-    async def async_select_option(self, option: str) -> None:
-        if option in ["0", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100"]:
-
-            if self._tekmar_tha.tha_device["type"] in [99203, 99202, 99201]:
-                value = int(option / 10)
-                await self._tekmar_tha.set_fan_percent_txqueue(value)
-
-            else:
-                value = int(option)
-                await self._tekmar_tha.set_fan_percent_txqueue(value)
-
-        else:
-            raise ValueError
+    @property
+    def name(self) -> str:
+        return f"{self._tekmar_tha.tha_full_device_name} Fan Percent"
 
     @property
     def available(self) -> bool:
@@ -103,3 +97,17 @@ class ThaFanSelect(ThaSelectBase):
     @property
     def current_option(self) -> str:
         return str(self._tekmar_tha.fan_percent)
+
+    async def async_select_option(self, option: str) -> None:
+        if option in ["0", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100"]:
+
+            if self._tekmar_tha.tha_device["type"] in [99203, 99202, 99201]:
+                value = int(option / 10)
+                await self._tekmar_tha.set_fan_percent_txqueue(value)
+
+            else:
+                value = int(option)
+                await self._tekmar_tha.set_fan_percent_txqueue(value)
+
+        else:
+            raise ValueError
