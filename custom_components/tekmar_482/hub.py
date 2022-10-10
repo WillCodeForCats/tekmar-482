@@ -84,7 +84,7 @@ class TekmarHub:
 
         self._inSetup = True
 
-        if await self._sock.open() == False:
+        if await self._sock.open() is False:
             _LOGGER.error(self._sock.error)
             raise ConfigEntryNotReady(
                 f"Connection to packet server '{self._host}' failed"
@@ -124,7 +124,7 @@ class TekmarHub:
             TrpcPacket(service="Request", method="DeviceInventory", address=0x0)
         )
 
-        while self._inSetup == True:
+        while self._inSetup is True:
             if len(self._tx_queue) != 0:
                 try:
                     await self._sock.write(self._tx_queue.pop(0))
@@ -281,7 +281,7 @@ class TekmarHub:
     async def run(self) -> None:
         self._inRun = True
 
-        while self._inRun == True:
+        while self._inRun is True:
 
             if len(self._tx_queue) != 0:
                 try:
@@ -460,7 +460,7 @@ class TekmarHub:
                     _LOGGER.warning("Unhandeled method: %s", p)
 
     async def timekeeper(self, interval: int = 86400) -> None:
-        while self._inRun == True:
+        while self._inRun is True:
             if not self._inReconnect:
                 datetime = dt.now()
                 await self.async_queue_message(
@@ -478,7 +478,7 @@ class TekmarHub:
             await asyncio.sleep(interval)
 
     async def ping(self, interval: int = 300) -> None:
-        while self._inRun == True:
+        while self._inRun is True:
             if not self._inReconnect:
                 await self.async_queue_message(
                     TrpcPacket(service="Request", method="NullMethod")
