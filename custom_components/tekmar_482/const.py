@@ -358,7 +358,7 @@ class DEVICE_ATTRIBUTES(ctypes.Union):
     _fields_ = [("bit", _DEVICE_ATTRIBUTES), ("attrs", c_uint)]
 
 
-NETWORK_ERRORS = {
+TN_ERRORS = {
     0x00: "No Errors",
     0x01: "EEPROM Error",
     0x02: "Internal Error",

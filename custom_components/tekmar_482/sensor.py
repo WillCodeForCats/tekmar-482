@@ -14,13 +14,13 @@ from .const import (
     DEVICE_FEATURES,
     DEVICE_TYPES,
     DOMAIN,
-    NETWORK_ERRORS,
     SETBACK_DESCRIPTION,
     SETBACK_STATE,
     THA_NA_8,
     THA_NA_16,
     THA_TYPE_SETPOINT,
     THA_TYPE_THERMOSTAT,
+    TN_ERRORS,
 )
 from .helpers import degHtoC, regBytes
 
@@ -208,22 +208,20 @@ class NetworkError(ThaSensorBase):
                     if err_low in [0x90, 0x92, 0x93, 0x94]:
                         ag_id = err_high & 0x0F
                         return {
-                            "description": f"{NETWORK_ERRORS[err_low]} {sen_err} {ag_id}"
+                            "description": f"{TN_ERRORS[err_low]} {sen_err} {ag_id}"
                         }
                     else:
-                        return {"description": f"{NETWORK_ERRORS[err_low]} {sen_err}"}
+                        return {"description": f"{TN_ERRORS[err_low]} {sen_err}"}
 
                 elif err_low in [0x04]:
                     device_id = err_high & 0x1F
-                    return {
-                        "description": f"{NETWORK_ERRORS[err_low]}: device {device_id}"
-                    }
+                    return {"description": f"{TN_ERRORS[err_low]}: device {device_id}"}
 
                 else:
-                    return {"description": f"{NETWORK_ERRORS[err_low]}"}
+                    return {"description": f"{TN_ERRORS[err_low]}"}
 
             else:
-                return {"description": f"{NETWORK_ERRORS[err_low]}"}
+                return {"description": f"{TN_ERRORS[err_low]}"}
 
         except KeyError:
             return {"description": "Unknown Error"}
@@ -240,6 +238,12 @@ class CurrentTemperature(ThaSensorBase):
 
         self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-current-temperature"
         self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Current Temperature"
+            f"-{self._tekmar_tha.device_id}-current-temperature"
+        )
+
+    @property
+    def name(self) -> str:
+        return f"{self._tekmar_tha.tha_full_device_name} Current Temperature"
 
     @property
     def available(self) -> bool:
