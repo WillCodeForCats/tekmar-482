@@ -224,7 +224,10 @@ class TekmarHub:
                         )
                     except KeyError:
                         _LOGGER.warning(
-                            f"Unknown device type {b['type']}. Try power cycling your Gateway 482."
+                            (
+                                f"Unknown device type {b['type']}. "
+                                "Try power cycling your Gateway 482."
+                            )
                         )
                         raise ConfigEntryNotReady(f"Unknown device type {b['type']}.")
 
@@ -375,7 +378,10 @@ class TekmarHub:
                             )
                     except KeyError as e:
                         _LOGGER.error(
-                            f"Device address {e} not in inventory. Please reload integration."
+                            (
+                                f"Device address {e} not in inventory. "
+                                "Please reload integration."
+                            )
                         )
                         pass
 
@@ -399,7 +405,10 @@ class TekmarHub:
                                 await device.set_setback_state(p.body["setback"])
                     except KeyError as e:
                         _LOGGER.error(
-                            f"Device address {e} not in inventory. Please reload integration."
+                            (
+                                f"Device address {e} not in inventory. "
+                                "Please reload integration."
+                            )
                         )
                         pass
 
@@ -597,7 +606,10 @@ class TekmarThermostat:
 
         self._device_info = {
             "identifiers": {(DOMAIN, self._id)},
-            "name": f"{hub.hub_id.capitalize()} {self._device_type.capitalize()} {self.model} {self._id}",
+            "name": (
+                f"{hub.hub_id.capitalize()} {self._device_type.capitalize()} "
+                f"{self.model} {self._id}"
+            ),
             "manufacturer": ATTR_MANUFACTURER,
             "model": self.model,
             "sw_version": self.firmware_version,
@@ -1083,7 +1095,10 @@ class TekmarSetpoint:
 
         self._device_info = {
             "identifiers": {(DOMAIN, self._id)},
-            "name": f"{hub.hub_id.capitalize()} {self._device_type.capitalize()} {self.model} {self._id}",
+            "name": (
+                f"{hub.hub_id.capitalize()} {self._device_type.capitalize()} "
+                f"{self.model} {self._id}"
+            ),
             "manufacturer": ATTR_MANUFACTURER,
             "model": self.model,
             "sw_version": self.firmware_version,
@@ -1226,7 +1241,10 @@ class TekmarSnowmelt:
 
         self._device_info = {
             "identifiers": {(DOMAIN, self._id)},
-            "name": f"{hub.hub_id.capitalize()} {self._device_type.capitalize()} {self.model} {self._id}",
+            "name": (
+                f"{hub.hub_id.capitalize()} {self._device_type.capitalize()} "
+                f"{self.model} {self._id}"
+            ),
             "manufacturer": ATTR_MANUFACTURER,
             "model": self.model,
             "sw_version": self.firmware_version,
