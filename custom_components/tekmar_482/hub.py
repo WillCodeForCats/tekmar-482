@@ -140,7 +140,7 @@ class TekmarHub:
                 raise ConfigEntryNotReady("Read error while in setup.")
 
             if p is not None:
-                h = p.header
+                # h = p.header
                 b = p.body
                 tha_method = name_from_methodID[p.header["methodID"]]
 
@@ -301,7 +301,7 @@ class TekmarHub:
                 await self._hass.config_entries.async_reload(self._entry_id)
 
             if p is not None:
-                h = p.header
+                # h = p.header
                 b = p.body
                 tha_method = name_from_methodID[p.header["methodID"]]
 
