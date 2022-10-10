@@ -66,10 +66,13 @@ class ReportingState(ThaBinarySensorBase):
     def __init__(self, tekmar_tha, config_entry):
         super().__init__(tekmar_tha, config_entry)
 
-        self._attr_unique_id = f"{self.config_entry_id}-gateway-reporting-state"
-        self._attr_name = (
-            f"{self.config_entry_name.capitalize()} Gateway Reporting State"
-        )
+    @property
+    def unique_id(self) -> str:
+        return f"{self.config_entry_id}-gateway-reporting-state"
+
+    @property
+    def name(self) -> str:
+        return f"{self.config_entry_name.capitalize()} Gateway Reporting State"
 
     @property
     def is_on(self):
@@ -86,10 +89,13 @@ class SetbackEnable(ThaBinarySensorBase):
     def __init__(self, tekmar_tha, config_entry):
         super().__init__(tekmar_tha, config_entry)
 
-        self._attr_unique_id = f"{self.config_entry_id}-gateway-setback-enable"
-        self._attr_name = (
-            f"{self.config_entry_name.capitalize()} Gateway Setback Enable"
-        )
+    @property
+    def unique_id(self) -> str:
+        return f"{self.config_entry_id}-gateway-setback-enable"
+
+    @property
+    def name(self) -> str:
+        return f"{self.config_entry_name.capitalize()} Gateway Setback Enable"
 
     @property
     def available(self) -> bool:
