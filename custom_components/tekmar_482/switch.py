@@ -82,14 +82,20 @@ class ThaSetpointGroup(ThaSwitchBase):
         super().__init__(tekmar_tha, config_entry)
 
         self._setpoint_group = group
-        self._attr_unique_id = f"{self.config_entry_id}-gateway-setpoint-group-{int(self._setpoint_group):02d}"
-        self._attr_name = f"{self.config_entry_name.capitalize()} Gateway Setpoint Group {int(self._setpoint_group):02d}"
 
-    async def async_turn_on(self, **kwargs):
-        await self._tekmar_tha.set_setpoint_group_txqueue(self._setpoint_group, 0x01)
+    @property
+    def unique_id(self) -> str:
+        return (
+            f"{self.config_entry_id}-gateway-setpoint-group-"
+            f"{int(self._setpoint_group):02d}"
+        )
 
-    async def async_turn_off(self, **kwargs):
-        await self._tekmar_tha.set_setpoint_group_txqueue(self._setpoint_group, 0x00)
+    @property
+    def name(self) -> str:
+        return (
+            f"{self.config_entry_name.capitalize()} Gateway Setpoint Group "
+            f"{int(self._setpoint_group):02d}"
+        )
 
     @property
     def available(self) -> bool:
@@ -115,6 +121,12 @@ class ThaSetpointGroup(ThaSwitchBase):
         else:
             raise NotImplementedError
 
+    async def async_turn_on(self, **kwargs):
+        await self._tekmar_tha.set_setpoint_group_txqueue(self._setpoint_group, 0x01)
+
+    async def async_turn_off(self, **kwargs):
+        await self._tekmar_tha.set_setpoint_group_txqueue(self._setpoint_group, 0x00)
+
 
 class ConfigEmergencyHeat(ThaSwitchBase):
     entity_category = EntityCategory.CONFIG
@@ -124,14 +136,16 @@ class ConfigEmergencyHeat(ThaSwitchBase):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
 
-        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-config-emer-heat"
-        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Emergency/Aux Heat"
+    @property
+    def unique_id(self) -> str:
+        return (
+            f"{self.config_entry_id}-{self._tekmar_tha.model}-"
+            f"{self._tekmar_tha.device_id}-config-emer-heat"
+        )
 
-    async def async_turn_on(self, **kwargs):
-        await self._tekmar_tha.set_config_emer_heat(True)
-
-    async def async_turn_off(self, **kwargs):
-        await self._tekmar_tha.set_config_emer_heat(False)
+    @property
+    def name(self) -> str:
+        return f"{self._tekmar_tha.tha_full_device_name} Emergency/Aux Heat"
 
     @property
     def available(self) -> bool:
@@ -147,6 +161,12 @@ class ConfigEmergencyHeat(ThaSwitchBase):
         else:
             return False
 
+    async def async_turn_on(self, **kwargs):
+        await self._tekmar_tha.set_config_emer_heat(True)
+
+    async def async_turn_off(self, **kwargs):
+        await self._tekmar_tha.set_config_emer_heat(False)
+
 
 class ConfigVentMode(ThaSwitchBase):
     entity_category = EntityCategory.CONFIG
@@ -156,14 +176,16 @@ class ConfigVentMode(ThaSwitchBase):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
 
-        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-config-vent-mode"
-        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Enable Vent Mode"
+    @property
+    def unique_id(self) -> str:
+        return (
+            f"{self.config_entry_id}-{self._tekmar_tha.model}-"
+            f"{self._tekmar_tha.device_id}-config-vent-mode"
+        )
 
-    async def async_turn_on(self, **kwargs):
-        await self._tekmar_tha.set_config_vent_mode(True)
-
-    async def async_turn_off(self, **kwargs):
-        await self._tekmar_tha.set_config_vent_mode(False)
+    @property
+    def name(self) -> str:
+        return f"{self._tekmar_tha.tha_full_device_name} Enable Vent Mode"
 
     @property
     def available(self) -> bool:
@@ -178,3 +200,9 @@ class ConfigVentMode(ThaSwitchBase):
             return True
         else:
             return False
+
+    async def async_turn_on(self, **kwargs):
+        await self._tekmar_tha.set_config_vent_mode(True)
+
+    async def async_turn_off(self, **kwargs):
+        await self._tekmar_tha.set_config_vent_mode(False)
