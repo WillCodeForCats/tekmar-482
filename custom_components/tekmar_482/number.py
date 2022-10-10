@@ -79,14 +79,16 @@ class ThaHumiditySetMax(ThaNumberBase):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
 
-        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-humidity-max-setpoint"
-        self._attr_name = (
-            f"{self._tekmar_tha.tha_full_device_name} Humidity Maximum Setpoint"
+    @property
+    def unique_id(self) -> str:
+        return (
+            f"{self.config_entry_id}-{self._tekmar_tha.model}-"
+            f"{self._tekmar_tha.device_id}-humidity-max-setpoint"
         )
 
-    async def async_set_native_value(self, value: float) -> None:
-        value = int(value)
-        await self._tekmar_tha.set_humidity_setpoint_max_txqueue(value)
+    @property
+    def name(self) -> str:
+        return f"{self._tekmar_tha.tha_full_device_name} Humidity Maximum Setpoint"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -110,6 +112,10 @@ class ThaHumiditySetMax(ThaNumberBase):
     def native_value(self):
         return self._tekmar_tha.humidity_setpoint_max
 
+    async def async_set_native_value(self, value: float) -> None:
+        value = int(value)
+        await self._tekmar_tha.set_humidity_setpoint_max_txqueue(value)
+
 
 class ThaHumiditySetMin(ThaNumberBase):
     native_unit_of_measurement = PERCENTAGE
@@ -121,14 +127,16 @@ class ThaHumiditySetMin(ThaNumberBase):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
 
-        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-humidity-min-setpoint"
-        self._attr_name = (
-            f"{self._tekmar_tha.tha_full_device_name} Humidity Minimum Setpoint"
+    @property
+    def unique_id(self) -> str:
+        return (
+            f"{self.config_entry_id}-{self._tekmar_tha.model}-"
+            f"{self._tekmar_tha.device_id}-humidity-min-setpoint"
         )
 
-    async def async_set_native_value(self, value: float) -> None:
-        value = int(value)
-        await self._tekmar_tha.set_humidity_setpoint_min_txqueue(value)
+    @property
+    def name(self) -> str:
+        return f"{self._tekmar_tha.tha_full_device_name} Humidity Minimum Setpoint"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -152,6 +160,10 @@ class ThaHumiditySetMin(ThaNumberBase):
     def native_value(self):
         return self._tekmar_tha.humidity_setpoint_min
 
+    async def async_set_native_value(self, value: float) -> None:
+        value = int(value)
+        await self._tekmar_tha.set_humidity_setpoint_min_txqueue(value)
+
 
 class ThaHeatSetpoint(ThaNumberBase):
     device_class = NumberDeviceClass.TEMPERATURE
@@ -162,12 +174,16 @@ class ThaHeatSetpoint(ThaNumberBase):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
 
-        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-heat-setpoint"
-        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint"
+    @property
+    def unique_id(self) -> str:
+        return (
+            f"{self.config_entry_id}-{self._tekmar_tha.model}-"
+            f"{self._tekmar_tha.device_id}-heat-setpoint"
+        )
 
-    async def async_set_native_value(self, value: float) -> None:
-        heat_setpoint = int(degCtoE(value))
-        await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint)
+    @property
+    def name(self) -> str:
+        return f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -202,18 +218,26 @@ class ThaHeatSetpoint(ThaNumberBase):
     def native_max_value(self):
         return self._tekmar_tha.config_heat_setpoint_max
 
+    async def async_set_native_value(self, value: float) -> None:
+        heat_setpoint = int(degCtoE(value))
+        await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint)
+
 
 class ThaHeatSetpointDay(ThaHeatSetpoint):
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
 
-        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-heat-setpoint-day"
-        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint Day"
+    @property
+    def unique_id(self) -> str:
+        return (
+            f"{self.config_entry_id}-{self._tekmar_tha.model}-"
+            f"{self._tekmar_tha.device_id}-heat-setpoint-day"
+        )
 
-    async def async_set_native_value(self, value: float) -> None:
-        heat_setpoint = int(degCtoE(value))
-        await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint, 0x00)
+    @property
+    def name(self) -> str:
+        return f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint Day"
 
     @property
     def available(self) -> bool:
@@ -233,18 +257,26 @@ class ThaHeatSetpointDay(ThaHeatSetpoint):
         except TypeError:
             return None
 
+    async def async_set_native_value(self, value: float) -> None:
+        heat_setpoint = int(degCtoE(value))
+        await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint, 0x00)
+
 
 class ThaHeatSetpointNight(ThaHeatSetpoint):
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
 
-        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-heat-setpoint-night"
-        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint Night"
+    @property
+    def unique_id(self) -> str:
+        return (
+            f"{self.config_entry_id}-{self._tekmar_tha.model}-"
+            f"{self._tekmar_tha.device_id}-heat-setpoint-night"
+        )
 
-    async def async_set_native_value(self, value: float) -> None:
-        heat_setpoint = int(degCtoE(value))
-        await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint, 0x03)
+    @property
+    def name(self) -> str:
+        return f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint Night"
 
     @property
     def available(self) -> bool:
@@ -264,18 +296,26 @@ class ThaHeatSetpointNight(ThaHeatSetpoint):
         except TypeError:
             return None
 
+    async def async_set_native_value(self, value: float) -> None:
+        heat_setpoint = int(degCtoE(value))
+        await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint, 0x03)
+
 
 class ThaHeatSetpointAway(ThaHeatSetpoint):
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
 
-        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-heat-setpoint-away"
-        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint Away"
+    @property
+    def unique_id(self) -> str:
+        return (
+            f"{self.config_entry_id}-{self._tekmar_tha.model}-"
+            f"{self._tekmar_tha.device_id}-heat-setpoint-away"
+        )
 
-    async def async_set_native_value(self, value: float) -> None:
-        heat_setpoint = int(degCtoE(value))
-        await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint, 0x06)
+    @property
+    def name(self) -> str:
+        return f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint Away"
 
     @property
     def available(self) -> bool:
@@ -295,6 +335,10 @@ class ThaHeatSetpointAway(ThaHeatSetpoint):
         except TypeError:
             return None
 
+    async def async_set_native_value(self, value: float) -> None:
+        heat_setpoint = int(degCtoE(value))
+        await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint, 0x06)
+
 
 class ThaCoolSetpoint(ThaNumberBase):
     device_class = NumberDeviceClass.TEMPERATURE
@@ -305,12 +349,16 @@ class ThaCoolSetpoint(ThaNumberBase):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
 
-        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-cool-setpoint"
-        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint"
+    @property
+    def unique_id(self) -> str:
+        return (
+            f"{self.config_entry_id}-{self._tekmar_tha.model}-"
+            f"{self._tekmar_tha.device_id}-cool-setpoint"
+        )
 
-    async def async_set_native_value(self, value: float) -> None:
-        cool_setpoint = int(degCtoE(value))
-        await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint)
+    @property
+    def name(self) -> str:
+        return f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -345,18 +393,26 @@ class ThaCoolSetpoint(ThaNumberBase):
     def native_max_value(self):
         return self._tekmar_tha.config_cool_setpoint_max
 
+    async def async_set_native_value(self, value: float) -> None:
+        cool_setpoint = int(degCtoE(value))
+        await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint)
+
 
 class ThaCoolSetpointDay(ThaCoolSetpoint):
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
 
-        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-cool-setpoint-day"
-        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint Day"
+    @property
+    def unique_id(self) -> str:
+        return (
+            f"{self.config_entry_id}-{self._tekmar_tha.model}-"
+            f"{self._tekmar_tha.device_id}-cool-setpoint-day"
+        )
 
-    async def async_set_native_value(self, value: float) -> None:
-        cool_setpoint = int(degCtoE(value))
-        await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint, 0x00)
+    @property
+    def name(self) -> str:
+        return f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint Day"
 
     @property
     def available(self) -> bool:
@@ -376,18 +432,26 @@ class ThaCoolSetpointDay(ThaCoolSetpoint):
         except TypeError:
             return None
 
+    async def async_set_native_value(self, value: float) -> None:
+        cool_setpoint = int(degCtoE(value))
+        await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint, 0x00)
+
 
 class ThaCoolSetpointNight(ThaCoolSetpoint):
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
 
-        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-cool-setpoint-night"
-        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint Night"
+    @property
+    def unique_id(self) -> str:
+        return (
+            f"{self.config_entry_id}-{self._tekmar_tha.model}-"
+            f"{self._tekmar_tha.device_id}-cool-setpoint-night"
+        )
 
-    async def async_set_native_value(self, value: float) -> None:
-        cool_setpoint = int(degCtoE(value))
-        await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint, 0x03)
+    @property
+    def name(self) -> str:
+        return f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint Night"
 
     @property
     def available(self) -> bool:
@@ -407,18 +471,26 @@ class ThaCoolSetpointNight(ThaCoolSetpoint):
         except TypeError:
             return None
 
+    async def async_set_native_value(self, value: float) -> None:
+        cool_setpoint = int(degCtoE(value))
+        await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint, 0x03)
+
 
 class ThaCoolSetpointAway(ThaCoolSetpoint):
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
 
-        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-cool-setpoint-away"
-        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint Away"
+    @property
+    def unique_id(self) -> str:
+        return (
+            f"{self.config_entry_id}-{self._tekmar_tha.model}-"
+            f"{self._tekmar_tha.device_id}-cool-setpoint-away"
+        )
 
-    async def async_set_native_value(self, value: float) -> None:
-        cool_setpoint = int(degCtoE(value))
-        await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint, 0x06)
+    @property
+    def name(self) -> str:
+        return f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint Away"
 
     @property
     def available(self) -> bool:
@@ -437,3 +509,7 @@ class ThaCoolSetpointAway(ThaCoolSetpoint):
             return degEtoC(self._tekmar_tha.cool_setpoint_away)
         except TypeError:
             return None
+
+    async def async_set_native_value(self, value: float) -> None:
+        cool_setpoint = int(degCtoE(value))
+        await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint, 0x06)
