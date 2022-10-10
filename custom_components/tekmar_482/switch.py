@@ -95,7 +95,7 @@ class ThaSetpointGroup(ThaSwitchBase):
     def available(self) -> bool:
         setpoint_groups = self._tekmar_tha.setpoint_groups
 
-        if setpoint_groups[self._setpoint_group] == None:
+        if setpoint_groups[self._setpoint_group] is None:
             return False
 
         elif setpoint_groups[self._setpoint_group] == THA_NA_8:

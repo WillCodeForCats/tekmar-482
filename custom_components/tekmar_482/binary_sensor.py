@@ -94,7 +94,7 @@ class SetbackEnable(ThaBinarySensorBase):
     @property
     def available(self) -> bool:
         if (
-            self._tekmar_tha.setback_enable == None
+            self._tekmar_tha.setback_enable is None
             or self._tekmar_tha.setback_enable == THA_NA_8
         ):
             return False

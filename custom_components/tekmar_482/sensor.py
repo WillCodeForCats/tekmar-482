@@ -119,7 +119,7 @@ class OutdoorTemprature(ThaSensorBase):
     def native_value(self):
         if (
             self._tekmar_tha.outdoor_temprature == THA_NA_16
-            or self._tekmar_tha.outdoor_temprature == None
+            or self._tekmar_tha.outdoor_temprature is None
         ):
             return None
 
@@ -147,14 +147,14 @@ class LastPing(ThaSensorBase):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.last_ping == None:
+        if self._tekmar_tha.last_ping is None:
             return False
         else:
             return True
 
     @property
     def native_value(self):
-        if self._tekmar_tha.last_ping == None:
+        if self._tekmar_tha.last_ping is None:
             return None
         else:
             return self._tekmar_tha.last_ping
@@ -254,7 +254,7 @@ class CurrentTemperature(ThaSensorBase):
     def native_value(self):
         if (
             self._tekmar_tha.current_temperature == THA_NA_16
-            or self._tekmar_tha.current_temperature == None
+            or self._tekmar_tha.current_temperature is None
         ):
             return None
 
@@ -296,7 +296,7 @@ class CurrentFloorTemperature(ThaSensorBase):
     def native_value(self):
         if (
             self._tekmar_tha.current_floor_temperature == THA_NA_16
-            or self._tekmar_tha.current_floor_temperature == None
+            or self._tekmar_tha.current_floor_temperature is None
         ):
             return None
 
@@ -333,7 +333,7 @@ class RelativeHumidity(ThaSensorBase):
     def native_value(self):
         if (
             self._tekmar_tha.relative_humidity == THA_NA_8
-            or self._tekmar_tha.relative_humidity == None
+            or self._tekmar_tha.relative_humidity is None
         ):
             return None
 
@@ -412,7 +412,7 @@ class SetpointTarget(ThaSensorBase):
     def native_value(self):
         if (
             self._tekmar_tha.setpoint_target == THA_NA_16
-            or self._tekmar_tha.setpoint_target == None
+            or self._tekmar_tha.setpoint_target is None
             or self._tekmar_tha.setpoint_target == 0x00
         ):
             return None

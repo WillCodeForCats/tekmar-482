@@ -150,7 +150,7 @@ class ThaClimateThermostat(ThaClimateBase):
         if self._tekmar_tha.current_temperature == THA_NA_16:
             return None
 
-        elif self._tekmar_tha.current_temperature == None:
+        elif self._tekmar_tha.current_temperature is None:
             return None
 
         else:
@@ -166,7 +166,7 @@ class ThaClimateThermostat(ThaClimateBase):
     def current_humidity(self):
         if (
             self._tekmar_tha.relative_humidity == THA_NA_8
-            or self._tekmar_tha.relative_humidity == None
+            or self._tekmar_tha.relative_humidity is None
         ):
             return None
 
@@ -316,7 +316,7 @@ class ThaClimateThermostat(ThaClimateBase):
         else:
             return None
 
-        if this_device_setpoint == THA_NA_8 or this_device_setpoint == None:
+        if this_device_setpoint == THA_NA_8 or this_device_setpoint is None:
             return None
 
         else:
@@ -332,7 +332,7 @@ class ThaClimateThermostat(ThaClimateBase):
     def target_temperature_high(self):
         if (
             self._tekmar_tha.cool_setpoint == THA_NA_8
-            or self._tekmar_tha.cool_setpoint == None
+            or self._tekmar_tha.cool_setpoint is None
         ):
             return None
 
@@ -348,7 +348,7 @@ class ThaClimateThermostat(ThaClimateBase):
     def target_temperature_low(self):
         if (
             self._tekmar_tha.heat_setpoint == THA_NA_8
-            or self._tekmar_tha.heat_setpoint == None
+            or self._tekmar_tha.heat_setpoint is None
         ):
             return None
 
