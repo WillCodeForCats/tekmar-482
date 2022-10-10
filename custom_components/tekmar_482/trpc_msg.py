@@ -294,7 +294,7 @@ class TrpcPacket:
 
     # *************************************************************************
     def __str__(self):
-        """ String representation of the packet. """
+        """String representation of the packet."""
         try:
             service_name = name_from_serviceID[self.header["serviceID"]]
         except KeyError:
