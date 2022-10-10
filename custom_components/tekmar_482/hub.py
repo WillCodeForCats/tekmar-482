@@ -131,13 +131,13 @@ class TekmarHub:
                     await asyncio.sleep(0.1)
                 except Exception as e:
                     _LOGGER.error(f"Write error: {e}")
-                    raise ConfigEntryNotReady(f"Write error while in setup.")
+                    raise ConfigEntryNotReady("Write error while in setup.")
 
             try:
                 p = await self._sock.read()
             except Exception as e:
                 _LOGGER.error(f"Read error: {e}")
-                raise ConfigEntryNotReady(f"Read error while in setup.")
+                raise ConfigEntryNotReady("Read error while in setup.")
 
             if p is not None:
                 h = p.header
