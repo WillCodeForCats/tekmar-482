@@ -82,10 +82,18 @@ class ThaClimateThermostat(ThaClimateBase):
     def __init__(self, tekmar_tha, config_entry):
         super().__init__(tekmar_tha, config_entry)
 
-        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-climate"
-        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Climate"
-
         self._last_mode_setting = 0x00
+
+    @property
+    def unique_id(self) -> str:
+        return (
+            f"{self.config_entry_id}-{self._tekmar_tha.model}-"
+            f"{self._tekmar_tha.device_id}-climate"
+        )
+
+    @property
+    def name(self) -> str:
+        return f"{self._tekmar_tha.tha_full_device_name} Climate"
 
     @property
     def max_temp(self):
