@@ -1444,8 +1444,8 @@ class StoredData(object):
                 with self._lock, open(self._data_file, "rb") as myfile:
                     self._data = pickle.load(myfile) or {}
                     self._cache_outdated = False
-            # pylint: disable=bare-except
-            except:
+
+            except:  # noqa: E722
                 _LOGGER.error(f"Error loading data from pickled file {self._data_file}")
 
     def get_setting(self, key):
@@ -1459,8 +1459,8 @@ class StoredData(object):
             _LOGGER.debug(f"Writing {key}:{value} in storage file {self._data_file}")
             try:
                 pickle.dump(self._data, myfile)
-            # pylint: disable=bare-except
-            except:
+
+            except:  # noqa: E722
                 _LOGGER.error(f"Error saving pickled data to {self._data_file}")
 
         self._cache_outdated = True
