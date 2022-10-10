@@ -105,8 +105,13 @@ class OutdoorTemprature(ThaSensorBase):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
 
-        self._attr_unique_id = f"{self.config_entry_id}-outdoor-temperature"
-        self._attr_name = f"{self.config_entry_name.capitalize()} Outdoor Temperature"
+    @property
+    def unique_id(self) -> str:
+        return f"{self.config_entry_id}-outdoor-temperature"
+
+    @property
+    def name(self) -> str:
+        return f"{self.config_entry_name.capitalize()} Outdoor Temperature"
 
     @property
     def available(self) -> bool:
@@ -142,8 +147,13 @@ class LastPing(ThaSensorBase):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
 
-        self._attr_unique_id = f"{self.config_entry_id}-last-ping"
-        self._attr_name = f"{self.config_entry_name.capitalize()} Last Ping"
+    @property
+    def unique_id(self) -> str:
+        return f"{self.config_entry_id}-last-ping"
+
+    @property
+    def name(self) -> str:
+        return f"{self.config_entry_name.capitalize()} Last Ping"
 
     @property
     def available(self) -> bool:
@@ -167,8 +177,13 @@ class NetworkError(ThaSensorBase):
     def __init__(self, tekmar_tha, config_entry):
         super().__init__(tekmar_tha, config_entry)
 
-        self._attr_unique_id = f"{self.config_entry_id}-network-error"
-        self._attr_name = f"{self.config_entry_name.capitalize()} Network Error"
+    @property
+    def unique_id(self) -> str:
+        return f"{self.config_entry_id}-network-error"
+
+    @property
+    def name(self) -> str:
+        return f"{self.config_entry_name.capitalize()} Network Error"
 
     @property
     def native_value(self):
@@ -236,8 +251,10 @@ class CurrentTemperature(ThaSensorBase):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
 
-        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-current-temperature"
-        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Current Temperature"
+    @property
+    def unique_id(self) -> str:
+        return (
+            f"{self.config_entry_id}-{self._tekmar_tha.model}"
             f"-{self._tekmar_tha.device_id}-current-temperature"
         )
 
@@ -281,10 +298,16 @@ class CurrentFloorTemperature(ThaSensorBase):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
 
-        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-current-floor-temperature"
-        self._attr_name = (
-            f"{self._tekmar_tha.tha_full_device_name} Current Floor Temperature"
+    @property
+    def unique_id(self) -> str:
+        return (
+            f"{self.config_entry_id}-{self._tekmar_tha.model}-"
+            f"{self._tekmar_tha.device_id}-current-floor-temperature"
         )
+
+    @property
+    def name(self) -> str:
+        return f"{self._tekmar_tha.tha_full_device_name} Current Floor Temperature"
 
     @property
     def available(self) -> bool:
@@ -323,8 +346,16 @@ class RelativeHumidity(ThaSensorBase):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
 
-        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-relative-humidity"
-        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Relative Humidity"
+    @property
+    def unique_id(self) -> str:
+        return (
+            f"{self.config_entry_id}-{self._tekmar_tha.model}-"
+            f"{self._tekmar_tha.device_id}-relative-humidity"
+        )
+
+    @property
+    def name(self) -> str:
+        return f"{self._tekmar_tha.tha_full_device_name} Relative Humidity"
 
     @property
     def available(self) -> bool:
@@ -351,8 +382,16 @@ class SetbackState(ThaSensorBase):
     def __init__(self, tekmar_tha, config_entry):
         super().__init__(tekmar_tha, config_entry)
 
-        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-setback-state"
-        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Setback State"
+    @property
+    def unique_id(self) -> str:
+        return (
+            f"{self.config_entry_id}-{self._tekmar_tha.model}-"
+            f"{self._tekmar_tha.device_id}-setback-state"
+        )
+
+    @property
+    def name(self) -> str:
+        return f"{self._tekmar_tha.tha_full_device_name} Setback State"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -399,8 +438,16 @@ class SetpointTarget(ThaSensorBase):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
 
-        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-setpoint-target"
-        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Setpoint Target"
+    @property
+    def unique_id(self) -> str:
+        return (
+            f"{self.config_entry_id}-{self._tekmar_tha.model}-"
+            f"{self._tekmar_tha.device_id}-setpoint-target"
+        )
+
+    @property
+    def name(self) -> str:
+        return f"{self._tekmar_tha.tha_full_device_name} Setpoint Target"
 
     @property
     def available(self) -> bool:
@@ -438,8 +485,16 @@ class SetpointDemand(ThaSensorBase):
         """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
 
-        self._attr_unique_id = f"{self.config_entry_id}-{self._tekmar_tha.model}-{self._tekmar_tha.device_id}-active-demand"
-        self._attr_name = f"{self._tekmar_tha.tha_full_device_name} Active Demand"
+    @property
+    def unique_id(self) -> str:
+        return (
+            f"{self.config_entry_id}-{self._tekmar_tha.model}-"
+            f"{self._tekmar_tha.device_id}-active-demand"
+        )
+
+    @property
+    def name(self) -> str:
+        return f"{self._tekmar_tha.tha_full_device_name} Active Demand"
 
     @property
     def available(self) -> bool:
