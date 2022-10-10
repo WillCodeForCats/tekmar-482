@@ -1,4 +1,4 @@
-from .fields import Field, FieldList, Int8
+from .fields import FieldList, Int8
 
 # ******************************************************************************
 # Supported packet types.

@@ -1,5 +1,3 @@
-from typing import Any, Dict, Optional
-
 from homeassistant.components.select import SelectEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE
