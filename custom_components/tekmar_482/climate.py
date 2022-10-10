@@ -418,6 +418,8 @@ class ThaClimateThermostat(ThaClimateBase):
         else:
             raise NotImplementedError()
 
+        await self._tekmar_tha.set_fan_percent_txqueue(value)
+
     async def async_set_humidity(self, humidity):
 
         if (
