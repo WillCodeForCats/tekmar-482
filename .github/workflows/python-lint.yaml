@@ -1,19 +1,19 @@
-name: Python Code Quality and Lint
+name: Python Code Quality Action
 
 on:
   push:
-    branches: code-quality
+    branches: [ main ]
   pull_request:
     # The branches below must be a subset of the branches above
-    branches: code-quality
+    branches: [ main ]
 
 jobs:
   lint:
     runs-on: ubuntu-latest
-    
+    name: Python Code Quality Action
     steps:
       - uses: actions/checkout@v3
-      - uses: WillCodeForCats/python-lint-action@master
+      - uses: WillCodeForCats/python-lint-action@v1.0.0
         with:
           python-root-list: "custom_components/tekmar_482"
           use-flake8: true
