@@ -161,7 +161,7 @@ class TekmarHub:
 
                 elif tha_method in ["DeviceInventory"]:
                     if b["address"] > 0:
-                        _LOGGER.debug("Setting up address %s", b["address"])
+                        _LOGGER.debug(f"Setting up address {b['address']}")
 
                         self._tha_inventory[b["address"]] = {
                             "entity": "",
@@ -243,7 +243,7 @@ class TekmarHub:
                     self._tha_inventory[b["address"]]["events"] = b["events"]
 
                 else:
-                    _LOGGER.warning("Ignored method %s during setup.", p)
+                    _LOGGER.warning(f"Ignored method {p} during setup.")
 
         else:
 
@@ -277,7 +277,7 @@ class TekmarHub:
                     )
 
                 else:
-                    _LOGGER.error("Unknown device at address %s", address)
+                    _LOGGER.error(f"Unknown device at address {address}")
 
             self.online = True
 
@@ -447,15 +447,13 @@ class TekmarHub:
 
                 elif tha_method in ["TakingAddress"]:
                     _LOGGER.error(
-                        "Device at address %s moved to %s; please reload integration!",
-                        p.body["old_address"],
-                        p.body["new_address"],
+                        f"Device at address {p.body['old_address']} moved to "
+                        f"{p.body['new_address']}; please reload integration!"
                     )
 
                 elif tha_method in ["DeviceAttributes"]:
                     _LOGGER.error(
-                        "Device attributes for %s changed; please reload integration!",
-                        b["address"],
+                        f"Device attributes for {b['address']} changed; reload required"
                     )
 
                 elif tha_method in ["NullMethod"]:
@@ -466,7 +464,7 @@ class TekmarHub:
                     pass
 
                 else:
-                    _LOGGER.warning("Unhandeled method: %s", p)
+                    _LOGGER.warning(f"Unhandeled method: {p}")
 
     async def timekeeper(self, interval: int = 86400) -> None:
         while self._inRun is True:
