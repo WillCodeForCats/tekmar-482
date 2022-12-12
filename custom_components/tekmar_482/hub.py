@@ -226,6 +226,8 @@ class TekmarHub:
                             b["address"],
                             self._name.capitalize(),
                         )
+                        _LOGGER.debug(f"Address {{b['address']}} type {b['type']}")
+
                     except KeyError:
                         _LOGGER.warning(
                             (
@@ -236,14 +238,21 @@ class TekmarHub:
                         raise ConfigEntryNotReady(f"Unknown device type {b['type']}.")
 
                 elif tha_method in ["DeviceAttributes"]:
+                    _LOGGER.debug(
+                        f"Address {{b['address']}} attributes {b['attributes']}"
+                    )
                     self._tha_inventory[b["address"]]["attributes"].attrs = int(
                         b["attributes"]
                     )
 
                 elif tha_method in ["DeviceVersion"]:
+                    _LOGGER.debug(f"Address {{b['address']}} version {b['j_number']}")
                     self._tha_inventory[b["address"]]["version"] = b["j_number"]
 
                 elif tha_method in ["SetbackEvents"]:
+                    _LOGGER.debug(
+                        f"Address {{b['address']}} setback events {b['events']}"
+                    )
                     self._tha_inventory[b["address"]]["events"] = b["events"]
 
                 else:
