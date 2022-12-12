@@ -140,9 +140,13 @@ class TekmarHub:
                 raise ConfigEntryNotReady("Read error while in setup.")
 
             if p is not None:
-                # h = p.header
-                b = p.body
-                tha_method = name_from_methodID[p.header["methodID"]]
+                try:
+                    # h = p.header
+                    b = p.body
+                    tha_method = name_from_methodID[p.header["methodID"]]
+                except KeyError:
+                    _LOGGER.debug(f"Ignore unknown method ID {p.header['methodID']}")
+                    continue
 
                 if tha_method in ["FirmwareRevision"]:
                     self._tha_fw_ver = b["revision"]
@@ -301,9 +305,13 @@ class TekmarHub:
                 await self._hass.config_entries.async_reload(self._entry_id)
 
             if p is not None:
-                # h = p.header
-                b = p.body
-                tha_method = name_from_methodID[p.header["methodID"]]
+                try:
+                    # h = p.header
+                    b = p.body
+                    tha_method = name_from_methodID[p.header["methodID"]]
+                except KeyError:
+                    _LOGGER.debug(f"Ignore unknown method ID {p.header['methodID']}")
+                    continue
 
                 if tha_method in ["ReportingState"]:
                     for gateway in self.tha_gateway:
