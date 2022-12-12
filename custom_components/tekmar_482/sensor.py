@@ -55,8 +55,9 @@ async def async_setup_entry(
                 entities.append(CurrentFloorTemperature(device, config_entry))
 
         if DEVICE_TYPES[device.tha_device["type"]] == THA_TYPE_SETPOINT:
+            if device.tha_device["attributes"].Slab_Setpoint and hub.tha_pr_ver in [3]:
+                entities.append(CurrentFloorTemperature(device, config_entry))
             entities.append(CurrentTemperature(device, config_entry))
-            entities.append(CurrentFloorTemperature(device, config_entry))
             entities.append(SetbackState(device, config_entry))
             entities.append(SetpointTarget(device, config_entry))
             entities.append(SetpointDemand(device, config_entry))
