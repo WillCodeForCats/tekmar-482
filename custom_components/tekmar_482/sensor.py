@@ -51,7 +51,7 @@ async def async_setup_entry(
             ] and hub.tha_pr_ver in [2, 3]:
                 entities.append(RelativeHumidity(device, config_entry))
 
-            if device.tha_device["attributes"].Slab_Setpoint and hub.tha_pr_ver in [3]:
+            if hub.tha_pr_ver in [3]:
                 entities.append(CurrentFloorTemperature(device, config_entry))
 
         if DEVICE_TYPES[device.tha_device["type"]] == THA_TYPE_SETPOINT:
@@ -309,6 +309,10 @@ class CurrentFloorTemperature(ThaSensorBase):
     @property
     def name(self) -> str:
         return f"{self._tekmar_tha.tha_full_device_name} Current Floor Temperature"
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        return False
 
     @property
     def available(self) -> bool:
