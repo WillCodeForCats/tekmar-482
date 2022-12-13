@@ -4,7 +4,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DEVICE_FEATURES, DEVICE_TYPES, DOMAIN, THA_NA_8, THA_TYPE_THERMOSTAT
+from .const import DEVICE_FEATURES, DEVICE_TYPES, DOMAIN, ThaType, ThaValue
 
 
 async def async_setup_entry(
@@ -33,7 +33,7 @@ async def async_setup_entry(
             entities.append(ThaSetpointGroup(gateway, config_entry, 0x0C))
 
     for device in hub.tha_devices:
-        if DEVICE_TYPES[device.tha_device["type"]] == THA_TYPE_THERMOSTAT:
+        if DEVICE_TYPES[device.tha_device["type"]] == ThaType.THERMOSTAT:
             if DEVICE_FEATURES[device.tha_device["type"]]["emer"]:
                 entities.append(ConfigEmergencyHeat(device, config_entry))
             if DEVICE_FEATURES[device.tha_device["type"]]["fan"]:
@@ -104,7 +104,7 @@ class ThaSetpointGroup(ThaSwitchBase):
         if setpoint_groups[self._setpoint_group] is None:
             return False
 
-        elif setpoint_groups[self._setpoint_group] == THA_NA_8:
+        elif setpoint_groups[self._setpoint_group] == ThaValue.NA_8:
             return False
 
         else:

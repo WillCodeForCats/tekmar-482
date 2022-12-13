@@ -15,14 +15,7 @@ from homeassistant.const import ATTR_TEMPERATURE, TEMP_CELSIUS
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import (
-    DEVICE_FEATURES,
-    DEVICE_TYPES,
-    DOMAIN,
-    THA_NA_8,
-    THA_NA_16,
-    THA_TYPE_THERMOSTAT,
-)
+from .const import DEVICE_FEATURES, DEVICE_TYPES, DOMAIN, ThaType, ThaValue
 from .helpers import degCtoE, degEtoC, degHtoC
 
 
@@ -37,7 +30,7 @@ async def async_setup_entry(
     entities = []
 
     for device in hub.tha_devices:
-        if DEVICE_TYPES[device.tha_device["type"]] == THA_TYPE_THERMOSTAT:
+        if DEVICE_TYPES[device.tha_device["type"]] == ThaType.THERMOSTAT:
             entities.append(ThaClimateThermostat(device, config_entry))
 
     if entities:
@@ -140,11 +133,11 @@ class ThaClimateThermostat(ThaClimateBase):
 
         if DEVICE_FEATURES[self._tekmar_tha.tha_device["type"]]["humid"]:
             if (
-                self._tekmar_tha.humidity_setpoint_min != THA_NA_8
-                or self._tekmar_tha.humidity_setpoint_max != THA_NA_8
+                self._tekmar_tha.humidity_setpoint_min != ThaValue.NA_8
+                or self._tekmar_tha.humidity_setpoint_max != ThaValue.NA_8
             ) and not (
-                self._tekmar_tha.humidity_setpoint_min != THA_NA_8
-                and self._tekmar_tha.humidity_setpoint_max != THA_NA_8
+                self._tekmar_tha.humidity_setpoint_min != ThaValue.NA_8
+                and self._tekmar_tha.humidity_setpoint_max != ThaValue.NA_8
             ):
                 supported_features = supported_features | Feature.TARGET_HUMIDITY
 
@@ -155,7 +148,7 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def current_temperature(self):
-        if self._tekmar_tha.current_temperature == THA_NA_16:
+        if self._tekmar_tha.current_temperature == ThaValue.NA_16:
             return None
 
         elif self._tekmar_tha.current_temperature is None:
@@ -173,7 +166,7 @@ class ThaClimateThermostat(ThaClimateBase):
     @property
     def current_humidity(self):
         if (
-            self._tekmar_tha.relative_humidity == THA_NA_8
+            self._tekmar_tha.relative_humidity == ThaValue.NA_8
             or self._tekmar_tha.relative_humidity is None
         ):
             return None
@@ -250,20 +243,20 @@ class ThaClimateThermostat(ThaClimateBase):
     @property
     def target_humidity(self):
         if (
-            self._tekmar_tha.humidity_setpoint_min != THA_NA_8
-            and self._tekmar_tha.humidity_setpoint_max == THA_NA_8
+            self._tekmar_tha.humidity_setpoint_min != ThaValue.NA_8
+            and self._tekmar_tha.humidity_setpoint_max == ThaValue.NA_8
         ):
             return self._tekmar_tha.humidity_setpoint_min
 
         elif (
-            self._tekmar_tha.humidity_setpoint_min == THA_NA_8
-            and self._tekmar_tha.humidity_setpoint_max != THA_NA_8
+            self._tekmar_tha.humidity_setpoint_min == ThaValue.NA_8
+            and self._tekmar_tha.humidity_setpoint_max != ThaValue.NA_8
         ):
             return self._tekmar_tha.humidity_setpoint_max
 
         elif (
-            self._tekmar_tha.humidity_setpoint_min == THA_NA_8
-            and self._tekmar_tha.humidity_setpoint_max == THA_NA_8
+            self._tekmar_tha.humidity_setpoint_min == ThaValue.NA_8
+            and self._tekmar_tha.humidity_setpoint_max == ThaValue.NA_8
         ):
             return None
 
@@ -324,7 +317,7 @@ class ThaClimateThermostat(ThaClimateBase):
         else:
             return None
 
-        if this_device_setpoint == THA_NA_8 or this_device_setpoint is None:
+        if this_device_setpoint == ThaValue.NA_8 or this_device_setpoint is None:
             return None
 
         else:
@@ -339,7 +332,7 @@ class ThaClimateThermostat(ThaClimateBase):
     @property
     def target_temperature_high(self):
         if (
-            self._tekmar_tha.cool_setpoint == THA_NA_8
+            self._tekmar_tha.cool_setpoint == ThaValue.NA_8
             or self._tekmar_tha.cool_setpoint is None
         ):
             return None
@@ -355,7 +348,7 @@ class ThaClimateThermostat(ThaClimateBase):
     @property
     def target_temperature_low(self):
         if (
-            self._tekmar_tha.heat_setpoint == THA_NA_8
+            self._tekmar_tha.heat_setpoint == ThaValue.NA_8
             or self._tekmar_tha.heat_setpoint is None
         ):
             return None
@@ -423,20 +416,20 @@ class ThaClimateThermostat(ThaClimateBase):
     async def async_set_humidity(self, humidity):
 
         if (
-            self._tekmar_tha.humidity_setpoint_min != THA_NA_8
-            and self._tekmar_tha.humidity_setpoint_max == THA_NA_8
+            self._tekmar_tha.humidity_setpoint_min != ThaValue.NA_8
+            and self._tekmar_tha.humidity_setpoint_max == ThaValue.NA_8
         ):
             await self._tekmar_tha.set_humidity_setpoint_min_txqueue(humidity)
 
         elif (
-            self._tekmar_tha.humidity_setpoint_min == THA_NA_8
-            and self._tekmar_tha.humidity_setpoint_max != THA_NA_8
+            self._tekmar_tha.humidity_setpoint_min == ThaValue.NA_8
+            and self._tekmar_tha.humidity_setpoint_max != ThaValue.NA_8
         ):
             await self._tekmar_tha.set_humidity_setpoint_max_txqueue(humidity)
 
         elif (
-            self._tekmar_tha.humidity_setpoint_min == THA_NA_8
-            and self._tekmar_tha.humidity_setpoint_max == THA_NA_8
+            self._tekmar_tha.humidity_setpoint_min == ThaValue.NA_8
+            and self._tekmar_tha.humidity_setpoint_max == ThaValue.NA_8
         ):
             pass
 

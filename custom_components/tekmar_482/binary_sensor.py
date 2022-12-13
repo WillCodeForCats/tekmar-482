@@ -7,7 +7,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, THA_NA_8
+from .const import DOMAIN, ThaValue
 
 
 async def async_setup_entry(
@@ -101,7 +101,7 @@ class SetbackEnable(ThaBinarySensorBase):
     def available(self) -> bool:
         if (
             self._tekmar_tha.setback_enable is None
-            or self._tekmar_tha.setback_enable == THA_NA_8
+            or self._tekmar_tha.setback_enable == ThaValue.NA_8
         ):
             return False
 

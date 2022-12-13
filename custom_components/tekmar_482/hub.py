@@ -18,14 +18,9 @@ from .const import (
     DOMAIN,
     SETBACK_FAN_MAP,
     SETBACK_SETPOINT_MAP,
-    THA_CURRENT,
-    THA_DEFAULT_COOL_SETPOINT_MAX,
-    THA_DEFAULT_COOL_SETPOINT_MIN,
-    THA_DEFAULT_HEAT_SETPOINT_MAX,
-    THA_DEFAULT_HEAT_SETPOINT_MIN,
-    THA_TYPE_SETPOINT,
-    THA_TYPE_SNOWMELT,
-    THA_TYPE_THERMOSTAT,
+    ThaDefault,
+    ThaSetback,
+    ThaType,
 )
 from .trpc_msg import TrpcPacket, name_from_methodID
 from .trpc_sock import TrpcSocket
@@ -267,7 +262,7 @@ class TekmarHub:
             for address in self._tha_inventory:
                 if (
                     DEVICE_TYPES[self._tha_inventory[address]["type"]]
-                    == THA_TYPE_THERMOSTAT
+                    == ThaType.THERMOSTAT
                 ):
                     self.tha_devices.append(
                         TekmarThermostat(address, self._tha_inventory[address], self)
@@ -275,7 +270,7 @@ class TekmarHub:
 
                 elif (
                     DEVICE_TYPES[self._tha_inventory[address]["type"]]
-                    == THA_TYPE_SETPOINT
+                    == ThaType.SETPOINT
                 ):
                     self.tha_devices.append(
                         TekmarSetpoint(address, self._tha_inventory[address], self)
@@ -283,7 +278,7 @@ class TekmarHub:
 
                 elif (
                     DEVICE_TYPES[self._tha_inventory[address]["type"]]
-                    == THA_TYPE_SNOWMELT
+                    == ThaType.SNOWMELT
                 ):
                     self.tha_devices.append(
                         TekmarSnowmelt(address, self._tha_inventory[address], self)
@@ -384,7 +379,7 @@ class TekmarHub:
                     try:
                         if (
                             DEVICE_TYPES[self._tha_inventory[b["address"]]["type"]]
-                            == THA_TYPE_THERMOSTAT
+                            == ThaType.THERMOSTAT
                         ):
                             self._tx_queue.append(
                                 TrpcPacket(
@@ -413,7 +408,7 @@ class TekmarHub:
                                 TrpcPacket(
                                     service="Request",
                                     method="FanPercent",
-                                    setback=THA_CURRENT,
+                                    setback=ThaSetback.CURRENT,
                                     address=b["address"],
                                 )
                             )
@@ -722,7 +717,7 @@ class TekmarThermostat:
                         service="Request",
                         method="CoolSetpoint",
                         address=self._id,
-                        setback=THA_CURRENT,
+                        setback=ThaSetback.CURRENT,
                     )
                 )
 
@@ -732,7 +727,7 @@ class TekmarThermostat:
                         service="Request",
                         method="HeatSetpoint",
                         address=self._id,
-                        setback=THA_CURRENT,
+                        setback=ThaSetback.CURRENT,
                     )
                 )
 
@@ -760,7 +755,7 @@ class TekmarThermostat:
                     service="Request",
                     method="SlabSetpoint",
                     address=self._id,
-                    setback=THA_CURRENT,
+                    setback=ThaSetback.CURRENT,
                 )
             )
 
@@ -863,28 +858,28 @@ class TekmarThermostat:
     @property
     def config_heat_setpoint_max(self) -> int:
         if self._config_heat_setpoint_max is None:
-            return THA_DEFAULT_HEAT_SETPOINT_MAX
+            return ThaDefault.HEAT_MAX
         else:
             return self._config_heat_setpoint_max
 
     @property
     def config_heat_setpoint_min(self) -> int:
         if self._config_heat_setpoint_min is None:
-            return THA_DEFAULT_HEAT_SETPOINT_MIN
+            return ThaDefault.HEAT_MIN
         else:
             return self._config_heat_setpoint_min
 
     @property
     def config_cool_setpoint_max(self) -> int:
         if self._config_cool_setpoint_max is None:
-            return THA_DEFAULT_COOL_SETPOINT_MAX
+            return ThaDefault.COOL_MAX
         else:
             return self._config_cool_setpoint_max
 
     @property
     def config_cool_setpoint_min(self) -> int:
         if self._config_cool_setpoint_min is None:
-            return THA_DEFAULT_COOL_SETPOINT_MIN
+            return ThaDefault.COOL_MIN
         else:
             return self._config_cool_setpoint_min
 
@@ -960,7 +955,7 @@ class TekmarThermostat:
         await self.publish_updates()
 
     async def set_heat_setpoint_txqueue(
-        self, value: int, setback: int = THA_CURRENT
+        self, value: int, setback: int = ThaSetback.CURRENT
     ) -> None:
         await self.hub.async_queue_message(
             TrpcPacket(
@@ -977,7 +972,7 @@ class TekmarThermostat:
         await self.publish_updates()
 
     async def set_cool_setpoint_txqueue(
-        self, value: int, setback: int = THA_CURRENT
+        self, value: int, setback: int = ThaSetback.CURRENT
     ) -> None:
         await self.hub.async_queue_message(
             TrpcPacket(
@@ -998,7 +993,7 @@ class TekmarThermostat:
         await self.publish_updates()
 
     async def set_fan_percent_txqueue(
-        self, percent: int, setback: int = THA_CURRENT
+        self, percent: int, setback: int = ThaSetback.CURRENT
     ) -> None:
         await self.hub.async_queue_message(
             TrpcPacket(
@@ -1155,7 +1150,7 @@ class TekmarSetpoint:
             TrpcPacket(
                 service="Request",
                 method="SetpointDevice",
-                setback=THA_CURRENT,
+                setback=ThaSetback.CURRENT,
                 address=self._id,
             )
         )
