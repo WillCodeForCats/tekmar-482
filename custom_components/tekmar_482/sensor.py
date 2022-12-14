@@ -16,11 +16,9 @@ from .const import (
     DOMAIN,
     SETBACK_DESCRIPTION,
     SETBACK_STATE,
-    THA_NA_8,
-    THA_NA_16,
-    THA_TYPE_SETPOINT,
-    THA_TYPE_THERMOSTAT,
     TN_ERRORS,
+    ThaType,
+    ThaValue,
 )
 from .helpers import degHtoC, regBytes
 
@@ -42,7 +40,7 @@ async def async_setup_entry(
 
     for device in hub.tha_devices:
 
-        if DEVICE_TYPES[device.tha_device["type"]] == THA_TYPE_THERMOSTAT:
+        if DEVICE_TYPES[device.tha_device["type"]] == ThaType.THERMOSTAT:
             entities.append(CurrentTemperature(device, config_entry))
             entities.append(SetbackState(device, config_entry))
 
@@ -51,12 +49,13 @@ async def async_setup_entry(
             ] and hub.tha_pr_ver in [2, 3]:
                 entities.append(RelativeHumidity(device, config_entry))
 
-            if device.tha_device["attributes"].Slab_Setpoint and hub.tha_pr_ver in [3]:
+            if hub.tha_pr_ver in [3]:
                 entities.append(CurrentFloorTemperature(device, config_entry))
 
-        if DEVICE_TYPES[device.tha_device["type"]] == THA_TYPE_SETPOINT:
+        if DEVICE_TYPES[device.tha_device["type"]] == ThaType.SETPOINT:
+            if hub.tha_pr_ver in [3]:
+                entities.append(CurrentFloorTemperature(device, config_entry))
             entities.append(CurrentTemperature(device, config_entry))
-            entities.append(CurrentFloorTemperature(device, config_entry))
             entities.append(SetbackState(device, config_entry))
             entities.append(SetpointTarget(device, config_entry))
             entities.append(SetpointDemand(device, config_entry))
@@ -115,7 +114,7 @@ class OutdoorTemprature(ThaSensorBase):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.outdoor_temprature == THA_NA_16:
+        if self._tekmar_tha.outdoor_temprature == ThaValue.NA_16:
             return False
         else:
             return True
@@ -123,7 +122,7 @@ class OutdoorTemprature(ThaSensorBase):
     @property
     def native_value(self):
         if (
-            self._tekmar_tha.outdoor_temprature == THA_NA_16
+            self._tekmar_tha.outdoor_temprature == ThaValue.NA_16
             or self._tekmar_tha.outdoor_temprature is None
         ):
             return None
@@ -264,7 +263,7 @@ class CurrentTemperature(ThaSensorBase):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.current_temperature == THA_NA_16:
+        if self._tekmar_tha.current_temperature == ThaValue.NA_16:
             return False
         elif self._tekmar_tha.current_temperature == 0x00:
             return False
@@ -274,7 +273,7 @@ class CurrentTemperature(ThaSensorBase):
     @property
     def native_value(self):
         if (
-            self._tekmar_tha.current_temperature == THA_NA_16
+            self._tekmar_tha.current_temperature == ThaValue.NA_16
             or self._tekmar_tha.current_temperature is None
         ):
             return None
@@ -310,9 +309,16 @@ class CurrentFloorTemperature(ThaSensorBase):
         return f"{self._tekmar_tha.tha_full_device_name} Current Floor Temperature"
 
     @property
+    def entity_registry_enabled_default(self) -> bool:
+        if self._tekmar_tha.tha_device["attributes"].Slab_Setpoint:
+            return True
+
+        return False
+
+    @property
     def available(self) -> bool:
         if (
-            self._tekmar_tha.current_floor_temperature == THA_NA_16
+            self._tekmar_tha.current_floor_temperature == ThaValue.NA_16
             or self._tekmar_tha.current_floor_temperature == 0x00
         ):
             return False
@@ -322,7 +328,7 @@ class CurrentFloorTemperature(ThaSensorBase):
     @property
     def native_value(self):
         if (
-            self._tekmar_tha.current_floor_temperature == THA_NA_16
+            self._tekmar_tha.current_floor_temperature == ThaValue.NA_16
             or self._tekmar_tha.current_floor_temperature is None
         ):
             return None
@@ -359,7 +365,7 @@ class RelativeHumidity(ThaSensorBase):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.relative_humidity == THA_NA_8:
+        if self._tekmar_tha.relative_humidity == ThaValue.NA_8:
             return False
         else:
             return True
@@ -367,7 +373,7 @@ class RelativeHumidity(ThaSensorBase):
     @property
     def native_value(self):
         if (
-            self._tekmar_tha.relative_humidity == THA_NA_8
+            self._tekmar_tha.relative_humidity == ThaValue.NA_8
             or self._tekmar_tha.relative_humidity is None
         ):
             return None
@@ -403,7 +409,7 @@ class SetbackState(ThaSensorBase):
     @property
     def available(self) -> bool:
         if (
-            self._tekmar_tha.setback_state == THA_NA_8
+            self._tekmar_tha.setback_state == ThaValue.NA_8
             or self._tekmar_tha.setback_enable == 0x00
         ):
             return False
@@ -413,7 +419,7 @@ class SetbackState(ThaSensorBase):
 
     @property
     def native_value(self):
-        if self._tekmar_tha.setback_state == THA_NA_8:
+        if self._tekmar_tha.setback_state == ThaValue.NA_8:
             return None
 
         try:
@@ -452,7 +458,7 @@ class SetpointTarget(ThaSensorBase):
     @property
     def available(self) -> bool:
         if (
-            self._tekmar_tha.setpoint_target == THA_NA_16
+            self._tekmar_tha.setpoint_target == ThaValue.NA_16
             or self._tekmar_tha.setpoint_target == 0x00
         ):
             return False
@@ -462,7 +468,7 @@ class SetpointTarget(ThaSensorBase):
     @property
     def native_value(self):
         if (
-            self._tekmar_tha.setpoint_target == THA_NA_16
+            self._tekmar_tha.setpoint_target == ThaValue.NA_16
             or self._tekmar_tha.setpoint_target is None
             or self._tekmar_tha.setpoint_target == 0x00
         ):
@@ -498,7 +504,7 @@ class SetpointDemand(ThaSensorBase):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.active_demand == THA_NA_8:
+        if self._tekmar_tha.active_demand == ThaValue.NA_8:
             return False
         else:
             return True

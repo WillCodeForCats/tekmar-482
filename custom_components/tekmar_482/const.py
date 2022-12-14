@@ -1,4 +1,20 @@
 import ctypes
+import sys
+from enum import IntEnum
+
+if sys.version_info.minor >= 11:
+    # Needs Python 3.11
+    from enum import StrEnum
+else:
+    try:
+        from homeassistant.backports.enum import StrEnum
+
+    except ImportError:
+        from enum import Enum
+
+        class StrEnum(str, Enum):
+            pass
+
 
 c_uint = ctypes.c_uint
 
@@ -10,27 +26,36 @@ DEFAULT_PORT = 3000
 DEFAULT_SETBACK_ENABLE = False
 CONF_SETBACK_ENABLE = "setback_enable"
 
-THA_WAKE_4 = 0x00
-THA_UNOCC_4 = 0x01
-THA_OCC_4 = 0x02
-THA_SLEEP_4 = 0x03
-THA_OCC_2 = 0x04
-THA_UNOCC_2 = 0x05
-THA_AWAY = 0x06
-THA_CURRENT = 0x07
 
-THA_NA_8 = 0xFF
-THA_NA_16 = 0xFFFF
-THA_NA_32 = 0xFFFFFFFF
+class ThaSetback(IntEnum):
+    WAKE_4 = 0x00
+    UNOCC_4 = 0x01
+    OCC_4 = 0x02
+    SLEEP_4 = 0x03
+    OCC_2 = 0x04
+    UNOCC_2 = 0x05
+    AWAY = 0x06
+    CURRENT = 0x07
 
-THA_TYPE_THERMOSTAT = "thermostat"
-THA_TYPE_SETPOINT = "setpoint"
-THA_TYPE_SNOWMELT = "snowmelt"
 
-THA_DEFAULT_HEAT_SETPOINT_MIN = 7
-THA_DEFAULT_HEAT_SETPOINT_MAX = 29
-THA_DEFAULT_COOL_SETPOINT_MIN = 10
-THA_DEFAULT_COOL_SETPOINT_MAX = 30
+class ThaValue(IntEnum):
+    NA_8 = 0xFF
+    NA_16 = 0xFFFF
+    NA_32 = 0xFFFFFFFF
+
+
+class ThaType(StrEnum):
+    THERMOSTAT = "thermostat"
+    SETPOINT = "setpoint"
+    SNOWMELT = "snowmelt"
+
+
+class ThaDefault(IntEnum):
+    HEAT_MIN = 7
+    HEAT_MAX = 29
+    COOL_MIN = 10
+    COOL_MAX = 30
+
 
 ACTIVE_DEMAND = {0x00: "None", 0x01: "Heat", 0x03: "Cool"}
 
@@ -45,69 +70,69 @@ ACTIVE_MODE = {
 }
 
 SETBACK_STATE = {
-    THA_WAKE_4: "WAKE_4",
-    THA_UNOCC_4: "UNOCC_4",
-    THA_OCC_4: "OCC_4",
-    THA_SLEEP_4: "SLEEP_4",
-    THA_OCC_2: "OCC_2",
-    THA_UNOCC_2: "UNOCC_2",
-    THA_AWAY: "AWAY",
+    ThaSetback.WAKE_4: "WAKE_4",
+    ThaSetback.UNOCC_4: "UNOCC_4",
+    ThaSetback.OCC_4: "OCC_4",
+    ThaSetback.SLEEP_4: "SLEEP_4",
+    ThaSetback.OCC_2: "OCC_2",
+    ThaSetback.UNOCC_2: "UNOCC_2",
+    ThaSetback.AWAY: "AWAY",
 }
 
 SETBACK_DESCRIPTION = {
-    THA_WAKE_4: "Awake",
-    THA_UNOCC_4: "Sleep",
-    THA_OCC_4: "Awake",
-    THA_SLEEP_4: "Sleep",
-    THA_OCC_2: "Awake",
-    THA_UNOCC_2: "Sleep",
-    THA_AWAY: "Away",
+    ThaSetback.WAKE_4: "Awake",
+    ThaSetback.UNOCC_4: "Sleep",
+    ThaSetback.OCC_4: "Awake",
+    ThaSetback.SLEEP_4: "Sleep",
+    ThaSetback.OCC_2: "Awake",
+    ThaSetback.UNOCC_2: "Sleep",
+    ThaSetback.AWAY: "Away",
 }
 
 SETBACK_SETPOINT_MAP = {
-    THA_WAKE_4: 0x00,
-    THA_UNOCC_4: 0x01,
-    THA_OCC_4: 0x00,
-    THA_SLEEP_4: 0x01,
-    THA_OCC_2: 0x00,
-    THA_UNOCC_2: 0x01,
-    THA_AWAY: 0x02,
+    ThaSetback.WAKE_4: 0x00,
+    ThaSetback.UNOCC_4: 0x01,
+    ThaSetback.OCC_4: 0x00,
+    ThaSetback.SLEEP_4: 0x01,
+    ThaSetback.OCC_2: 0x00,
+    ThaSetback.UNOCC_2: 0x01,
+    ThaSetback.AWAY: 0x02,
 }
 
 SETBACK_FAN_MAP = {
-    THA_WAKE_4: 0x00,
-    THA_UNOCC_4: 0x01,
-    THA_OCC_4: 0x00,
-    THA_SLEEP_4: 0x01,
-    THA_OCC_2: 0x00,
-    THA_UNOCC_2: 0x01,
-    THA_AWAY: 0x01,
+    ThaSetback.WAKE_4: 0x00,
+    ThaSetback.UNOCC_4: 0x01,
+    ThaSetback.OCC_4: 0x00,
+    ThaSetback.SLEEP_4: 0x01,
+    ThaSetback.OCC_2: 0x00,
+    ThaSetback.UNOCC_2: 0x01,
+    ThaSetback.AWAY: 0x01,
 }
 
 DEVICE_TYPES = {
-    101101: THA_TYPE_SETPOINT,
-    101102: THA_TYPE_SETPOINT,
-    102301: THA_TYPE_THERMOSTAT,
-    102302: THA_TYPE_THERMOSTAT,
-    102303: THA_TYPE_THERMOSTAT,
-    102304: THA_TYPE_THERMOSTAT,
-    100102: THA_TYPE_THERMOSTAT,
-    100103: THA_TYPE_THERMOSTAT,
-    100101: THA_TYPE_THERMOSTAT,
-    99301: THA_TYPE_THERMOSTAT,
-    99302: THA_TYPE_THERMOSTAT,
-    99401: THA_TYPE_THERMOSTAT,
-    99203: THA_TYPE_THERMOSTAT,
-    99202: THA_TYPE_THERMOSTAT,
-    99201: THA_TYPE_THERMOSTAT,
-    107201: THA_TYPE_THERMOSTAT,
-    105103: THA_TYPE_THERMOSTAT,
-    105102: THA_TYPE_THERMOSTAT,
-    105101: THA_TYPE_THERMOSTAT,
-    104401: THA_TYPE_THERMOSTAT,
-    105801: THA_TYPE_SNOWMELT,
-    108401: THA_TYPE_SNOWMELT,
-    108402: THA_TYPE_SNOWMELT,
+    101101: ThaType.SETPOINT,
+    101102: ThaType.SETPOINT,
+    102301: ThaType.THERMOSTAT,
+    102302: ThaType.THERMOSTAT,
+    102303: ThaType.THERMOSTAT,
+    102304: ThaType.THERMOSTAT,
+    100102: ThaType.THERMOSTAT,
+    100103: ThaType.THERMOSTAT,
+    100101: ThaType.THERMOSTAT,
+    99301: ThaType.THERMOSTAT,
+    99302: ThaType.THERMOSTAT,
+    99401: ThaType.THERMOSTAT,
+    99203: ThaType.THERMOSTAT,
+    99202: ThaType.THERMOSTAT,
+    99201: ThaType.THERMOSTAT,
+    107201: ThaType.THERMOSTAT,
+    105103: ThaType.THERMOSTAT,
+    105102: ThaType.THERMOSTAT,
+    105101: ThaType.THERMOSTAT,
+    104401: ThaType.THERMOSTAT,
+    105801: ThaType.SNOWMELT,
+    108401: ThaType.SNOWMELT,
+    108402: ThaType.SNOWMELT,
 }
 
 DEVICE_FEATURES = {
