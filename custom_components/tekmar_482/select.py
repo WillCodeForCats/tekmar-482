@@ -4,7 +4,7 @@ from homeassistant.const import PERCENTAGE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DEVICE_FEATURES, DEVICE_TYPES, DOMAIN, THA_NA_8, THA_TYPE_THERMOSTAT
+from .const import DEVICE_FEATURES, DEVICE_TYPES, DOMAIN, ThaType, ThaValue
 
 
 async def async_setup_entry(
@@ -18,7 +18,7 @@ async def async_setup_entry(
     entities = []
 
     for device in hub.tha_devices:
-        if DEVICE_TYPES[device.tha_device["type"]] == THA_TYPE_THERMOSTAT:
+        if DEVICE_TYPES[device.tha_device["type"]] == ThaType.THERMOSTAT:
             if DEVICE_FEATURES[device.tha_device["type"]]["fan"]:
                 entities.append(ThaFanSelect(device, config_entry))
 
@@ -78,7 +78,7 @@ class ThaFanSelect(ThaSelectBase):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.fan_percent == THA_NA_8:
+        if self._tekmar_tha.fan_percent == ThaValue.NA_8:
             return False
 
         elif self._tekmar_tha.tha_device["attributes"].Fan_Percent == 0:

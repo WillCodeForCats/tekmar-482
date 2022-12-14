@@ -4,7 +4,7 @@ from homeassistant.const import PERCENTAGE, TEMP_CELSIUS
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DEVICE_FEATURES, DEVICE_TYPES, DOMAIN, THA_NA_8, THA_TYPE_THERMOSTAT
+from .const import DEVICE_FEATURES, DEVICE_TYPES, DOMAIN, ThaType, ThaValue
 from .helpers import degCtoE, degEtoC
 
 
@@ -19,7 +19,7 @@ async def async_setup_entry(
     entities = []
 
     for device in hub.tha_devices:
-        if DEVICE_TYPES[device.tha_device["type"]] == THA_TYPE_THERMOSTAT:
+        if DEVICE_TYPES[device.tha_device["type"]] == ThaType.THERMOSTAT:
             if hub.tha_setback_enable is True:
                 entities.append(ThaHeatSetpointDay(device, config_entry))
                 entities.append(ThaHeatSetpointNight(device, config_entry))
@@ -94,8 +94,8 @@ class ThaHumiditySetMax(ThaNumberBase):
     def entity_registry_enabled_default(self) -> bool:
         if (
             self._tekmar_tha.humidity_setpoint_max is not None
-            and self._tekmar_tha.humidity_setpoint_min != THA_NA_8
-            and self._tekmar_tha.humidity_setpoint_max != THA_NA_8
+            and self._tekmar_tha.humidity_setpoint_min != ThaValue.NA_8
+            and self._tekmar_tha.humidity_setpoint_max != ThaValue.NA_8
         ):
             return True
         else:
@@ -103,7 +103,7 @@ class ThaHumiditySetMax(ThaNumberBase):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.humidity_setpoint_max == THA_NA_8:
+        if self._tekmar_tha.humidity_setpoint_max == ThaValue.NA_8:
             return False
         else:
             return True
@@ -142,8 +142,8 @@ class ThaHumiditySetMin(ThaNumberBase):
     def entity_registry_enabled_default(self) -> bool:
         if (
             self._tekmar_tha.humidity_setpoint_min is not None
-            and self._tekmar_tha.humidity_setpoint_min != THA_NA_8
-            and self._tekmar_tha.humidity_setpoint_max != THA_NA_8
+            and self._tekmar_tha.humidity_setpoint_min != ThaValue.NA_8
+            and self._tekmar_tha.humidity_setpoint_max != ThaValue.NA_8
         ):
             return True
         else:
@@ -151,7 +151,7 @@ class ThaHumiditySetMin(ThaNumberBase):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.humidity_setpoint_min == THA_NA_8:
+        if self._tekmar_tha.humidity_setpoint_min == ThaValue.NA_8:
             return False
         else:
             return True
@@ -194,7 +194,7 @@ class ThaHeatSetpoint(ThaNumberBase):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.heat_setpoint == THA_NA_8:
+        if self._tekmar_tha.heat_setpoint == ThaValue.NA_8:
             return False
 
         elif self._tekmar_tha.tha_device["attributes"].Zone_Heating == 0:
@@ -241,7 +241,7 @@ class ThaHeatSetpointDay(ThaHeatSetpoint):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.heat_setpoint_day == THA_NA_8:
+        if self._tekmar_tha.heat_setpoint_day == ThaValue.NA_8:
             return False
 
         elif self._tekmar_tha.tha_device["attributes"].Zone_Heating == 0:
@@ -280,7 +280,7 @@ class ThaHeatSetpointNight(ThaHeatSetpoint):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.heat_setpoint_day == THA_NA_8:
+        if self._tekmar_tha.heat_setpoint_day == ThaValue.NA_8:
             return False
 
         elif self._tekmar_tha.tha_device["attributes"].Zone_Heating == 0:
@@ -319,7 +319,7 @@ class ThaHeatSetpointAway(ThaHeatSetpoint):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.heat_setpoint_day == THA_NA_8:
+        if self._tekmar_tha.heat_setpoint_day == ThaValue.NA_8:
             return False
 
         elif self._tekmar_tha.tha_device["attributes"].Zone_Heating == 0:
@@ -369,7 +369,7 @@ class ThaCoolSetpoint(ThaNumberBase):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.cool_setpoint == THA_NA_8:
+        if self._tekmar_tha.cool_setpoint == ThaValue.NA_8:
             return False
 
         elif self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0:
@@ -416,7 +416,7 @@ class ThaCoolSetpointDay(ThaCoolSetpoint):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.cool_setpoint_day == THA_NA_8:
+        if self._tekmar_tha.cool_setpoint_day == ThaValue.NA_8:
             return False
 
         elif self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0:
@@ -455,7 +455,7 @@ class ThaCoolSetpointNight(ThaCoolSetpoint):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.cool_setpoint_day == THA_NA_8:
+        if self._tekmar_tha.cool_setpoint_day == ThaValue.NA_8:
             return False
 
         elif self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0:
@@ -494,7 +494,7 @@ class ThaCoolSetpointAway(ThaCoolSetpoint):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.cool_setpoint_day == THA_NA_8:
+        if self._tekmar_tha.cool_setpoint_day == ThaValue.NA_8:
             return False
 
         elif self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0:
