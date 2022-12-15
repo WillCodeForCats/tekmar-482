@@ -39,6 +39,8 @@ class ThaSetback(IntEnum):
 
 
 class ThaValue(IntEnum):
+    ON = 0x01
+    OFF = 0x00
     NA_8 = 0xFF
     NA_16 = 0xFFFF
     NA_32 = 0xFFFFFFFF
