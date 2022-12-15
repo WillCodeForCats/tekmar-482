@@ -21,7 +21,6 @@ from .const import (
     ThaDefault,
     ThaSetback,
     ThaType,
-    ThaValue,
 )
 from .trpc_msg import TrpcPacket, name_from_methodID
 from .trpc_sock import TrpcSocket
@@ -87,7 +86,7 @@ class TekmarHub:
             )
 
         await self._sock.write(
-            TrpcPacket(service="Update", method="ReportingState", state=ThaValue.OFF)
+            TrpcPacket(service="Update", method="ReportingState", states=0x00)
         )
 
         self._tx_queue.append(
@@ -203,7 +202,7 @@ class TekmarHub:
                                 TrpcPacket(
                                     service="Update",
                                     method="ReportingState",
-                                    state=ThaValue.ON,
+                                    state=0x01,
                                 )
                             )
 
@@ -538,9 +537,7 @@ class TekmarHub:
 
         if await self._sock.open():
             await self._sock.write(
-                TrpcPacket(
-                    service="Update", method="ReportingState", state=ThaValue.OFF
-                )
+                TrpcPacket(service="Update", method="ReportingState", states=0)
             )
             await self._sock.close()
 
