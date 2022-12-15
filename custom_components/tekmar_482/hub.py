@@ -123,138 +123,143 @@ class TekmarHub:
             if len(self._tx_queue) != 0:
                 try:
                     await self._sock.write(self._tx_queue.pop(0))
-                    await asyncio.sleep(0.1)
+                    await asyncio.sleep(0.1)  # writing too fast causes errors
                 except Exception as e:
                     _LOGGER.error(f"Write error: {e}")
                     raise ConfigEntryNotReady("Write error while in setup.")
 
             try:
                 p = await self._sock.read()
+
             except Exception as e:
                 _LOGGER.error(f"Read error: {e}")
                 raise ConfigEntryNotReady("Read error while in setup.")
 
             if p is not None:
                 try:
-                    # h = p.header
+                    h = p.header
                     b = p.body
-                    tha_method = name_from_methodID[p.header["methodID"]]
-                except KeyError:
-                    _LOGGER.debug(f"Ignore unknown method ID {p.header['methodID']}")
-                    continue
+                    tha_method = name_from_methodID[h["methodID"]]
 
-                if tha_method in ["FirmwareRevision"]:
-                    self._tha_fw_ver = b["revision"]
+                    if tha_method in ["FirmwareRevision"]:
+                        self._tha_fw_ver = b["revision"]
 
-                elif tha_method in ["ProtocolVersion"]:
-                    self._tha_pr_ver = b["version"]
+                    elif tha_method in ["ProtocolVersion"]:
+                        self._tha_pr_ver = b["version"]
 
-                elif tha_method in ["SetbackEnable"]:
-                    self._tha_setback_enable = b["enable"]
+                    elif tha_method in ["SetbackEnable"]:
+                        self._tha_setback_enable = b["enable"]
 
-                elif tha_method in ["ReportingState"]:
-                    self._tha_reporting_state = b["state"]
+                    elif tha_method in ["ReportingState"]:
+                        self._tha_reporting_state = b["state"]
 
-                    if self._tha_reporting_state == 1:
-                        self._inSetup = False
+                        if self._tha_reporting_state == 1:
+                            self._inSetup = False
 
-                elif tha_method in ["DeviceInventory"]:
-                    if b["address"] > 0:
-                        _LOGGER.debug(f"Setting up address {b['address']}")
+                    elif tha_method in ["DeviceInventory"]:
+                        if b["address"] > 0:
+                            _LOGGER.debug(f"Setting up address {b['address']}")
 
-                        self._tha_inventory[b["address"]] = {
-                            "entity": "",
-                            "type": "",
-                            "version": "",
-                            "events": "",
-                            "attributes": DEVICE_ATTRIBUTES(),
-                        }
+                            self._tha_inventory[b["address"]] = {
+                                "entity": "",
+                                "type": "",
+                                "version": "",
+                                "events": "",
+                                "attributes": DEVICE_ATTRIBUTES(),
+                            }
 
-                        self._tx_queue.append(
-                            TrpcPacket(
-                                service="Request",
-                                method="DeviceType",
-                                address=b["address"],
+                            self._tx_queue.append(
+                                TrpcPacket(
+                                    service="Request",
+                                    method="DeviceType",
+                                    address=b["address"],
+                                )
                             )
-                        )
-                        self._tx_queue.append(
-                            TrpcPacket(
-                                service="Request",
-                                method="DeviceVersion",
-                                address=b["address"],
+                            self._tx_queue.append(
+                                TrpcPacket(
+                                    service="Request",
+                                    method="DeviceVersion",
+                                    address=b["address"],
+                                )
                             )
-                        )
-                        self._tx_queue.append(
-                            TrpcPacket(
-                                service="Request",
-                                method="DeviceAttributes",
-                                address=b["address"],
+                            self._tx_queue.append(
+                                TrpcPacket(
+                                    service="Request",
+                                    method="DeviceAttributes",
+                                    address=b["address"],
+                                )
                             )
-                        )
-                        self._tx_queue.append(
-                            TrpcPacket(
-                                service="Request",
-                                method="SetbackEvents",
-                                address=b["address"],
+                            self._tx_queue.append(
+                                TrpcPacket(
+                                    service="Request",
+                                    method="SetbackEvents",
+                                    address=b["address"],
+                                )
                             )
+                        else:
+                            # inventory complete
+                            self._tx_queue.append(
+                                TrpcPacket(
+                                    service="Update",
+                                    method="ReportingState",
+                                    state=0x01,
+                                )
+                            )
+
+                    elif tha_method in ["DeviceType"]:
+                        try:
+                            self._tha_inventory[b["address"]]["type"] = b["type"]
+                            self._tha_inventory[b["address"]][
+                                "entity"
+                            ] = "{3} {0} {1} {2}".format(
+                                DEVICE_TYPES[
+                                    self._tha_inventory[b["address"]]["type"]
+                                ].capitalize(),
+                                DEVICE_FEATURES[
+                                    self._tha_inventory[b["address"]]["type"]
+                                ]["model"],
+                                b["address"],
+                                self._name.capitalize(),
+                            )
+                            _LOGGER.debug(f"Address {b['address']} type {b['type']}")
+
+                        except KeyError:
+                            _LOGGER.warning(
+                                (
+                                    f"Unknown device type {b['type']}. "
+                                    "Try power cycling your Gateway 482."
+                                )
+                            )
+                            raise ConfigEntryNotReady(
+                                f"Unknown device type {b['type']}."
+                            )
+
+                    elif tha_method in ["DeviceAttributes"]:
+                        _LOGGER.debug(
+                            f"Address {b['address']} attributes {b['attributes']}"
                         )
+                        self._tha_inventory[b["address"]]["attributes"].attrs = int(
+                            b["attributes"]
+                        )
+
+                    elif tha_method in ["DeviceVersion"]:
+                        _LOGGER.debug(f"Address {b['address']} version {b['j_number']}")
+                        self._tha_inventory[b["address"]]["version"] = b["j_number"]
+
+                    elif tha_method in ["SetbackEvents"]:
+                        _LOGGER.debug(
+                            f"Address {b['address']} setback events {b['events']}"
+                        )
+                        self._tha_inventory[b["address"]]["events"] = b["events"]
+
                     else:
-                        # inventory complete
-                        self._tx_queue.append(
-                            TrpcPacket(
-                                service="Update", method="ReportingState", state=0x01
-                            )
-                        )
+                        _LOGGER.warning(f"Ignored method {p} during setup.")
 
-                elif tha_method in ["DeviceType"]:
-                    try:
-                        self._tha_inventory[b["address"]]["type"] = b["type"]
-                        self._tha_inventory[b["address"]][
-                            "entity"
-                        ] = "{3} {0} {1} {2}".format(
-                            DEVICE_TYPES[
-                                self._tha_inventory[b["address"]]["type"]
-                            ].capitalize(),
-                            DEVICE_FEATURES[self._tha_inventory[b["address"]]["type"]][
-                                "model"
-                            ],
-                            b["address"],
-                            self._name.capitalize(),
-                        )
-                        _LOGGER.debug(f"Address {b['address']} type {b['type']}")
-
-                    except KeyError:
-                        _LOGGER.warning(
-                            (
-                                f"Unknown device type {b['type']}. "
-                                "Try power cycling your Gateway 482."
-                            )
-                        )
-                        raise ConfigEntryNotReady(f"Unknown device type {b['type']}.")
-
-                elif tha_method in ["DeviceAttributes"]:
-                    _LOGGER.debug(
-                        f"Address {b['address']} attributes {b['attributes']}"
-                    )
-                    self._tha_inventory[b["address"]]["attributes"].attrs = int(
-                        b["attributes"]
-                    )
-
-                elif tha_method in ["DeviceVersion"]:
-                    _LOGGER.debug(f"Address {b['address']} version {b['j_number']}")
-                    self._tha_inventory[b["address"]]["version"] = b["j_number"]
-
-                elif tha_method in ["SetbackEvents"]:
-                    _LOGGER.debug(
-                        f"Address {b['address']} setback events {b['events']}"
-                    )
-                    self._tha_inventory[b["address"]]["events"] = b["events"]
-
-                else:
-                    _LOGGER.warning(f"Ignored method {p} during setup.")
+                except KeyError as e:
+                    _LOGGER.debug(f"Ignored unknown key: {e}")
+                    pass
 
         else:
-
             self.tha_gateway = [
                 TekmarGateway(f"{self._id}", f"{self._host}", self),
             ]
@@ -304,179 +309,194 @@ class TekmarHub:
 
             try:
                 p = await self._sock.read()
+
             except Exception as e:
                 _LOGGER.warning(f"Read error: {e} - reloading integration...")
                 await self._hass.config_entries.async_reload(self._entry_id)
 
             if p is not None:
                 try:
-                    # h = p.header
+                    h = p.header
                     b = p.body
-                    tha_method = name_from_methodID[p.header["methodID"]]
-                except KeyError:
-                    _LOGGER.debug(f"Ignore unknown method ID {p.header['methodID']}")
-                    continue
+                    tha_method = name_from_methodID[h["methodID"]]
 
-                if tha_method in ["ReportingState"]:
-                    for gateway in self.tha_gateway:
-                        await gateway.set_reporting_state(b["state"])
+                    if tha_method in ["ReportingState"]:
+                        for gateway in self.tha_gateway:
+                            await gateway.set_reporting_state(b["state"])
 
-                elif tha_method in ["NetworkError"]:
-                    for gateway in self.tha_gateway:
-                        await gateway.set_network_error(b["error"])
+                    elif tha_method in ["NetworkError"]:
+                        for gateway in self.tha_gateway:
+                            await gateway.set_network_error(b["error"])
 
-                elif tha_method in ["OutdoorTemperature"]:
-                    for gateway in self.tha_gateway:
-                        await gateway.set_outdoor_temperature(p.body["temp"])
+                    elif tha_method in ["OutdoorTemperature"]:
+                        for gateway in self.tha_gateway:
+                            await gateway.set_outdoor_temperature(p.body["temp"])
 
-                elif tha_method in ["CurrentTemperature"]:
-                    for device in self.tha_devices:
-                        if device.device_id == b["address"]:
-                            await device.set_current_temperature(p.body["temp"])
-
-                elif tha_method in ["CurrentFloorTemperature"]:
-                    for device in self.tha_devices:
-                        if device.device_id == b["address"]:
-                            await device.set_current_floor_temperature(p.body["temp"])
-
-                elif tha_method in ["HeatSetpoint"]:
-                    for device in self.tha_devices:
-                        if device.device_id == b["address"]:
-                            # await device.set_setback_state(p.body['setback'])
-                            await device.set_heat_setpoint(
-                                p.body["setpoint"], p.body["setback"]
-                            )
-
-                elif tha_method in ["CoolSetpoint"]:
-                    for device in self.tha_devices:
-                        if device.device_id == b["address"]:
-                            # await device.set_setback_state(p.body['setback'])
-                            await device.set_cool_setpoint(
-                                p.body["setpoint"], p.body["setback"]
-                            )
-
-                elif tha_method in ["SlabSetpoint"]:
-                    for device in self.tha_devices:
-                        if device.device_id == b["address"]:
-                            # await device.set_setback_state(p.body['setback'])
-                            await device.set_slab_setpoint(
-                                p.body["setpoint"], p.body["setback"]
-                            )
-
-                elif tha_method in ["FanPercent"]:
-                    for device in self.tha_devices:
-                        if device.device_id == b["address"]:
-                            await device.set_fan_percent(
-                                p.body["percent"], p.body["setback"]
-                            )
-
-                elif tha_method in ["RelativeHumidity"]:
-                    for device in self.tha_devices:
-                        if device.device_id == b["address"]:
-                            await device.set_relative_humidity(p.body["percent"])
-
-                elif tha_method in ["ActiveDemand"]:
-                    try:
-                        if (
-                            DEVICE_TYPES[self._tha_inventory[b["address"]]["type"]]
-                            == ThaType.THERMOSTAT
-                        ):
-                            self._tx_queue.append(
-                                TrpcPacket(
-                                    service="Request",
-                                    method="ModeSetting",
-                                    address=b["address"],
-                                )
-                            )
-                    except KeyError as e:
-                        _LOGGER.error(
-                            (
-                                f"Device address {e} not in inventory. "
-                                "Please reload integration."
-                            )
-                        )
-                        pass
-
-                    for device in self.tha_devices:
-                        if device.device_id == b["address"]:
-                            await device.set_active_demand(p.body["demand"])
-
-                elif tha_method in ["SetbackState"]:
-                    try:
-                        if self._tha_inventory[b["address"]]["attributes"].Fan_Percent:
-                            self._tx_queue.append(
-                                TrpcPacket(
-                                    service="Request",
-                                    method="FanPercent",
-                                    setback=ThaSetback.CURRENT,
-                                    address=b["address"],
-                                )
-                            )
+                    elif tha_method in ["CurrentTemperature"]:
                         for device in self.tha_devices:
                             if device.device_id == b["address"]:
-                                await device.set_setback_state(p.body["setback"])
-                    except KeyError as e:
+                                await device.set_current_temperature(p.body["temp"])
+
+                    elif tha_method in ["CurrentFloorTemperature"]:
+                        for device in self.tha_devices:
+                            if device.device_id == b["address"]:
+                                await device.set_current_floor_temperature(
+                                    p.body["temp"]
+                                )
+
+                    elif tha_method in ["HeatSetpoint"]:
+                        for device in self.tha_devices:
+                            if device.device_id == b["address"]:
+                                # await device.set_setback_state(p.body['setback'])
+                                await device.set_heat_setpoint(
+                                    p.body["setpoint"], p.body["setback"]
+                                )
+
+                    elif tha_method in ["CoolSetpoint"]:
+                        for device in self.tha_devices:
+                            if device.device_id == b["address"]:
+                                # await device.set_setback_state(p.body['setback'])
+                                await device.set_cool_setpoint(
+                                    p.body["setpoint"], p.body["setback"]
+                                )
+
+                    elif tha_method in ["SlabSetpoint"]:
+                        for device in self.tha_devices:
+                            if device.device_id == b["address"]:
+                                # await device.set_setback_state(p.body['setback'])
+                                await device.set_slab_setpoint(
+                                    p.body["setpoint"], p.body["setback"]
+                                )
+
+                    elif tha_method in ["FanPercent"]:
+                        for device in self.tha_devices:
+                            if device.device_id == b["address"]:
+                                await device.set_fan_percent(
+                                    p.body["percent"], p.body["setback"]
+                                )
+
+                    elif tha_method in ["RelativeHumidity"]:
+                        for device in self.tha_devices:
+                            if device.device_id == b["address"]:
+                                await device.set_relative_humidity(p.body["percent"])
+
+                    elif tha_method in ["ActiveDemand"]:
+                        try:
+                            if (
+                                DEVICE_TYPES[self._tha_inventory[b["address"]]["type"]]
+                                == ThaType.THERMOSTAT
+                            ):
+                                self._tx_queue.append(
+                                    TrpcPacket(
+                                        service="Request",
+                                        method="ModeSetting",
+                                        address=b["address"],
+                                    )
+                                )
+                        except KeyError as e:
+                            _LOGGER.error(
+                                (
+                                    f"Device address {e} not in inventory. "
+                                    "Please reload integration."
+                                )
+                            )
+                            pass
+
+                        for device in self.tha_devices:
+                            if device.device_id == b["address"]:
+                                await device.set_active_demand(p.body["demand"])
+
+                    elif tha_method in ["SetbackState"]:
+                        try:
+                            if self._tha_inventory[b["address"]][
+                                "attributes"
+                            ].Fan_Percent:
+                                self._tx_queue.append(
+                                    TrpcPacket(
+                                        service="Request",
+                                        method="FanPercent",
+                                        setback=ThaSetback.CURRENT,
+                                        address=b["address"],
+                                    )
+                                )
+                            for device in self.tha_devices:
+                                if device.device_id == b["address"]:
+                                    await device.set_setback_state(p.body["setback"])
+                        except KeyError as e:
+                            _LOGGER.error(
+                                (
+                                    f"Device address {e} not in inventory. "
+                                    "Please reload integration."
+                                )
+                            )
+                            pass
+
+                    elif tha_method in ["SetbackEvents"]:
+                        for device in self.tha_devices:
+                            if device.device_id == b["address"]:
+                                await device.set_setback_events(p.body["events"])
+
+                    elif tha_method in ["ModeSetting"]:
+                        for device in self.tha_devices:
+                            if device.device_id == b["address"]:
+                                await device.set_mode_setting(p.body["mode"])
+
+                    elif tha_method in ["HumiditySetMin"]:
+                        for device in self.tha_devices:
+                            if device.device_id == b["address"]:
+                                await device.set_humidity_setpoint_min(
+                                    p.body["percent"]
+                                )
+
+                    elif tha_method in ["HumiditySetMax"]:
+                        for device in self.tha_devices:
+                            if device.device_id == b["address"]:
+                                await device.set_humidity_setpoint_max(
+                                    p.body["percent"]
+                                )
+
+                    elif tha_method in ["SetpointGroupEnable"]:
+                        for gateway in self.tha_gateway:
+                            await gateway.set_setpoint_group(
+                                p.body["groupid"], p.body["enable"]
+                            )
+
+                    elif tha_method in ["SetpointDevice"]:
+                        for device in self.tha_devices:
+                            if device.device_id == b["address"]:
+                                await device.set_setpoint_target(
+                                    p.body["temp"], p.body["setback"]
+                                )
+
+                    elif tha_method in ["TakingAddress"]:
                         _LOGGER.error(
                             (
-                                f"Device address {e} not in inventory. "
-                                "Please reload integration."
+                                f"Device at address {p.body['old_address']} moved to "
+                                f"{p.body['new_address']}; please reload integration!"
                             )
                         )
+
+                    elif tha_method in ["DeviceAttributes"]:
+                        _LOGGER.error(
+                            (
+                                f"Device attributes for {b['address']} changed: "
+                                "reload required"
+                            )
+                        )
+
+                    elif tha_method in ["NullMethod"]:
+                        for gateway in self.tha_gateway:
+                            await gateway.set_last_ping(dt.utcnow())
+
+                    elif tha_method in ["DateTime"]:
                         pass
 
-                elif tha_method in ["SetbackEvents"]:
-                    for device in self.tha_devices:
-                        if device.device_id == b["address"]:
-                            await device.set_setback_events(p.body["events"])
+                    else:
+                        _LOGGER.warning(f"Unhandeled method: {p}")
 
-                elif tha_method in ["ModeSetting"]:
-                    for device in self.tha_devices:
-                        if device.device_id == b["address"]:
-                            await device.set_mode_setting(p.body["mode"])
-
-                elif tha_method in ["HumiditySetMin"]:
-                    for device in self.tha_devices:
-                        if device.device_id == b["address"]:
-                            await device.set_humidity_setpoint_min(p.body["percent"])
-
-                elif tha_method in ["HumiditySetMax"]:
-                    for device in self.tha_devices:
-                        if device.device_id == b["address"]:
-                            await device.set_humidity_setpoint_max(p.body["percent"])
-
-                elif tha_method in ["SetpointGroupEnable"]:
-                    for gateway in self.tha_gateway:
-                        await gateway.set_setpoint_group(
-                            p.body["groupid"], p.body["enable"]
-                        )
-
-                elif tha_method in ["SetpointDevice"]:
-                    for device in self.tha_devices:
-                        if device.device_id == b["address"]:
-                            await device.set_setpoint_target(
-                                p.body["temp"], p.body["setback"]
-                            )
-
-                elif tha_method in ["TakingAddress"]:
-                    _LOGGER.error(
-                        f"Device at address {p.body['old_address']} moved to "
-                        f"{p.body['new_address']}; please reload integration!"
-                    )
-
-                elif tha_method in ["DeviceAttributes"]:
-                    _LOGGER.error(
-                        f"Device attributes for {b['address']} changed; reload required"
-                    )
-
-                elif tha_method in ["NullMethod"]:
-                    for gateway in self.tha_gateway:
-                        await gateway.set_last_ping(dt.utcnow())
-
-                elif tha_method in ["DateTime"]:
+                except KeyError as e:
+                    _LOGGER.debug(f"Ignored unknown key: {e}")
                     pass
-
-                else:
-                    _LOGGER.warning(f"Unhandeled method: {p}")
 
     async def timekeeper(self, interval: int = 86400) -> None:
         while self._inRun is True:
