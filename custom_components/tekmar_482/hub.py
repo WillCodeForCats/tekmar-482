@@ -473,7 +473,7 @@ class TekmarHub:
                         _LOGGER.error(
                             (
                                 f"Device at address {p.body['old_address']} moved to "
-                                f"{p.body['new_address']}; please reload integration!"
+                                f"{p.body['new_address']}; reload required"
                             )
                         )
 
