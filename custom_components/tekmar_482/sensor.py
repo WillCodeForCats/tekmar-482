@@ -28,7 +28,6 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-
     hub = hass.data[DOMAIN][config_entry.entry_id]
 
     entities = []
@@ -39,7 +38,6 @@ async def async_setup_entry(
         entities.append(LastPing(gateway, config_entry))
 
     for device in hub.tha_devices:
-
         if DEVICE_TYPES[device.tha_device["type"]] == ThaType.THERMOSTAT:
             entities.append(CurrentTemperature(device, config_entry))
             entities.append(SetbackState(device, config_entry))

@@ -12,7 +12,6 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-
     hub = hass.data[DOMAIN][config_entry.entry_id]
 
     entities = []
@@ -100,7 +99,6 @@ class ThaFanSelect(ThaSelectBase):
 
     async def async_select_option(self, option: str) -> None:
         if option in ["0", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100"]:
-
             if self._tekmar_tha.tha_device["type"] in [99203, 99202, 99201]:
                 value = int(option / 10)
                 await self._tekmar_tha.set_fan_percent_txqueue(value)
