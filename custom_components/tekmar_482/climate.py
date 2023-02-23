@@ -24,7 +24,6 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-
     hub = hass.data[DOMAIN][config_entry.entry_id]
 
     entities = []
@@ -176,7 +175,6 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def hvac_modes(self) -> list[str]:
-
         hvac_modes = [HVACMode.OFF]
 
         if self._tekmar_tha.tha_device["attributes"].Zone_Heating == 1:
@@ -414,7 +412,6 @@ class ThaClimateThermostat(ThaClimateBase):
         await self._tekmar_tha.set_fan_percent_txqueue(value)
 
     async def async_set_humidity(self, humidity):
-
         if (
             self._tekmar_tha.humidity_setpoint_min != ThaValue.NA_8
             and self._tekmar_tha.humidity_setpoint_max == ThaValue.NA_8

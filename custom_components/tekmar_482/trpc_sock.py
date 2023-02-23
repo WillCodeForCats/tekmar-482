@@ -5,7 +5,6 @@ from .trpc_msg import TrpcPacket
 
 # ******************************************************************************
 class TrpcSocket:
-
     # **************************************************************************
     def __init__(self, addr=None, port=None):
         self._sock_reader = None

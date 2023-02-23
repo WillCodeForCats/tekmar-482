@@ -59,7 +59,6 @@ class TekmarGatewayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
 
         if user_input is not None:
-
             if self._host_in_configuration_exists(user_input[CONF_HOST]):
                 errors[CONF_HOST] = "already_configured"
             elif not host_valid(user_input[CONF_HOST]):

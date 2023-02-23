@@ -38,7 +38,6 @@ class TekmarHub:
         port: int,
         opt_setback_enable: bool,
     ) -> None:
-
         self._hass = hass
         self._entry_id = entry_id
         self._name = name
@@ -76,7 +75,6 @@ class TekmarHub:
         self._tx_queue = []
 
     async def async_init_tha(self) -> None:
-
         self._inSetup = True
 
         if await self._sock.open() is False:
@@ -298,7 +296,6 @@ class TekmarHub:
         self._inRun = True
 
         while self._inRun is True:
-
             if len(self._tx_queue) != 0:
                 try:
                     await self._sock.write(self._tx_queue.pop(0))
@@ -1322,7 +1319,6 @@ class TekmarSnowmelt:
 
 class TekmarGateway:
     def __init__(self, gatewayid: str, host: str, hub: TekmarHub) -> None:
-
         self._id = gatewayid
         self._host = host
         self.hub = hub

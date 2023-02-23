@@ -174,7 +174,6 @@ methodID_from_name = dict(
 
 # *****************************************************************************
 class TrpcPacket:
-
     # *************************************************************************
     # Format of all tRPC packets (except the message body - that has to be
     # determined based on method ID.
