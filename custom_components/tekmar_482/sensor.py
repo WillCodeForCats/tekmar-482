@@ -63,6 +63,7 @@ async def async_setup_entry(
 
 
 class ThaSensorBase(SensorEntity):
+    suggested_display_precision = None
     should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
@@ -97,6 +98,7 @@ class OutdoorTemprature(ThaSensorBase):
     device_class = SensorDeviceClass.TEMPERATURE
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = TEMP_CELSIUS
+    suggested_display_precision = 1
 
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
@@ -128,8 +130,6 @@ class OutdoorTemprature(ThaSensorBase):
         else:
             try:
                 return degHtoC(self._tekmar_tha.outdoor_temprature)  # degH need degC
-                # temp = degHtoC(self._tekmar_tha.outdoor_temprature) # degH need degC
-                # return round(temp, 1)
 
             except TypeError:
                 return None
@@ -243,6 +243,7 @@ class CurrentTemperature(ThaSensorBase):
     device_class = SensorDeviceClass.TEMPERATURE
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = TEMP_CELSIUS
+    suggested_display_precision = 1
 
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
@@ -279,8 +280,6 @@ class CurrentTemperature(ThaSensorBase):
         else:
             try:
                 return degHtoC(self._tekmar_tha.current_temperature)
-                # temp = degHtoC(self._tekmar_tha.current_temperature)
-                # return round(temp, 1)
 
             except TypeError:
                 return None
@@ -290,6 +289,7 @@ class CurrentFloorTemperature(ThaSensorBase):
     device_class = SensorDeviceClass.TEMPERATURE
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = TEMP_CELSIUS
+    suggested_display_precision = 1
 
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
@@ -334,8 +334,6 @@ class CurrentFloorTemperature(ThaSensorBase):
         else:
             try:
                 return degHtoC(self._tekmar_tha.current_floor_temperature)
-                # temp = degHtoC(self._tekmar_tha.current_floor_temperature)
-                # return round(temp, 1)
 
             except TypeError:
                 return None
@@ -345,6 +343,7 @@ class RelativeHumidity(ThaSensorBase):
     device_class = SensorDeviceClass.HUMIDITY
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = PERCENTAGE
+    suggested_display_precision = 0
 
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
@@ -437,6 +436,7 @@ class SetpointTarget(ThaSensorBase):
     device_class = SensorDeviceClass.TEMPERATURE
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = TEMP_CELSIUS
+    suggested_display_precision = 1
 
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
@@ -475,8 +475,6 @@ class SetpointTarget(ThaSensorBase):
         else:
             try:
                 return degHtoC(self._tekmar_tha.setpoint_target)
-                # temp = degHtoC(self._tekmar_tha.setpoint_target)
-                # return round(temp, 1)
 
             except TypeError:
                 return None
