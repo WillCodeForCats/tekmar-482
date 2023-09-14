@@ -1473,7 +1473,7 @@ class StoredData(object):
                     self._data = pickle.load(myfile) or {}
                     self._cache_outdated = False
 
-            except:  # noqa: E722
+            except Exception:
                 _LOGGER.error(f"Error loading data from pickled file {self._data_file}")
 
     def get_setting(self, key):
@@ -1488,7 +1488,7 @@ class StoredData(object):
             try:
                 pickle.dump(self._data, myfile)
 
-            except:  # noqa: E722
+            except Exception:
                 _LOGGER.error(f"Error saving pickled data to {self._data_file}")
 
         self._cache_outdated = True
