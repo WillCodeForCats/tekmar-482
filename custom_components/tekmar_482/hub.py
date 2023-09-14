@@ -394,10 +394,10 @@ class TekmarHub:
                             _LOGGER.error(
                                 (
                                     f"Device address {e} not in inventory. "
-                                    "Please reload integration."
+                                    "Reloading integration..."
                                 )
                             )
-                            pass
+                            await self._hass.config_entries.async_reload(self._entry_id)
 
                         for device in self.tha_devices:
                             if device.device_id == b["address"]:
@@ -423,10 +423,10 @@ class TekmarHub:
                             _LOGGER.error(
                                 (
                                     f"Device address {e} not in inventory. "
-                                    "Please reload integration."
+                                    "Reloading integration..."
                                 )
                             )
-                            pass
+                            await self._hass.config_entries.async_reload(self._entry_id)
 
                     elif tha_method in ["SetbackEvents"]:
                         for device in self.tha_devices:
@@ -469,17 +469,19 @@ class TekmarHub:
                         _LOGGER.error(
                             (
                                 f"Device at address {p.body['old_address']} moved to "
-                                f"{p.body['new_address']}; reload required"
+                                f"{p.body['new_address']}. Reloading integration..."
                             )
                         )
+                        await self._hass.config_entries.async_reload(self._entry_id)
 
                     elif tha_method in ["DeviceAttributes"]:
                         _LOGGER.error(
                             (
-                                f"Device attributes for {b['address']} changed: "
-                                "reload required"
+                                f"Device attributes for {b['address']} changed. "
+                                "Reloading integration..."
                             )
                         )
+                        await self._hass.config_entries.async_reload(self._entry_id)
 
                     elif tha_method in ["NullMethod"]:
                         for gateway in self.tha_gateway:
