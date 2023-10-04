@@ -1,3 +1,10 @@
+from __future__ import annotations
+
+import ipaddress
+
+from .const import DOMAIN_REGEX
+
+
 def regBytes(integer):
     return divmod(integer, 0x100)
 
@@ -26,3 +33,13 @@ def degFtoC(degF):
 
 def degHtoC(degH):
     return degFtoC(degHtoF(degH))
+
+
+def host_valid(host):
+    """Return True if hostname or IP address is valid."""
+    try:
+        if ipaddress.ip_address(host).version == (4 or 6):
+            return True
+
+    except ValueError:
+        return DOMAIN_REGEX.match(host)
