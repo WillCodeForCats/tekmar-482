@@ -7,6 +7,7 @@ from typing import Any, Callable, Dict, Optional
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.util import dt
 
 from .const import (
@@ -79,6 +80,15 @@ class TekmarHub:
 
         if await self._sock.open() is False:
             _LOGGER.error(self._sock.error)
+            ir.async_create_issue(
+                self._hass,
+                DOMAIN,
+                "check_configuration",
+                is_fixable=True,
+                severity=ir.IssueSeverity.ERROR,
+                translation_key="check_configuration",
+                data={"entry_id": self._entry_id},
+            )
             raise ConfigEntryNotReady(
                 f"Connection to packet server '{self._host}' failed"
             )
