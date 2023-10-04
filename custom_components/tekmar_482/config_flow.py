@@ -41,7 +41,6 @@ class TekmarGatewayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Tekmar Gateway configflow."""
 
     VERSION = 1
-    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
 
     @staticmethod
     @callback
