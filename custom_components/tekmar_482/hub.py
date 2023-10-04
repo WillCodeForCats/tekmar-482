@@ -394,10 +394,10 @@ class TekmarHub:
                             _LOGGER.error(
                                 (
                                     f"Device address {e} not in inventory. "
-                                    "Please reload integration."
+                                    "Reloading integration..."
                                 )
                             )
-                            pass
+                            await self._hass.config_entries.async_reload(self._entry_id)
 
                         for device in self.tha_devices:
                             if device.device_id == b["address"]:
@@ -423,10 +423,10 @@ class TekmarHub:
                             _LOGGER.error(
                                 (
                                     f"Device address {e} not in inventory. "
-                                    "Please reload integration."
+                                    "Reloading integration..."
                                 )
                             )
-                            pass
+                            await self._hass.config_entries.async_reload(self._entry_id)
 
                     elif tha_method in ["SetbackEvents"]:
                         for device in self.tha_devices:
@@ -469,17 +469,19 @@ class TekmarHub:
                         _LOGGER.error(
                             (
                                 f"Device at address {p.body['old_address']} moved to "
-                                f"{p.body['new_address']}; reload required"
+                                f"{p.body['new_address']}. Reloading integration..."
                             )
                         )
+                        await self._hass.config_entries.async_reload(self._entry_id)
 
                     elif tha_method in ["DeviceAttributes"]:
                         _LOGGER.error(
                             (
-                                f"Device attributes for {b['address']} changed: "
-                                "reload required"
+                                f"Device attributes for {b['address']} changed. "
+                                "Reloading integration..."
                             )
                         )
+                        await self._hass.config_entries.async_reload(self._entry_id)
 
                     elif tha_method in ["NullMethod"]:
                         for gateway in self.tha_gateway:
@@ -1471,7 +1473,7 @@ class StoredData(object):
                     self._data = pickle.load(myfile) or {}
                     self._cache_outdated = False
 
-            except:  # noqa: E722
+            except Exception:
                 _LOGGER.error(f"Error loading data from pickled file {self._data_file}")
 
     def get_setting(self, key):
@@ -1486,7 +1488,7 @@ class StoredData(object):
             try:
                 pickle.dump(self._data, myfile)
 
-            except:  # noqa: E722
+            except Exception:
                 _LOGGER.error(f"Error saving pickled data to {self._data_file}")
 
         self._cache_outdated = True

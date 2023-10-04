@@ -85,7 +85,7 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def name(self) -> str:
-        return f"{self._tekmar_tha.tha_full_device_name} Climate"
+        return f"{self._tekmar_tha.tha_full_device_name}"
 
     @property
     def max_temp(self):
