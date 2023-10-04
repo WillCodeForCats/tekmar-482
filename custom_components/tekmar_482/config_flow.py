@@ -24,7 +24,8 @@ from .helpers import host_valid
 def tekmar_482_entries(hass: HomeAssistant):
     """Return the hosts already configured."""
     return set(
-        entry.data[CONF_HOST] for entry in hass.config_entries.async_entries(DOMAIN)
+        entry.data[CONF_HOST].lower()
+        for entry in hass.config_entries.async_entries(DOMAIN)
     )
 
 
@@ -36,23 +37,20 @@ class TekmarGatewayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @staticmethod
     @callback
     def async_get_options_flow(config_entry: ConfigEntry):
+        """Create the options flow for Tekmar Gateway 482."""
         return TekmarGatewayOptionsFlowHandler(config_entry)
-
-    def _host_in_configuration_exists(self, host) -> bool:
-        """Return True if host exists in configuration."""
-        if host in tekmar_482_entries(self.hass):
-            return True
-        return False
 
     async def async_step_user(self, user_input=None) -> FlowResult:
         """Handle the initial step."""
         errors = {}
 
         if user_input is not None:
-            if self._host_in_configuration_exists(user_input[CONF_HOST]):
-                errors[CONF_HOST] = "already_configured"
-            elif not host_valid(user_input[CONF_HOST]):
+            user_input[CONF_HOST] = user_input[CONF_HOST].lower()
+
+            if not host_valid(user_input[CONF_HOST]):
                 errors[CONF_HOST] = "invalid_host"
+            elif user_input[CONF_HOST] in tekmar_482_entries(self.hass):
+                errors[CONF_HOST] = "already_configured"
             elif user_input[CONF_PORT] < 1:
                 errors[CONF_PORT] = "invalid_tcp_port"
             elif user_input[CONF_PORT] > 65535:
@@ -86,14 +84,16 @@ class TekmarGatewayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class TekmarGatewayOptionsFlowHandler(config_entries.OptionsFlow):
+    """Handle an options flow for Tekmar Gateway 482."""
+
     def __init__(self, config_entry: ConfigEntry):
         """Initialize options flow."""
         self.config_entry = config_entry
 
     async def async_step_init(self, user_input=None) -> FlowResult:
+        """Handle the initial options flow step."""
         errors = {}
 
-        """Manage the options."""
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
         else:
