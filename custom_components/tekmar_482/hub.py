@@ -519,8 +519,7 @@ class TekmarHub:
                         await self._hass.config_entries.async_reload(self._entry_id)
 
                     elif tha_method in ["NullMethod"]:
-                        for gateway in self.tha_gateway:
-                            await gateway.set_last_ping(dt.utcnow())
+                        pass
 
                     elif tha_method in ["DateTime"]:
                         pass
@@ -547,14 +546,6 @@ class TekmarHub:
                         hour=int(datetime.strftime("%H")),
                         minute=int(datetime.strftime("%M")),
                     )
-                )
-            await asyncio.sleep(interval)
-
-    async def ping(self, interval: int = 300) -> None:
-        while self._inRun is True:
-            if not self._inReconnect:
-                await self.async_queue_message(
-                    TrpcPacket(service="Request", method="NullMethod")
                 )
             await asyncio.sleep(interval)
 
@@ -1363,7 +1354,6 @@ class TekmarGateway:
 
         self._tha_network_error = 0x0
         self._tha_outdoor_temperature = None
-        self._tha_last_ping = None
         self._tha_setpoint_groups = {
             1: None,
             2: None,
@@ -1422,10 +1412,6 @@ class TekmarGateway:
         self._tha_network_error = neterr
         await self.publish_updates()
 
-    async def set_last_ping(self, value) -> None:
-        self._tha_last_ping = value
-        await self.publish_updates()
-
     async def set_setpoint_group(self, group: int, value: int) -> None:
         if group in list(range(1, 13)):
             self._tha_setpoint_groups[group] = value
@@ -1478,10 +1464,6 @@ class TekmarGateway:
     @property
     def setpoint_groups(self) -> Dict[int, Any]:
         return self._tha_setpoint_groups
-
-    @property
-    def last_ping(self) -> int:
-        return self._tha_last_ping
 
     @property
     def device_info(self) -> Optional[Dict[str, Any]]:
