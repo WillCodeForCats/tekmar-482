@@ -137,7 +137,8 @@ class TekmarHub:
                     raise ConfigEntryNotReady("Write error while in setup.")
 
             try:
-                p = await self._sock.read()
+                async with asyncio.timeout(5):
+                    p = await self._sock.read()
 
             except Exception as e:
                 _LOGGER.error(f"Read error: {e}")
@@ -310,12 +311,36 @@ class TekmarHub:
                 try:
                     await self._sock.write(self._tx_queue.pop(0))
                     await asyncio.sleep(0.1)
+
                 except Exception as e:
                     _LOGGER.warning(f"Write error: {e} - reloading integration...")
                     await self._hass.config_entries.async_reload(self._entry_id)
 
             try:
-                p = await self._sock.read()
+                async with asyncio.timeout(65):
+                    p = await self._sock.read()
+
+            except TimeoutError as e:
+                _LOGGER.warning(f"Timeout waiting for report: {e}")
+
+                if self._sock.is_open:
+                    await self._sock.close()
+
+                if await self._sock.open() is False:
+                    _LOGGER.error(self._sock.error)
+                    ir.async_create_issue(
+                        self._hass,
+                        DOMAIN,
+                        "check_configuration",
+                        is_fixable=True,
+                        severity=ir.IssueSeverity.ERROR,
+                        translation_key="check_configuration",
+                        data={"entry_id": self._entry_id},
+                    )
+
+                await asyncio.sleep(30)
+
+                p = None
 
             except Exception as e:
                 _LOGGER.warning(f"Read error: {e} - reloading integration...")
