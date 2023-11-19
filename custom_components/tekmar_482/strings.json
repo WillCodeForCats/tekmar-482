@@ -28,5 +28,26 @@
         }
       }
     }
+  },
+  "issues": {
+    "check_configuration": {
+      "title": "Check Tekmar Gateway 482 Configuration",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Check Tekmar Gateway 482 Configuration",
+            "description": "An error occured while trying to open a connection to the packet server.\n\nPlease confirm your configuration.",
+            "data": {
+              "host": "Packet Server Address",
+              "port": "Packet Server Port"
+            }
+          }
+        },
+        "error": {
+          "invalid_host": "Invalid IP address.",
+          "invalid_tcp_port": "Valid port range is 1 to 65535."
+        }
+      }
+    }
   }
 }

@@ -1,4 +1,8 @@
+"""Constants used by Tekmar Gateway 482 components."""
+from __future__ import annotations
+
 import ctypes
+import re
 import sys
 from enum import IntEnum
 
@@ -25,6 +29,20 @@ DEFAULT_HOST = ""
 DEFAULT_PORT = 3000
 DEFAULT_SETBACK_ENABLE = False
 CONF_SETBACK_ENABLE = "setback_enable"
+
+# from voluptuous/validators.py
+DOMAIN_REGEX = re.compile(
+    # start anchor, because fullmatch is not available in python 2.7
+    "(?:"
+    # domain
+    r"(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+"
+    r"(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?$)"
+    # host name only
+    r"|(?:^[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?)"
+    # end anchor, because fullmatch is not available in python 2.7
+    r")\Z",
+    re.IGNORECASE,
+)
 
 
 class ThaSetback(IntEnum):
