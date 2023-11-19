@@ -22,6 +22,7 @@ from .const import (
     ThaDefault,
     ThaSetback,
     ThaType,
+    ThaValue,
 )
 from .trpc_msg import TrpcPacket, name_from_methodID
 from .trpc_sock import TrpcSocket
@@ -94,7 +95,7 @@ class TekmarHub:
             )
 
         await self._sock.write(
-            TrpcPacket(service="Update", method="ReportingState", states=0x00)
+            TrpcPacket(service="Update", method="ReportingState", state=ThaValue.OFF)
         )
 
         self._tx_queue.append(
@@ -210,7 +211,7 @@ class TekmarHub:
                                 TrpcPacket(
                                     service="Update",
                                     method="ReportingState",
-                                    state=0x01,
+                                    state=ThaValue.ON,
                                 )
                             )
 
@@ -304,24 +305,43 @@ class TekmarHub:
 
     async def run(self) -> None:
         self._inRun = True
+        readCycle = 0
 
         while self._inRun is True:
-            if len(self._tx_queue) != 0:
-                try:
+            try:
+                if not self._sock.is_open:
+                    readCycle = 0
+                    if await self._sock.open() is False:
+                        raise ConnectionError(f"Connection to {self._host} failed")
+
+                    # make sure reporting is on when we reconnect
+                    self._tx_queue.append(
+                        TrpcPacket(
+                            service="Update",
+                            method="ReportingState",
+                            state=ThaValue.ON,
+                        )
+                    )
+
+                if len(self._tx_queue) != 0:
                     await self._sock.write(self._tx_queue.pop(0))
                     await asyncio.sleep(0.1)
-                except Exception as e:
-                    _LOGGER.warning(f"Write error: {e} - reloading integration...")
-                    await self._hass.config_entries.async_reload(self._entry_id)
 
-            try:
+                readCycle += 1
                 p = await self._sock.read()
 
+                if readCycle > 130:
+                    raise ConnectionError(f"No reports from {self._host}")
+
             except Exception as e:
-                _LOGGER.warning(f"Read error: {e} - reloading integration...")
-                await self._hass.config_entries.async_reload(self._entry_id)
+                _LOGGER.warning(f"Socket error: {e} - reconnecting.")
+                await self._sock.close()
+                await asyncio.sleep(5)
+                p = None
 
             if p is not None:
+                readCycle = 0
+
                 try:
                     h = p.header
                     b = p.body
@@ -537,7 +557,9 @@ class TekmarHub:
 
         if await self._sock.open():
             await self._sock.write(
-                TrpcPacket(service="Update", method="ReportingState", states=0)
+                TrpcPacket(
+                    service="Update", method="ReportingState", state=ThaValue.OFF
+                )
             )
             await self._sock.close()
 
