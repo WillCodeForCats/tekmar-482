@@ -9,7 +9,7 @@ class TrpcSocket:
     def __init__(self, addr=None, port=None):
         self._sock_reader = None
         self._sock_writer = None
-        self.is_open = False
+        self._is_open = False
         self.addr = addr
         self.port = port
         self.error = None
@@ -26,13 +26,13 @@ class TrpcSocket:
                 self.addr, self.port
             )
 
-            self.is_open = True
+            self._is_open = True
             return True
 
         except Exception as e:
             self._sock_reader = None
             self._sock_writer = None
-            self.is_open = False
+            self._is_open = False
             self.error = e
             return False
 
@@ -50,7 +50,7 @@ class TrpcSocket:
             self._sock_writer = None
             self._sock_reader = None
 
-            self.is_open = False
+            self._is_open = False
 
     # **************************************************************************
     async def read(self):
@@ -84,3 +84,7 @@ class TrpcSocket:
         if self._sock_writer is not None:
             self._sock_writer.write(str(trpc_packet.to_tpck()).encode())
             await self._sock_writer.drain()
+
+    @property
+    def is_open(self) -> bool:
+        return self._is_open

@@ -35,7 +35,6 @@ async def async_setup_entry(
     for gateway in hub.tha_gateway:
         entities.append(OutdoorTemprature(gateway, config_entry))
         entities.append(NetworkError(gateway, config_entry))
-        entities.append(LastPing(gateway, config_entry))
 
     for device in hub.tha_devices:
         if DEVICE_TYPES[device.tha_device["type"]] == ThaType.THERMOSTAT:
@@ -133,38 +132,6 @@ class OutdoorTemprature(ThaSensorBase):
 
             except TypeError:
                 return None
-
-
-class LastPing(ThaSensorBase):
-    entity_category = EntityCategory.DIAGNOSTIC
-    device_class = SensorDeviceClass.TIMESTAMP
-    icon = "mdi:heart-pulse"
-
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
-
-    @property
-    def unique_id(self) -> str:
-        return f"{self.config_entry_id}-last-ping"
-
-    @property
-    def name(self) -> str:
-        return f"{self.config_entry_name.capitalize()} Last Ping"
-
-    @property
-    def available(self) -> bool:
-        if self._tekmar_tha.last_ping is None:
-            return False
-        else:
-            return True
-
-    @property
-    def native_value(self):
-        if self._tekmar_tha.last_ping is None:
-            return None
-        else:
-            return self._tekmar_tha.last_ping
 
 
 class NetworkError(ThaSensorBase):
