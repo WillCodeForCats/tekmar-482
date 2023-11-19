@@ -9,11 +9,12 @@ class TrpcSocket:
     def __init__(self, addr=None, port=None):
         self._sock_reader = None
         self._sock_writer = None
-        self.is_open = False
+        self._is_open = False
+        self._error = None
+        self._rx_queue = []
+
         self.addr = addr
         self.port = port
-        self.error = None
-        self.rx_queue = []
 
     # **************************************************************************
     async def open(self) -> bool:
@@ -26,14 +27,14 @@ class TrpcSocket:
                 self.addr, self.port
             )
 
-            self.is_open = True
+            self._is_open = True
             return True
 
         except Exception as e:
             self._sock_reader = None
             self._sock_writer = None
-            self.is_open = False
-            self.error = e
+            self._is_open = False
+            self._error = e
             return False
 
     # **************************************************************************
@@ -50,7 +51,7 @@ class TrpcSocket:
             self._sock_writer = None
             self._sock_reader = None
 
-            self.is_open = False
+            self._is_open = False
 
     # **************************************************************************
     async def read(self):
@@ -60,8 +61,8 @@ class TrpcSocket:
         Otherwise a tHA object is returned.
         """
         if self._sock_reader is not None:
-            if len(self.rx_queue) != 0:
-                return self.rx_queue.pop(0)
+            if len(self._rx_queue) != 0:
+                return self._rx_queue.pop(0)
 
             else:
                 try:
@@ -70,7 +71,7 @@ class TrpcSocket:
                     )
                     rx_data = rx_data.rsplit("\n".encode())
                     for st in [r for r in rx_data if r]:
-                        self.rx_queue.append(TrpcPacket.from_rx_packet(st))
+                        self._rx_queue.append(TrpcPacket.from_rx_packet(st))
 
                 except asyncio.TimeoutError:
                     return None
@@ -84,3 +85,11 @@ class TrpcSocket:
         if self._sock_writer is not None:
             self._sock_writer.write(str(trpc_packet.to_tpck()).encode())
             await self._sock_writer.drain()
+
+    @property
+    def is_open(self) -> bool:
+        return self._is_open
+
+    @property
+    def error(self) -> str | None:
+        return self._error

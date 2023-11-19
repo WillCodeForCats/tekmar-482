@@ -8,6 +8,7 @@ from typing import Any, Callable, Dict, Optional
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.storage import Store
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.util import dt
 
 from .const import (
@@ -22,6 +23,7 @@ from .const import (
     ThaDefault,
     ThaSetback,
     ThaType,
+    ThaValue,
 )
 from .trpc_msg import TrpcPacket, name_from_methodID
 from .trpc_sock import TrpcSocket
@@ -80,12 +82,21 @@ class TekmarHub:
 
         if await self._sock.open() is False:
             _LOGGER.error(self._sock.error)
+            ir.async_create_issue(
+                self._hass,
+                DOMAIN,
+                "check_configuration",
+                is_fixable=True,
+                severity=ir.IssueSeverity.ERROR,
+                translation_key="check_configuration",
+                data={"entry_id": self._entry_id},
+            )
             raise ConfigEntryNotReady(
                 f"Connection to packet server '{self._host}' failed"
             )
 
         await self._sock.write(
-            TrpcPacket(service="Update", method="ReportingState", states=0x00)
+            TrpcPacket(service="Update", method="ReportingState", state=ThaValue.OFF)
         )
 
         self._tx_queue.append(
@@ -201,7 +212,7 @@ class TekmarHub:
                                 TrpcPacket(
                                     service="Update",
                                     method="ReportingState",
-                                    state=0x01,
+                                    state=ThaValue.ON,
                                 )
                             )
 
@@ -295,24 +306,43 @@ class TekmarHub:
 
     async def run(self) -> None:
         self._inRun = True
+        readCycle = 0
 
         while self._inRun is True:
-            if len(self._tx_queue) != 0:
-                try:
+            try:
+                if not self._sock.is_open:
+                    readCycle = 0
+                    if await self._sock.open() is False:
+                        raise ConnectionError(f"Connection to {self._host} failed")
+
+                    # make sure reporting is on when we reconnect
+                    self._tx_queue.append(
+                        TrpcPacket(
+                            service="Update",
+                            method="ReportingState",
+                            state=ThaValue.ON,
+                        )
+                    )
+
+                if len(self._tx_queue) != 0:
                     await self._sock.write(self._tx_queue.pop(0))
                     await asyncio.sleep(0.1)
-                except Exception as e:
-                    _LOGGER.warning(f"Write error: {e} - reloading integration...")
-                    await self._hass.config_entries.async_reload(self._entry_id)
 
-            try:
+                readCycle += 1
                 p = await self._sock.read()
 
+                if readCycle > 130:
+                    raise ConnectionError(f"No reports from {self._host}")
+
             except Exception as e:
-                _LOGGER.warning(f"Read error: {e} - reloading integration...")
-                await self._hass.config_entries.async_reload(self._entry_id)
+                _LOGGER.warning(f"Socket error: {e} - reconnecting.")
+                await self._sock.close()
+                await asyncio.sleep(5)
+                p = None
 
             if p is not None:
+                readCycle = 0
+
                 try:
                     h = p.header
                     b = p.body
@@ -485,8 +515,7 @@ class TekmarHub:
                         await self._hass.config_entries.async_reload(self._entry_id)
 
                     elif tha_method in ["NullMethod"]:
-                        for gateway in self.tha_gateway:
-                            await gateway.set_last_ping(dt.utcnow())
+                        pass
 
                     elif tha_method in ["DateTime"]:
                         pass
@@ -516,14 +545,6 @@ class TekmarHub:
                 )
             await asyncio.sleep(interval)
 
-    async def ping(self, interval: int = 300) -> None:
-        while self._inRun is True:
-            if not self._inReconnect:
-                await self.async_queue_message(
-                    TrpcPacket(service="Request", method="NullMethod")
-                )
-            await asyncio.sleep(interval)
-
     async def async_queue_message(self, message: TrpcPacket) -> bool:
         self._tx_queue.append(message)
         return True
@@ -537,7 +558,9 @@ class TekmarHub:
 
         if await self._sock.open():
             await self._sock.write(
-                TrpcPacket(service="Update", method="ReportingState", states=0)
+                TrpcPacket(
+                    service="Update", method="ReportingState", state=ThaValue.OFF
+                )
             )
             await self._sock.close()
 
@@ -1329,7 +1352,6 @@ class TekmarGateway:
 
         self._tha_network_error = 0x0
         self._tha_outdoor_temperature = None
-        self._tha_last_ping = None
         self._tha_setpoint_groups = {
             1: None,
             2: None,
@@ -1388,10 +1410,6 @@ class TekmarGateway:
         self._tha_network_error = neterr
         await self.publish_updates()
 
-    async def set_last_ping(self, value) -> None:
-        self._tha_last_ping = value
-        await self.publish_updates()
-
     async def set_setpoint_group(self, group: int, value: int) -> None:
         if group in list(range(1, 13)):
             self._tha_setpoint_groups[group] = value
@@ -1444,10 +1462,6 @@ class TekmarGateway:
     @property
     def setpoint_groups(self) -> Dict[int, Any]:
         return self._tha_setpoint_groups
-
-    @property
-    def last_ping(self) -> int:
-        return self._tha_last_ping
 
     @property
     def device_info(self) -> Optional[Dict[str, Any]]:
