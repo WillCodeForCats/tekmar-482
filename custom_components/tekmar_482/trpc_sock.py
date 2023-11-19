@@ -10,10 +10,11 @@ class TrpcSocket:
         self._sock_reader = None
         self._sock_writer = None
         self._is_open = False
+        self._error = None
+        self._rx_queue = []
+
         self.addr = addr
         self.port = port
-        self.error = None
-        self.rx_queue = []
 
     # **************************************************************************
     async def open(self) -> bool:
@@ -33,7 +34,7 @@ class TrpcSocket:
             self._sock_reader = None
             self._sock_writer = None
             self._is_open = False
-            self.error = e
+            self._error = e
             return False
 
     # **************************************************************************
@@ -60,8 +61,8 @@ class TrpcSocket:
         Otherwise a tHA object is returned.
         """
         if self._sock_reader is not None:
-            if len(self.rx_queue) != 0:
-                return self.rx_queue.pop(0)
+            if len(self._rx_queue) != 0:
+                return self._rx_queue.pop(0)
 
             else:
                 try:
@@ -70,7 +71,7 @@ class TrpcSocket:
                     )
                     rx_data = rx_data.rsplit("\n".encode())
                     for st in [r for r in rx_data if r]:
-                        self.rx_queue.append(TrpcPacket.from_rx_packet(st))
+                        self._rx_queue.append(TrpcPacket.from_rx_packet(st))
 
                 except asyncio.TimeoutError:
                     return None
@@ -88,3 +89,7 @@ class TrpcSocket:
     @property
     def is_open(self) -> bool:
         return self._is_open
+
+    @property
+    def error(self) -> str | None:
+        return self._error
