@@ -506,8 +506,8 @@ class TekmarHub:
 
                     elif tha_method in ["DeviceAttributes"]:
                         _LOGGER.debug(
-                            f"Ignoring attributes packet from {b['address']} while"
-                            f"running: got {int(b['attributes'])} setup with"
+                            f"Ignoring attributes from {b['address']} in run: "
+                            f"received {int(b['attributes'])} setup with "
                             f"{self._tha_inventory[b['address']]['attributes'].attrs}"
                         )
 
