@@ -421,7 +421,7 @@ class TekmarHub:
                                     )
                                 )
                         except KeyError as e:
-                            _LOGGER.error(
+                            _LOGGER.warning(
                                 (
                                     f"Device address {e} not in inventory. "
                                     "Reloading integration..."
@@ -450,7 +450,7 @@ class TekmarHub:
                                 if device.device_id == b["address"]:
                                     await device.set_setback_state(p.body["setback"])
                         except KeyError as e:
-                            _LOGGER.error(
+                            _LOGGER.warning(
                                 (
                                     f"Device address {e} not in inventory. "
                                     "Reloading integration..."
@@ -496,7 +496,7 @@ class TekmarHub:
                                 )
 
                     elif tha_method in ["TakingAddress"]:
-                        _LOGGER.error(
+                        _LOGGER.warning(
                             (
                                 f"Device at address {p.body['old_address']} moved to "
                                 f"{p.body['new_address']}. Reloading integration..."
@@ -505,7 +505,7 @@ class TekmarHub:
                         await self._hass.config_entries.async_reload(self._entry_id)
 
                     elif tha_method in ["DeviceAttributes"]:
-                        _LOGGER.error(
+                        _LOGGER.warning(
                             (
                                 f"Device attributes for {b['address']} changed. "
                                 "Reloading integration..."
