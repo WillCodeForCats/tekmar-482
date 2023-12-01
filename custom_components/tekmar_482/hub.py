@@ -505,13 +505,11 @@ class TekmarHub:
                         await self._hass.config_entries.async_reload(self._entry_id)
 
                     elif tha_method in ["DeviceAttributes"]:
-                        _LOGGER.warning(
-                            (
-                                f"Device attributes for {b['address']} changed. "
-                                "Reloading integration..."
-                            )
+                        _LOGGER.debug(
+                            f"Ignoring attributes from {b['address']} in run: "
+                            f"received {int(b['attributes'])} setup with "
+                            f"{self._tha_inventory[b['address']]['attributes'].attrs}"
                         )
-                        await self._hass.config_entries.async_reload(self._entry_id)
 
                     elif tha_method in ["NullMethod"]:
                         pass
