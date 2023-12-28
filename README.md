@@ -32,6 +32,9 @@ After rebooting Home Assistant, this integration can be configured through the i
 
 [WillCodeForCats/tekmar-482/wiki](https://github.com/WillCodeForCats/tekmar-482/wiki)
 
+### Required Versions
+* Home Assistant 2022.11.0 or newer
+
 ## Compatible Equipment
 
 For a list of compatible equipment see the wiki.
