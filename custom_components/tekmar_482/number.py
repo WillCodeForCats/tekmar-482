@@ -1,6 +1,6 @@
 from homeassistant.components.number import NumberDeviceClass, NumberEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import PERCENTAGE, TEMP_CELSIUS
+from homeassistant.const import PERCENTAGE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -166,7 +166,7 @@ class ThaHumiditySetMin(ThaNumberBase):
 
 class ThaHeatSetpoint(ThaNumberBase):
     device_class = NumberDeviceClass.TEMPERATURE
-    native_unit_of_measurement = TEMP_CELSIUS
+    native_unit_of_measurement = UnitOfTemperature.CELSIUS
     icon = "mdi:thermostat"
 
     def __init__(self, tekmar_tha, config_entry):
@@ -341,7 +341,7 @@ class ThaHeatSetpointAway(ThaHeatSetpoint):
 
 class ThaCoolSetpoint(ThaNumberBase):
     device_class = NumberDeviceClass.TEMPERATURE
-    native_unit_of_measurement = TEMP_CELSIUS
+    native_unit_of_measurement = UnitOfTemperature.CELSIUS
     icon = "mdi:thermostat"
 
     def __init__(self, tekmar_tha, config_entry):
