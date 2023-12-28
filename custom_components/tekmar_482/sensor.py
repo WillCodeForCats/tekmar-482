@@ -4,7 +4,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import PERCENTAGE, TEMP_CELSIUS
+from homeassistant.const import PERCENTAGE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -96,7 +96,7 @@ class ThaSensorBase(SensorEntity):
 class OutdoorTemprature(ThaSensorBase):
     device_class = SensorDeviceClass.TEMPERATURE
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = TEMP_CELSIUS
+    native_unit_of_measurement = UnitOfTemperature.CELSIUS
     suggested_display_precision = 1
 
     def __init__(self, tekmar_tha, config_entry):
@@ -209,7 +209,7 @@ class NetworkError(ThaSensorBase):
 class CurrentTemperature(ThaSensorBase):
     device_class = SensorDeviceClass.TEMPERATURE
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = TEMP_CELSIUS
+    native_unit_of_measurement = UnitOfTemperature.CELSIUS
     suggested_display_precision = 1
 
     def __init__(self, tekmar_tha, config_entry):
@@ -255,7 +255,7 @@ class CurrentTemperature(ThaSensorBase):
 class CurrentFloorTemperature(ThaSensorBase):
     device_class = SensorDeviceClass.TEMPERATURE
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = TEMP_CELSIUS
+    native_unit_of_measurement = UnitOfTemperature.CELSIUS
     suggested_display_precision = 1
 
     def __init__(self, tekmar_tha, config_entry):
@@ -402,7 +402,7 @@ class SetbackState(ThaSensorBase):
 class SetpointTarget(ThaSensorBase):
     device_class = SensorDeviceClass.TEMPERATURE
     state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = TEMP_CELSIUS
+    native_unit_of_measurement = UnitOfTemperature.CELSIUS
     suggested_display_precision = 1
 
     def __init__(self, tekmar_tha, config_entry):

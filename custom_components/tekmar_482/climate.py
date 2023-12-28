@@ -11,7 +11,7 @@ from homeassistant.components.climate.const import (
 from homeassistant.components.climate.const import ClimateEntityFeature as Feature
 from homeassistant.components.climate.const import HVACAction, HVACMode
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import ATTR_TEMPERATURE, TEMP_CELSIUS
+from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -67,7 +67,7 @@ class ThaClimateBase(ClimateEntity):
 
 
 class ThaClimateThermostat(ThaClimateBase):
-    temperature_unit = TEMP_CELSIUS
+    temperature_unit = UnitOfTemperature.CELSIUS
     max_humidity = 80
     min_humidity = 20
 
