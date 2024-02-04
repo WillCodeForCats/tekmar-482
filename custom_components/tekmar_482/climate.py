@@ -38,6 +38,7 @@ async def async_setup_entry(
 
 class ThaClimateBase(ClimateEntity):
     should_poll = False
+    _enable_turn_on_off_backwards_compatibility = False
 
     def __init__(self, tekmar_tha, config_entry):
         self._tekmar_tha = tekmar_tha
@@ -117,7 +118,7 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def supported_features(self):
-        supported_features = 0
+        supported_features = Feature.TURN_OFF
 
         if (
             self._tekmar_tha.tha_device["attributes"].Zone_Heating == 1
@@ -395,6 +396,9 @@ class ThaClimateThermostat(ThaClimateBase):
             raise NotImplementedError()
 
         await self._tekmar_tha.set_mode_setting_txqueue(value)
+
+    async def async_turn_off(self):
+        await self.async_set_hvac_mode(self, HVACMode.OFF)
 
     async def async_set_fan_mode(self, fan_mode):
         if fan_mode == FAN_ON:
