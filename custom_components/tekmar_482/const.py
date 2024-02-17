@@ -75,6 +75,8 @@ class ThaDefault(IntEnum):
     HEAT_MAX = 29
     COOL_MIN = 10
     COOL_MAX = 30
+    SLAB_MIN = 5
+    SLAB_MAX = 30
 
 
 ACTIVE_DEMAND = {0x00: "None", 0x01: "Heat", 0x03: "Cool"}
