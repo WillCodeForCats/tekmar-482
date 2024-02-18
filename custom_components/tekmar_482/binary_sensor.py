@@ -1,3 +1,6 @@
+"""Component to interface with binary sensors."""
+from __future__ import annotations
+
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
@@ -28,6 +31,8 @@ async def async_setup_entry(
 
 
 class ThaBinarySensorBase(BinarySensorEntity):
+    """Base class for Tekmar binary sensor entities."""
+
     should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
@@ -59,11 +64,10 @@ class ThaBinarySensorBase(BinarySensorEntity):
 
 
 class ReportingState(ThaBinarySensorBase):
+    """Boolean status for gateway reporting state."""
+
     entity_category = EntityCategory.DIAGNOSTIC
     device_class = BinarySensorDeviceClass.RUNNING
-
-    def __init__(self, tekmar_tha, config_entry):
-        super().__init__(tekmar_tha, config_entry)
 
     @property
     def unique_id(self) -> str:
@@ -82,11 +86,10 @@ class ReportingState(ThaBinarySensorBase):
 
 
 class SetbackEnable(ThaBinarySensorBase):
+    """Boolean status for gateway setback mode."""
+
     entity_category = EntityCategory.DIAGNOSTIC
     device_class = BinarySensorDeviceClass.RUNNING
-
-    def __init__(self, tekmar_tha, config_entry):
-        super().__init__(tekmar_tha, config_entry)
 
     @property
     def unique_id(self) -> str:
