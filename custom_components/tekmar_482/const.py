@@ -1,4 +1,5 @@
 """Constants used by Tekmar Gateway 482 components."""
+
 from __future__ import annotations
 
 import ctypes
