@@ -1,4 +1,5 @@
 """Repairs for Tekmar 482 Gateway."""
+
 from __future__ import annotations
 
 from typing import cast

@@ -20,9 +20,13 @@ class Packet:
     format = FieldList("PacketFormat", Int8(None))
 
     # --------------------------------------------------------------------------
-    def __init__(self, type=TYPE_GENERAL, data=[]):
+    def __init__(self, type=TYPE_GENERAL, data=None):
+        if data is None:
+            self.data = []
+        else:
+            self.data = list(data)
+
         self.type = type
-        self.data = data
 
     # --------------------------------------------------------------------------
     def __str__(self):
