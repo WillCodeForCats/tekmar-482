@@ -218,17 +218,17 @@ class TekmarHub:
                     elif tha_method in ["DeviceType"]:
                         try:
                             self._tha_inventory[b["address"]]["type"] = b["type"]
-                            self._tha_inventory[b["address"]][
-                                "entity"
-                            ] = "{3} {0} {1} {2}".format(
-                                DEVICE_TYPES[
-                                    self._tha_inventory[b["address"]]["type"]
-                                ].capitalize(),
-                                DEVICE_FEATURES[
-                                    self._tha_inventory[b["address"]]["type"]
-                                ]["model"],
-                                b["address"],
-                                self._name.capitalize(),
+                            self._tha_inventory[b["address"]]["entity"] = (
+                                "{3} {0} {1} {2}".format(
+                                    DEVICE_TYPES[
+                                        self._tha_inventory[b["address"]]["type"]
+                                    ].capitalize(),
+                                    DEVICE_FEATURES[
+                                        self._tha_inventory[b["address"]]["type"]
+                                    ]["model"],
+                                    b["address"],
+                                    self._name.capitalize(),
+                                )
                             )
                             _LOGGER.debug(f"Address {b['address']} type {b['type']}")
 
