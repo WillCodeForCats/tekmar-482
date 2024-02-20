@@ -1,4 +1,5 @@
 """Component to allow numeric input for platforms."""
+
 from __future__ import annotations
 
 from homeassistant.components.number import NumberDeviceClass, NumberEntity

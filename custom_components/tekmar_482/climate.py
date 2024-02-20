@@ -1,4 +1,5 @@
 """Provides functionality to interact with climate devices."""
+
 from __future__ import annotations
 
 from homeassistant.components.climate import ClimateEntity
