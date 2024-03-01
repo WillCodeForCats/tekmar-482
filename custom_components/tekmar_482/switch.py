@@ -107,14 +107,13 @@ class ThaSetpointGroup(ThaSwitchBase):
     def available(self) -> bool:
         setpoint_groups = self._tekmar_tha.setpoint_groups
 
-        if setpoint_groups[self._setpoint_group] is None:
+        if (
+            setpoint_groups[self._setpoint_group] is None
+            or setpoint_groups[self._setpoint_group] == ThaValue.NA_8
+        ):
             return False
 
-        elif setpoint_groups[self._setpoint_group] == ThaValue.NA_8:
-            return False
-
-        else:
-            return True
+        return super().available
 
     @property
     def is_on(self):
@@ -155,8 +154,8 @@ class ConfigEmergencyHeat(ThaSwitchBase):
     def available(self) -> bool:
         if DEVICE_FEATURES[self._tekmar_tha.tha_device["type"]]["emer"]:
             return True
-        else:
-            return False
+
+        return super().available
 
     @property
     def is_on(self):
@@ -193,8 +192,8 @@ class ConfigVentMode(ThaSwitchBase):
     def available(self) -> bool:
         if DEVICE_FEATURES[self._tekmar_tha.tha_device["type"]]["fan"]:
             return True
-        else:
-            return False
+
+        return super().available
 
     @property
     def is_on(self):

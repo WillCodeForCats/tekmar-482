@@ -108,8 +108,8 @@ class ThaHumiditySetMax(ThaNumberBase):
     def available(self) -> bool:
         if self._tekmar_tha.humidity_setpoint_max == ThaValue.NA_8:
             return False
-        else:
-            return True
+
+        return super().available
 
     @property
     def native_value(self):
@@ -154,8 +154,8 @@ class ThaHumiditySetMin(ThaNumberBase):
     def available(self) -> bool:
         if self._tekmar_tha.humidity_setpoint_min == ThaValue.NA_8:
             return False
-        else:
-            return True
+
+        return super().available
 
     @property
     def native_value(self):
@@ -188,8 +188,8 @@ class ThaHeatSetpoint(ThaNumberBase):
     def entity_registry_enabled_default(self) -> bool:
         if self._tekmar_tha.setback_enable is False:
             return True
-        else:
-            return False
+
+        return super().available
 
     @property
     def available(self) -> bool:
@@ -238,14 +238,13 @@ class ThaHeatSetpointDay(ThaHeatSetpoint):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.heat_setpoint_day == ThaValue.NA_8:
+        if (
+            self._tekmar_tha.heat_setpoint_day == ThaValue.NA_8
+            or self._tekmar_tha.tha_device["attributes"].Zone_Heating == 0
+        ):
             return False
 
-        elif self._tekmar_tha.tha_device["attributes"].Zone_Heating == 0:
-            return False
-
-        else:
-            return True
+        return super().available
 
     @property
     def native_value(self):
@@ -275,14 +274,13 @@ class ThaHeatSetpointNight(ThaHeatSetpoint):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.heat_setpoint_day == ThaValue.NA_8:
+        if (
+            self._tekmar_tha.heat_setpoint_day == ThaValue.NA_8
+            or self._tekmar_tha.tha_device["attributes"].Zone_Heating == 0
+        ):
             return False
 
-        elif self._tekmar_tha.tha_device["attributes"].Zone_Heating == 0:
-            return False
-
-        else:
-            return True
+        return super().available
 
     @property
     def native_value(self):
@@ -312,14 +310,13 @@ class ThaHeatSetpointAway(ThaHeatSetpoint):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.heat_setpoint_day == ThaValue.NA_8:
+        if (
+            self._tekmar_tha.heat_setpoint_day == ThaValue.NA_8
+            or self._tekmar_tha.tha_device["attributes"].Zone_Heating == 0
+        ):
             return False
 
-        elif self._tekmar_tha.tha_device["attributes"].Zone_Heating == 0:
-            return False
-
-        else:
-            return True
+        return super().available
 
     @property
     def native_value(self):
@@ -360,14 +357,13 @@ class ThaCoolSetpoint(ThaNumberBase):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.cool_setpoint == ThaValue.NA_8:
+        if (
+            self._tekmar_tha.cool_setpoint == ThaValue.NA_8
+            or self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0
+        ):
             return False
 
-        elif self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0:
-            return False
-
-        else:
-            return True
+        return super().available
 
     @property
     def native_value(self):
@@ -405,14 +401,13 @@ class ThaCoolSetpointDay(ThaCoolSetpoint):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.cool_setpoint_day == ThaValue.NA_8:
+        if (
+            self._tekmar_tha.cool_setpoint_day == ThaValue.NA_8
+            or self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0
+        ):
             return False
 
-        elif self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0:
-            return False
-
-        else:
-            return True
+        return super().available
 
     @property
     def native_value(self):
@@ -442,14 +437,13 @@ class ThaCoolSetpointNight(ThaCoolSetpoint):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.cool_setpoint_day == ThaValue.NA_8:
+        if (
+            self._tekmar_tha.cool_setpoint_day == ThaValue.NA_8
+            or self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0
+        ):
             return False
 
-        elif self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0:
-            return False
-
-        else:
-            return True
+        return super().available
 
     @property
     def native_value(self):
@@ -479,14 +473,13 @@ class ThaCoolSetpointAway(ThaCoolSetpoint):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.cool_setpoint_day == ThaValue.NA_8:
+        if (
+            self._tekmar_tha.cool_setpoint_day == ThaValue.NA_8
+            or self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0
+        ):
             return False
 
-        elif self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0:
-            return False
-
-        else:
-            return True
+        return super().available
 
     @property
     def native_value(self):

@@ -119,8 +119,8 @@ class OutdoorTemprature(ThaSensorBase):
     def available(self) -> bool:
         if self._tekmar_tha.outdoor_temprature == ThaValue.NA_16:
             return False
-        else:
-            return True
+
+        return super().available
 
     @property
     def native_value(self):
@@ -230,12 +230,13 @@ class CurrentTemperature(ThaSensorBase):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.current_temperature == ThaValue.NA_16:
+        if (
+            self._tekmar_tha.current_temperature == ThaValue.NA_16
+            or self._tekmar_tha.current_temperature == 0x00
+        ):
             return False
-        elif self._tekmar_tha.current_temperature == 0x00:
-            return False
-        else:
-            return True
+
+        return super().available
 
     @property
     def native_value(self):
@@ -286,8 +287,8 @@ class CurrentFloorTemperature(ThaSensorBase):
             or self._tekmar_tha.current_floor_temperature == 0x00
         ):
             return False
-        else:
-            return True
+
+        return super().available
 
     @property
     def native_value(self):
@@ -328,8 +329,8 @@ class RelativeHumidity(ThaSensorBase):
     def available(self) -> bool:
         if self._tekmar_tha.relative_humidity == ThaValue.NA_8:
             return False
-        else:
-            return True
+
+        return super().available
 
     @property
     def native_value(self):
@@ -374,8 +375,7 @@ class SetbackState(ThaSensorBase):
         ):
             return False
 
-        else:
-            return True
+        return super().available
 
     @property
     def native_value(self):
@@ -421,8 +421,8 @@ class SetpointTarget(ThaSensorBase):
             or self._tekmar_tha.setpoint_target == 0x00
         ):
             return False
-        else:
-            return True
+
+        return super().available
 
     @property
     def native_value(self):
@@ -461,8 +461,8 @@ class SetpointDemand(ThaSensorBase):
     def available(self) -> bool:
         if self._tekmar_tha.active_demand == ThaValue.NA_8:
             return False
-        else:
-            return True
+
+        return super().available
 
     @property
     def native_value(self):
