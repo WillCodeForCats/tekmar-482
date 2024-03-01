@@ -119,9 +119,9 @@ class ThaSetpointGroup(ThaSwitchBase):
     def is_on(self):
         setpoint_groups = self._tekmar_tha.setpoint_groups
 
-        if setpoint_groups[self._setpoint_group] == 0x00:
+        if setpoint_groups[self._setpoint_group] == ThaValue.OFF:
             return False
-        elif setpoint_groups[self._setpoint_group] == 0x01:
+        elif setpoint_groups[self._setpoint_group] == ThaValue.ON:
             return True
         else:
             raise NotImplementedError
@@ -159,10 +159,7 @@ class ConfigEmergencyHeat(ThaSwitchBase):
 
     @property
     def is_on(self):
-        if self._tekmar_tha.config_emergency_heat is True:
-            return True
-        else:
-            return False
+        return self._tekmar_tha.config_emergency_heat
 
     async def async_turn_on(self, **kwargs):
         await self._tekmar_tha.set_config_emer_heat(True)
@@ -197,10 +194,7 @@ class ConfigVentMode(ThaSwitchBase):
 
     @property
     def is_on(self):
-        if self._tekmar_tha.config_vent_mode is True:
-            return True
-        else:
-            return False
+        return self._tekmar_tha.config_vent_mode
 
     async def async_turn_on(self, **kwargs):
         await self._tekmar_tha.set_config_vent_mode(True)
