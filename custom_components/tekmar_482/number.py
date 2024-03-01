@@ -1,3 +1,7 @@
+"""Component to allow numeric input for platforms."""
+
+from __future__ import annotations
+
 from homeassistant.components.number import NumberDeviceClass, NumberEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE, UnitOfTemperature
@@ -42,6 +46,8 @@ async def async_setup_entry(
 
 
 class ThaNumberBase(NumberEntity):
+    """Base class for Tekmar number entities."""
+
     should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
@@ -72,14 +78,12 @@ class ThaNumberBase(NumberEntity):
 
 
 class ThaHumiditySetMax(ThaNumberBase):
+    """Maximum humidity setpoint for a Tekmar thermostat."""
+
     native_unit_of_measurement = PERCENTAGE
     icon = "mdi:water-percent"
     native_min_value = 20
     native_max_value = 80
-
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
 
     @property
     def unique_id(self) -> str:
@@ -120,14 +124,12 @@ class ThaHumiditySetMax(ThaNumberBase):
 
 
 class ThaHumiditySetMin(ThaNumberBase):
+    """Minimum humidity setpoint for a Tekmar thermostat."""
+
     native_unit_of_measurement = PERCENTAGE
     icon = "mdi:water-percent"
     native_min_value = 20
     native_max_value = 80
-
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
 
     @property
     def unique_id(self) -> str:
@@ -168,13 +170,11 @@ class ThaHumiditySetMin(ThaNumberBase):
 
 
 class ThaHeatSetpoint(ThaNumberBase):
+    """Heating setpoint for a Tekmar thermostat."""
+
     device_class = NumberDeviceClass.TEMPERATURE
     native_unit_of_measurement = UnitOfTemperature.CELSIUS
     icon = "mdi:thermostat"
-
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
 
     @property
     def unique_id(self) -> str:
@@ -226,9 +226,7 @@ class ThaHeatSetpoint(ThaNumberBase):
 
 
 class ThaHeatSetpointDay(ThaHeatSetpoint):
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
+    """Heating setpoint for a Tekmar thermostat (day setback)."""
 
     @property
     def unique_id(self) -> str:
@@ -265,9 +263,7 @@ class ThaHeatSetpointDay(ThaHeatSetpoint):
 
 
 class ThaHeatSetpointNight(ThaHeatSetpoint):
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
+    """Heating setpoint for a Tekmar thermostat (night setback)."""
 
     @property
     def unique_id(self) -> str:
@@ -304,9 +300,7 @@ class ThaHeatSetpointNight(ThaHeatSetpoint):
 
 
 class ThaHeatSetpointAway(ThaHeatSetpoint):
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
+    """Heating setpoint for a Tekmar thermostat (away setback)."""
 
     @property
     def unique_id(self) -> str:
@@ -343,13 +337,11 @@ class ThaHeatSetpointAway(ThaHeatSetpoint):
 
 
 class ThaCoolSetpoint(ThaNumberBase):
+    """Cooling setpoint for a Tekmar thermostat."""
+
     device_class = NumberDeviceClass.TEMPERATURE
     native_unit_of_measurement = UnitOfTemperature.CELSIUS
     icon = "mdi:thermostat"
-
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
 
     @property
     def unique_id(self) -> str:
@@ -401,9 +393,7 @@ class ThaCoolSetpoint(ThaNumberBase):
 
 
 class ThaCoolSetpointDay(ThaCoolSetpoint):
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
+    """Cooling setpoint for a Tekmar thermostat (day setback)."""
 
     @property
     def unique_id(self) -> str:
@@ -440,9 +430,7 @@ class ThaCoolSetpointDay(ThaCoolSetpoint):
 
 
 class ThaCoolSetpointNight(ThaCoolSetpoint):
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
+    """Cooling setpoint for a Tekmar thermostat (night setback)."""
 
     @property
     def unique_id(self) -> str:
@@ -479,9 +467,7 @@ class ThaCoolSetpointNight(ThaCoolSetpoint):
 
 
 class ThaCoolSetpointAway(ThaCoolSetpoint):
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
+    """Cooling setpoint for a Tekmar thermostat (away setback)."""
 
     @property
     def unique_id(self) -> str:

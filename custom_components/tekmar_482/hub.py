@@ -63,6 +63,7 @@ class TekmarHub:
         self._tha_inventory = {}
         self.tha_gateway = []
         self.tha_devices = []
+        self.tha_ignore_addr = []
         self.online = False
 
         self._tha_fw_ver = None
@@ -235,13 +236,12 @@ class TekmarHub:
                         except KeyError:
                             _LOGGER.warning(
                                 (
-                                    f"Unknown device type {b['type']}. "
-                                    "Try power cycling your Gateway 482."
+                                    f"Unknown device type {b['type']} at address "
+                                    f"{b['address']}. This address will be ignored."
                                 )
                             )
-                            raise ConfigEntryNotReady(
-                                f"Unknown device type {b['type']}."
-                            )
+
+                            self.tha_ignore_addr.append(b["address"])
 
                     elif tha_method in ["DeviceAttributes"]:
                         _LOGGER.debug(
@@ -274,6 +274,10 @@ class TekmarHub:
             ]
 
             for address in self._tha_inventory:
+                if address in self.tha_ignore_addr:
+                    _LOGGER.debug(f"Ignored address {address} while creating devices.")
+                    continue
+
                 if (
                     DEVICE_TYPES[self._tha_inventory[address]["type"]]
                     == ThaType.THERMOSTAT
@@ -346,6 +350,10 @@ class TekmarHub:
                     h = p.header
                     b = p.body
                     tha_method = name_from_methodID[h["methodID"]]
+
+                    if b["address"] in self.tha_ignore_addr:
+                        _LOGGER.debug(f"Ignored {p} from address {b['address']}")
+                        continue
 
                     if tha_method in ["ReportingState"]:
                         for gateway in self.tha_gateway:

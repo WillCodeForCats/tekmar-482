@@ -1,3 +1,7 @@
+"""Component to interface with switches that can be controlled remotely."""
+
+from __future__ import annotations
+
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -43,6 +47,8 @@ async def async_setup_entry(
 
 
 class ThaSwitchBase(SwitchEntity):
+    """Base class for Tekmar switch entities."""
+
     should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
@@ -74,10 +80,11 @@ class ThaSwitchBase(SwitchEntity):
 
 
 class ThaSetpointGroup(ThaSwitchBase):
+    """A switch to enable or disable a gateway setpoint group."""
+
     icon = "mdi:select-group"
 
     def __init__(self, tekmar_tha, config_entry, group: int):
-        """Initialize the sensor."""
         super().__init__(tekmar_tha, config_entry)
 
         self._setpoint_group = group
@@ -128,12 +135,10 @@ class ThaSetpointGroup(ThaSwitchBase):
 
 
 class ConfigEmergencyHeat(ThaSwitchBase):
+    """Config option for thermostat emergency mode (can't be read via network)."""
+
     entity_category = EntityCategory.CONFIG
     icon = "mdi:hvac"
-
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
 
     @property
     def unique_id(self) -> str:
@@ -168,12 +173,10 @@ class ConfigEmergencyHeat(ThaSwitchBase):
 
 
 class ConfigVentMode(ThaSwitchBase):
+    """Config option for thermostat vent mode (can't be read via network)."""
+
     entity_category = EntityCategory.CONFIG
     icon = "mdi:fan-plus"
-
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
 
     @property
     def unique_id(self) -> str:
