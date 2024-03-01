@@ -236,7 +236,7 @@ class TekmarHub:
                         except KeyError:
                             _LOGGER.warning(
                                 (
-                                    f"Unknown device type {b['type']} at address"
+                                    f"Unknown device type {b['type']} at address "
                                     f"{b['address']}. This address will be ignored."
                                 )
                             )
