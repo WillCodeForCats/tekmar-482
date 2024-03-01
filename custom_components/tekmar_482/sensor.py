@@ -1,3 +1,7 @@
+"""Component to interface with various sensors that can be monitored."""
+
+from __future__ import annotations
+
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -62,6 +66,8 @@ async def async_setup_entry(
 
 
 class ThaSensorBase(SensorEntity):
+    """Base class for Tekmar sensor entities."""
+
     suggested_display_precision = None
     should_poll = False
 
@@ -94,14 +100,12 @@ class ThaSensorBase(SensorEntity):
 
 
 class OutdoorTemprature(ThaSensorBase):
+    """Outdoor temperature sensor."""
+
     device_class = SensorDeviceClass.TEMPERATURE
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = UnitOfTemperature.CELSIUS
     suggested_display_precision = 1
-
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
 
     @property
     def unique_id(self) -> str:
@@ -135,11 +139,10 @@ class OutdoorTemprature(ThaSensorBase):
 
 
 class NetworkError(ThaSensorBase):
+    """TN4 network error sensor."""
+
     entity_category = EntityCategory.DIAGNOSTIC
     icon = "mdi:alert-outline"
-
-    def __init__(self, tekmar_tha, config_entry):
-        super().__init__(tekmar_tha, config_entry)
 
     @property
     def unique_id(self) -> str:
@@ -207,14 +210,12 @@ class NetworkError(ThaSensorBase):
 
 
 class CurrentTemperature(ThaSensorBase):
+    """Current temperature sensor for a Tekmar thermostat."""
+
     device_class = SensorDeviceClass.TEMPERATURE
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = UnitOfTemperature.CELSIUS
     suggested_display_precision = 1
-
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
 
     @property
     def unique_id(self) -> str:
@@ -253,14 +254,12 @@ class CurrentTemperature(ThaSensorBase):
 
 
 class CurrentFloorTemperature(ThaSensorBase):
+    """Current floor temperature sensor for a Tekmar thermostat."""
+
     device_class = SensorDeviceClass.TEMPERATURE
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = UnitOfTemperature.CELSIUS
     suggested_display_precision = 1
-
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
 
     @property
     def unique_id(self) -> str:
@@ -307,14 +306,12 @@ class CurrentFloorTemperature(ThaSensorBase):
 
 
 class RelativeHumidity(ThaSensorBase):
+    """Current humidity sensor for a Tekmar thermostat."""
+
     device_class = SensorDeviceClass.HUMIDITY
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = PERCENTAGE
     suggested_display_precision = 0
-
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
 
     @property
     def unique_id(self) -> str:
@@ -347,10 +344,9 @@ class RelativeHumidity(ThaSensorBase):
 
 
 class SetbackState(ThaSensorBase):
-    icon = "mdi:format-list-bulleted"
+    """Current setback state for a Tekmar thermostat."""
 
-    def __init__(self, tekmar_tha, config_entry):
-        super().__init__(tekmar_tha, config_entry)
+    icon = "mdi:format-list-bulleted"
 
     @property
     def unique_id(self) -> str:
@@ -400,14 +396,12 @@ class SetbackState(ThaSensorBase):
 
 
 class SetpointTarget(ThaSensorBase):
+    """Current setpoint sensor for a Tekmar setpoint control."""
+
     device_class = SensorDeviceClass.TEMPERATURE
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = UnitOfTemperature.CELSIUS
     suggested_display_precision = 1
-
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
 
     @property
     def unique_id(self) -> str:
@@ -448,11 +442,9 @@ class SetpointTarget(ThaSensorBase):
 
 
 class SetpointDemand(ThaSensorBase):
-    icon = "mdi:format-list-bulleted"
+    """Current setpoint demand for a Tekmar setpoint control."""
 
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
+    icon = "mdi:format-list-bulleted"
 
     @property
     def unique_id(self) -> str:

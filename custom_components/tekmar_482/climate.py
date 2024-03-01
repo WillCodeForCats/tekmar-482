@@ -1,3 +1,7 @@
+"""Provides functionality to interact with climate devices."""
+
+from __future__ import annotations
+
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     ATTR_TARGET_TEMP_HIGH,
@@ -37,6 +41,8 @@ async def async_setup_entry(
 
 
 class ThaClimateBase(ClimateEntity):
+    """Base class for Tekmar climate entities."""
+
     should_poll = False
     _enable_turn_on_off_backwards_compatibility = False
 
@@ -68,6 +74,8 @@ class ThaClimateBase(ClimateEntity):
 
 
 class ThaClimateThermostat(ThaClimateBase):
+    """A Tekmar thermostat entity."""
+
     temperature_unit = UnitOfTemperature.CELSIUS
     max_humidity = 80
     min_humidity = 20
