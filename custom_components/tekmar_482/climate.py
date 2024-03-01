@@ -242,10 +242,7 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def is_aux_heat(self):
-        if self._tekmar_tha.mode_setting == 0x06:
-            return True
-        else:
-            return False
+        return self._tekmar_tha.mode_setting == 0x06
 
     @property
     def target_humidity(self):

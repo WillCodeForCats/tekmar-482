@@ -80,10 +80,7 @@ class ReportingState(ThaBinarySensorBase):
 
     @property
     def is_on(self):
-        if self._tekmar_tha.reporting_state == 0x01:
-            return True
-        else:
-            return False
+        return self._tekmar_tha.reporting_state == ThaValue.ON
 
 
 class SetbackEnable(ThaBinarySensorBase):
@@ -112,7 +109,4 @@ class SetbackEnable(ThaBinarySensorBase):
 
     @property
     def is_on(self):
-        if self._tekmar_tha.setback_enable == 0x01:
-            return True
-        else:
-            return False
+        return self._tekmar_tha.setback_enable == ThaValue.ON
