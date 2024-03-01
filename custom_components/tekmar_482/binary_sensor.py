@@ -108,8 +108,7 @@ class SetbackEnable(ThaBinarySensorBase):
         ):
             return False
 
-        else:
-            return True
+        return super().available
 
     @property
     def is_on(self):
