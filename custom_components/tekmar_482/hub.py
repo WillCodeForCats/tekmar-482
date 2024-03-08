@@ -63,6 +63,7 @@ class TekmarHub:
         self._tha_inventory = {}
         self.tha_gateway = []
         self.tha_devices = []
+        self.tha_ignore_addr = []
         self.online = False
 
         self._tha_fw_ver = None
@@ -218,30 +219,29 @@ class TekmarHub:
                     elif tha_method in ["DeviceType"]:
                         try:
                             self._tha_inventory[b["address"]]["type"] = b["type"]
-                            self._tha_inventory[b["address"]][
-                                "entity"
-                            ] = "{3} {0} {1} {2}".format(
-                                DEVICE_TYPES[
-                                    self._tha_inventory[b["address"]]["type"]
-                                ].capitalize(),
-                                DEVICE_FEATURES[
-                                    self._tha_inventory[b["address"]]["type"]
-                                ]["model"],
-                                b["address"],
-                                self._name.capitalize(),
+                            self._tha_inventory[b["address"]]["entity"] = (
+                                "{3} {0} {1} {2}".format(
+                                    DEVICE_TYPES[
+                                        self._tha_inventory[b["address"]]["type"]
+                                    ].capitalize(),
+                                    DEVICE_FEATURES[
+                                        self._tha_inventory[b["address"]]["type"]
+                                    ]["model"],
+                                    b["address"],
+                                    self._name.capitalize(),
+                                )
                             )
                             _LOGGER.debug(f"Address {b['address']} type {b['type']}")
 
                         except KeyError:
                             _LOGGER.warning(
                                 (
-                                    f"Unknown device type {b['type']}. "
-                                    "Try power cycling your Gateway 482."
+                                    f"Unknown device type {b['type']} at address "
+                                    f"{b['address']}. This address will be ignored."
                                 )
                             )
-                            raise ConfigEntryNotReady(
-                                f"Unknown device type {b['type']}."
-                            )
+
+                            self.tha_ignore_addr.append(b["address"])
 
                     elif tha_method in ["DeviceAttributes"]:
                         _LOGGER.debug(
@@ -274,6 +274,10 @@ class TekmarHub:
             ]
 
             for address in self._tha_inventory:
+                if address in self.tha_ignore_addr:
+                    _LOGGER.debug(f"Ignored address {address} while creating devices.")
+                    continue
+
                 if (
                     DEVICE_TYPES[self._tha_inventory[address]["type"]]
                     == ThaType.THERMOSTAT
@@ -346,6 +350,10 @@ class TekmarHub:
                     h = p.header
                     b = p.body
                     tha_method = name_from_methodID[h["methodID"]]
+
+                    if b["address"] in self.tha_ignore_addr:
+                        _LOGGER.debug(f"Ignored {p} from address {b['address']}")
+                        continue
 
                     if tha_method in ["ReportingState"]:
                         for gateway in self.tha_gateway:
@@ -421,7 +429,7 @@ class TekmarHub:
                                     )
                                 )
                         except KeyError as e:
-                            _LOGGER.error(
+                            _LOGGER.warning(
                                 (
                                     f"Device address {e} not in inventory. "
                                     "Reloading integration..."
@@ -450,7 +458,7 @@ class TekmarHub:
                                 if device.device_id == b["address"]:
                                     await device.set_setback_state(p.body["setback"])
                         except KeyError as e:
-                            _LOGGER.error(
+                            _LOGGER.warning(
                                 (
                                     f"Device address {e} not in inventory. "
                                     "Reloading integration..."
@@ -496,7 +504,7 @@ class TekmarHub:
                                 )
 
                     elif tha_method in ["TakingAddress"]:
-                        _LOGGER.error(
+                        _LOGGER.warning(
                             (
                                 f"Device at address {p.body['old_address']} moved to "
                                 f"{p.body['new_address']}. Reloading integration..."
@@ -505,13 +513,11 @@ class TekmarHub:
                         await self._hass.config_entries.async_reload(self._entry_id)
 
                     elif tha_method in ["DeviceAttributes"]:
-                        _LOGGER.error(
-                            (
-                                f"Device attributes for {b['address']} changed. "
-                                "Reloading integration..."
-                            )
+                        _LOGGER.debug(
+                            f"Ignoring attributes from {b['address']} in run: "
+                            f"received {int(b['attributes'])} setup with "
+                            f"{self._tha_inventory[b['address']]['attributes'].attrs}"
                         )
-                        await self._hass.config_entries.async_reload(self._entry_id)
 
                     elif tha_method in ["NullMethod"]:
                         pass

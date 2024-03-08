@@ -1,6 +1,10 @@
+"""Component to allow numeric input for platforms."""
+
+from __future__ import annotations
+
 from homeassistant.components.number import NumberDeviceClass, NumberEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import PERCENTAGE, TEMP_CELSIUS
+from homeassistant.const import PERCENTAGE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -39,6 +43,8 @@ async def async_setup_entry(
 
 
 class ThaNumberBase(NumberEntity):
+    """Base class for Tekmar number entities."""
+
     should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
@@ -69,14 +75,12 @@ class ThaNumberBase(NumberEntity):
 
 
 class ThaHumiditySetMax(ThaNumberBase):
+    """Maximum humidity setpoint for a Tekmar thermostat."""
+
     native_unit_of_measurement = PERCENTAGE
     icon = "mdi:water-percent"
     native_min_value = 20
     native_max_value = 80
-
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
 
     @property
     def unique_id(self) -> str:
@@ -104,8 +108,8 @@ class ThaHumiditySetMax(ThaNumberBase):
     def available(self) -> bool:
         if self._tekmar_tha.humidity_setpoint_max == ThaValue.NA_8:
             return False
-        else:
-            return True
+
+        return super().available
 
     @property
     def native_value(self):
@@ -117,14 +121,12 @@ class ThaHumiditySetMax(ThaNumberBase):
 
 
 class ThaHumiditySetMin(ThaNumberBase):
+    """Minimum humidity setpoint for a Tekmar thermostat."""
+
     native_unit_of_measurement = PERCENTAGE
     icon = "mdi:water-percent"
     native_min_value = 20
     native_max_value = 80
-
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
 
     @property
     def unique_id(self) -> str:
@@ -152,8 +154,8 @@ class ThaHumiditySetMin(ThaNumberBase):
     def available(self) -> bool:
         if self._tekmar_tha.humidity_setpoint_min == ThaValue.NA_8:
             return False
-        else:
-            return True
+
+        return super().available
 
     @property
     def native_value(self):
@@ -165,13 +167,11 @@ class ThaHumiditySetMin(ThaNumberBase):
 
 
 class ThaHeatSetpoint(ThaNumberBase):
-    device_class = NumberDeviceClass.TEMPERATURE
-    native_unit_of_measurement = TEMP_CELSIUS
-    icon = "mdi:thermostat"
+    """Heating setpoint for a Tekmar thermostat."""
 
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
+    device_class = NumberDeviceClass.TEMPERATURE
+    native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    icon = "mdi:thermostat"
 
     @property
     def unique_id(self) -> str:
@@ -188,8 +188,8 @@ class ThaHeatSetpoint(ThaNumberBase):
     def entity_registry_enabled_default(self) -> bool:
         if self._tekmar_tha.setback_enable is False:
             return True
-        else:
-            return False
+
+        return super().available
 
     @property
     def available(self) -> bool:
@@ -223,9 +223,7 @@ class ThaHeatSetpoint(ThaNumberBase):
 
 
 class ThaHeatSetpointDay(ThaHeatSetpoint):
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
+    """Heating setpoint for a Tekmar thermostat (day setback)."""
 
     @property
     def unique_id(self) -> str:
@@ -240,14 +238,13 @@ class ThaHeatSetpointDay(ThaHeatSetpoint):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.heat_setpoint_day == ThaValue.NA_8:
+        if (
+            self._tekmar_tha.heat_setpoint_day == ThaValue.NA_8
+            or self._tekmar_tha.tha_device["attributes"].Zone_Heating == 0
+        ):
             return False
 
-        elif self._tekmar_tha.tha_device["attributes"].Zone_Heating == 0:
-            return False
-
-        else:
-            return True
+        return super().available
 
     @property
     def native_value(self):
@@ -262,9 +259,7 @@ class ThaHeatSetpointDay(ThaHeatSetpoint):
 
 
 class ThaHeatSetpointNight(ThaHeatSetpoint):
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
+    """Heating setpoint for a Tekmar thermostat (night setback)."""
 
     @property
     def unique_id(self) -> str:
@@ -279,14 +274,13 @@ class ThaHeatSetpointNight(ThaHeatSetpoint):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.heat_setpoint_day == ThaValue.NA_8:
+        if (
+            self._tekmar_tha.heat_setpoint_day == ThaValue.NA_8
+            or self._tekmar_tha.tha_device["attributes"].Zone_Heating == 0
+        ):
             return False
 
-        elif self._tekmar_tha.tha_device["attributes"].Zone_Heating == 0:
-            return False
-
-        else:
-            return True
+        return super().available
 
     @property
     def native_value(self):
@@ -301,9 +295,7 @@ class ThaHeatSetpointNight(ThaHeatSetpoint):
 
 
 class ThaHeatSetpointAway(ThaHeatSetpoint):
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
+    """Heating setpoint for a Tekmar thermostat (away setback)."""
 
     @property
     def unique_id(self) -> str:
@@ -318,14 +310,13 @@ class ThaHeatSetpointAway(ThaHeatSetpoint):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.heat_setpoint_day == ThaValue.NA_8:
+        if (
+            self._tekmar_tha.heat_setpoint_day == ThaValue.NA_8
+            or self._tekmar_tha.tha_device["attributes"].Zone_Heating == 0
+        ):
             return False
 
-        elif self._tekmar_tha.tha_device["attributes"].Zone_Heating == 0:
-            return False
-
-        else:
-            return True
+        return super().available
 
     @property
     def native_value(self):
@@ -340,13 +331,11 @@ class ThaHeatSetpointAway(ThaHeatSetpoint):
 
 
 class ThaCoolSetpoint(ThaNumberBase):
-    device_class = NumberDeviceClass.TEMPERATURE
-    native_unit_of_measurement = TEMP_CELSIUS
-    icon = "mdi:thermostat"
+    """Cooling setpoint for a Tekmar thermostat."""
 
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
+    device_class = NumberDeviceClass.TEMPERATURE
+    native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    icon = "mdi:thermostat"
 
     @property
     def unique_id(self) -> str:
@@ -368,14 +357,13 @@ class ThaCoolSetpoint(ThaNumberBase):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.cool_setpoint == ThaValue.NA_8:
+        if (
+            self._tekmar_tha.cool_setpoint == ThaValue.NA_8
+            or self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0
+        ):
             return False
 
-        elif self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0:
-            return False
-
-        else:
-            return True
+        return super().available
 
     @property
     def native_value(self):
@@ -398,9 +386,7 @@ class ThaCoolSetpoint(ThaNumberBase):
 
 
 class ThaCoolSetpointDay(ThaCoolSetpoint):
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
+    """Cooling setpoint for a Tekmar thermostat (day setback)."""
 
     @property
     def unique_id(self) -> str:
@@ -415,14 +401,13 @@ class ThaCoolSetpointDay(ThaCoolSetpoint):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.cool_setpoint_day == ThaValue.NA_8:
+        if (
+            self._tekmar_tha.cool_setpoint_day == ThaValue.NA_8
+            or self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0
+        ):
             return False
 
-        elif self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0:
-            return False
-
-        else:
-            return True
+        return super().available
 
     @property
     def native_value(self):
@@ -437,9 +422,7 @@ class ThaCoolSetpointDay(ThaCoolSetpoint):
 
 
 class ThaCoolSetpointNight(ThaCoolSetpoint):
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
+    """Cooling setpoint for a Tekmar thermostat (night setback)."""
 
     @property
     def unique_id(self) -> str:
@@ -454,14 +437,13 @@ class ThaCoolSetpointNight(ThaCoolSetpoint):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.cool_setpoint_day == ThaValue.NA_8:
+        if (
+            self._tekmar_tha.cool_setpoint_day == ThaValue.NA_8
+            or self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0
+        ):
             return False
 
-        elif self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0:
-            return False
-
-        else:
-            return True
+        return super().available
 
     @property
     def native_value(self):
@@ -476,9 +458,7 @@ class ThaCoolSetpointNight(ThaCoolSetpoint):
 
 
 class ThaCoolSetpointAway(ThaCoolSetpoint):
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
+    """Cooling setpoint for a Tekmar thermostat (away setback)."""
 
     @property
     def unique_id(self) -> str:
@@ -493,14 +473,13 @@ class ThaCoolSetpointAway(ThaCoolSetpoint):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.cool_setpoint_day == ThaValue.NA_8:
+        if (
+            self._tekmar_tha.cool_setpoint_day == ThaValue.NA_8
+            or self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0
+        ):
             return False
 
-        elif self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0:
-            return False
-
-        else:
-            return True
+        return super().available
 
     @property
     def native_value(self):

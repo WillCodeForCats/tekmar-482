@@ -45,7 +45,7 @@ class TrpcSocket:
                 self._sock_writer.close()
                 await self._sock_writer.wait_closed()
 
-            except:  # noqa: E722
+            except Exception:
                 pass
 
             self._sock_writer = None

@@ -1,3 +1,7 @@
+"""Provides functionality to interact with climate devices."""
+
+from __future__ import annotations
+
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     ATTR_TARGET_TEMP_HIGH,
@@ -11,7 +15,7 @@ from homeassistant.components.climate.const import (
 from homeassistant.components.climate.const import ClimateEntityFeature as Feature
 from homeassistant.components.climate.const import HVACAction, HVACMode
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import ATTR_TEMPERATURE, TEMP_CELSIUS
+from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -37,7 +41,10 @@ async def async_setup_entry(
 
 
 class ThaClimateBase(ClimateEntity):
+    """Base class for Tekmar climate entities."""
+
     should_poll = False
+    _enable_turn_on_off_backwards_compatibility = False
 
     def __init__(self, tekmar_tha, config_entry):
         self._tekmar_tha = tekmar_tha
@@ -67,7 +74,9 @@ class ThaClimateBase(ClimateEntity):
 
 
 class ThaClimateThermostat(ThaClimateBase):
-    temperature_unit = TEMP_CELSIUS
+    """A Tekmar thermostat entity."""
+
+    temperature_unit = UnitOfTemperature.CELSIUS
     max_humidity = 80
     min_humidity = 20
 
@@ -117,7 +126,7 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def supported_features(self):
-        supported_features = 0
+        supported_features = Feature.TURN_OFF
 
         if (
             self._tekmar_tha.tha_device["attributes"].Zone_Heating == 1
@@ -395,6 +404,9 @@ class ThaClimateThermostat(ThaClimateBase):
             raise NotImplementedError()
 
         await self._tekmar_tha.set_mode_setting_txqueue(value)
+
+    async def async_turn_off(self):
+        await self.async_set_hvac_mode(self, HVACMode.OFF)
 
     async def async_set_fan_mode(self, fan_mode):
         if fan_mode == FAN_ON:

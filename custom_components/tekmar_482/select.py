@@ -1,3 +1,7 @@
+"""Component to allow selecting an option from a list as platforms."""
+
+from __future__ import annotations
+
 from homeassistant.components.select import SelectEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE
@@ -26,6 +30,8 @@ async def async_setup_entry(
 
 
 class ThaSelectBase(SelectEntity):
+    """Base class for Tekmar select entities."""
+
     should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
@@ -57,12 +63,10 @@ class ThaSelectBase(SelectEntity):
 
 
 class ThaFanSelect(ThaSelectBase):
+    """Fan cycle selector for a Tekmar thermostat."""
+
     unit_of_measurement = PERCENTAGE
     icon = "mdi:fan"
-
-    def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
-        super().__init__(tekmar_tha, config_entry)
 
     @property
     def unique_id(self) -> str:
@@ -77,14 +81,13 @@ class ThaFanSelect(ThaSelectBase):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.fan_percent == ThaValue.NA_8:
+        if (
+            self._tekmar_tha.fan_percent == ThaValue.NA_8
+            or self._tekmar_tha.tha_device["attributes"].Fan_Percent == 0
+        ):
             return False
 
-        elif self._tekmar_tha.tha_device["attributes"].Fan_Percent == 0:
-            return False
-
-        else:
-            return True
+        return super().available
 
     @property
     def options(self):

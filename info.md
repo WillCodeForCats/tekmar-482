@@ -18,3 +18,5 @@ The Tekmar Packet Server Add-On is required for this integration to communicate 
 
 ## Compatible Equipment
 [WillCodeForCats/tekmar-482/wiki/Compatible-Equipment](https://github.com/WillCodeForCats/tekmar-482/wiki/Compatible-Equipment)
+
+Requires Home Assistant 2024.2.0 or newer.
