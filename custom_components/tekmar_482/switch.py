@@ -132,7 +132,13 @@ class ThaSetpointGroup(ThaSwitchBase):
 
 
 class EmergencyHeat(ThaSwitchBase):
-    """Turn emergency heat on or off"""
+    """Turn emergency/aux heat on or off.
+
+    This is a distinct hvac_mode on Tekmar thermostats, but climate entity doesn't have
+    a matching HVACMode. Instead the climate entity will show 'heat' mode when
+    emergency/aux is active since HA can't show the true mode of the thermostat.
+    This switch will show if the thermostat is in emergency/aux mode (and set it).
+    """
 
     entity_category = EntityCategory.CONFIG
     icon = "mdi:hvac"
