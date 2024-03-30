@@ -28,19 +28,24 @@ async def async_get_config_entry_diagnostics(
 
     for gateway in hub.tha_gateway:
         gateway: dict[str, Any] = {
-            "fw_ver": gateway.tha_fw_ver,
-            "pr_ver": gateway.tha_pr_ver,
-            "reporting_state": gateway.tha_reporting_state,
-            "setback_enable": gateway.tha_setback_enable,
+            "gateway": {
+                "fw_ver": gateway.hub.tha_fw_ver,
+                "pr_ver": gateway.hub.tha_pr_ver,
+                "reporting_state": gateway.reporting_state,
+                "setback_enable": gateway.setback_enable,
+            }
         }
         data.update(async_redact_data(gateway, REDACT_GATEWAY))
 
     for device in hub.tha_devices:
         device: dict[str, Any] = {
-            "type": device.tha_device_type,
-            "firmware": device.firmware_version,
-            "model": device.model,
-            "full_name": device.tha_full_device_name,
+            f"device_{device.device_id}": {
+                "id": device.device_id,
+                "type": device.tha_device_type,
+                "firmware": device.firmware_version,
+                "model": device.model,
+                "full_name": device.tha_full_device_name,
+            }
         }
         data.update(async_redact_data(device, REDACT_DEVICE))
 
