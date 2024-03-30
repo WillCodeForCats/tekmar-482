@@ -117,25 +117,21 @@ class OutdoorTemprature(ThaSensorBase):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.outdoor_temprature == ThaValue.NA_16:
+        if (
+            self._tekmar_tha.outdoor_temprature == ThaValue.NA_16
+            or self._tekmar_tha.outdoor_temprature is None
+        ):
             return False
 
         return super().available
 
     @property
     def native_value(self):
-        if (
-            self._tekmar_tha.outdoor_temprature == ThaValue.NA_16
-            or self._tekmar_tha.outdoor_temprature is None
-        ):
+        try:
+            return degHtoC(self._tekmar_tha.outdoor_temprature)  # degH need degC
+
+        except TypeError:
             return None
-
-        else:
-            try:
-                return degHtoC(self._tekmar_tha.outdoor_temprature)  # degH need degC
-
-            except TypeError:
-                return None
 
 
 class NetworkError(ThaSensorBase):
@@ -232,7 +228,8 @@ class CurrentTemperature(ThaSensorBase):
     def available(self) -> bool:
         if (
             self._tekmar_tha.current_temperature == ThaValue.NA_16
-            or self._tekmar_tha.current_temperature == 0x00
+            or self._tekmar_tha.current_temperature == ThaValue.OFF
+            or self._tekmar_tha.current_temperature is None
         ):
             return False
 
@@ -240,18 +237,11 @@ class CurrentTemperature(ThaSensorBase):
 
     @property
     def native_value(self):
-        if (
-            self._tekmar_tha.current_temperature == ThaValue.NA_16
-            or self._tekmar_tha.current_temperature is None
-        ):
+        try:
+            return degHtoC(self._tekmar_tha.current_temperature)
+
+        except TypeError:
             return None
-
-        else:
-            try:
-                return degHtoC(self._tekmar_tha.current_temperature)
-
-            except TypeError:
-                return None
 
 
 class CurrentFloorTemperature(ThaSensorBase):
@@ -284,7 +274,8 @@ class CurrentFloorTemperature(ThaSensorBase):
     def available(self) -> bool:
         if (
             self._tekmar_tha.current_floor_temperature == ThaValue.NA_16
-            or self._tekmar_tha.current_floor_temperature == 0x00
+            or self._tekmar_tha.current_floor_temperature == ThaValue.OFF
+            or self._tekmar_tha.current_floor_temperature is None
         ):
             return False
 
@@ -292,18 +283,11 @@ class CurrentFloorTemperature(ThaSensorBase):
 
     @property
     def native_value(self):
-        if (
-            self._tekmar_tha.current_floor_temperature == ThaValue.NA_16
-            or self._tekmar_tha.current_floor_temperature is None
-        ):
+        try:
+            return degHtoC(self._tekmar_tha.current_floor_temperature)
+
+        except TypeError:
             return None
-
-        else:
-            try:
-                return degHtoC(self._tekmar_tha.current_floor_temperature)
-
-            except TypeError:
-                return None
 
 
 class RelativeHumidity(ThaSensorBase):
@@ -327,21 +311,17 @@ class RelativeHumidity(ThaSensorBase):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.relative_humidity == ThaValue.NA_8:
+        if (
+            self._tekmar_tha.relative_humidity == ThaValue.NA_8
+            or self._tekmar_tha.relative_humidity is None
+        ):
             return False
 
         return super().available
 
     @property
     def native_value(self):
-        if (
-            self._tekmar_tha.relative_humidity == ThaValue.NA_8
-            or self._tekmar_tha.relative_humidity is None
-        ):
-            return None
-
-        else:
-            return self._tekmar_tha.relative_humidity
+        return self._tekmar_tha.relative_humidity
 
 
 class SetbackState(ThaSensorBase):
@@ -379,11 +359,9 @@ class SetbackState(ThaSensorBase):
 
     @property
     def native_value(self):
-        if self._tekmar_tha.setback_state == ThaValue.NA_8:
-            return None
-
         try:
             return SETBACK_STATE[self._tekmar_tha.setback_state]
+
         except KeyError:
             return None
 
@@ -418,7 +396,8 @@ class SetpointTarget(ThaSensorBase):
     def available(self) -> bool:
         if (
             self._tekmar_tha.setpoint_target == ThaValue.NA_16
-            or self._tekmar_tha.setpoint_target == 0x00
+            or self._tekmar_tha.setpoint_target == ThaValue.OFF
+            or self._tekmar_tha.setpoint_target is None
         ):
             return False
 
@@ -426,19 +405,11 @@ class SetpointTarget(ThaSensorBase):
 
     @property
     def native_value(self):
-        if (
-            self._tekmar_tha.setpoint_target == ThaValue.NA_16
-            or self._tekmar_tha.setpoint_target is None
-            or self._tekmar_tha.setpoint_target == 0x00
-        ):
+        try:
+            return degHtoC(self._tekmar_tha.setpoint_target)
+
+        except TypeError:
             return None
-
-        else:
-            try:
-                return degHtoC(self._tekmar_tha.setpoint_target)
-
-            except TypeError:
-                return None
 
 
 class SetpointDemand(ThaSensorBase):
