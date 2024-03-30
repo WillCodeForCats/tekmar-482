@@ -159,13 +159,6 @@ class EmergencyHeat(ThaSwitchBase):
         return f"{self._tekmar_tha.tha_full_device_name} Emergency Heat"
 
     @property
-    def available(self) -> bool:
-        return (
-            super().available
-            and DEVICE_FEATURES[self._tekmar_tha.tha_device["type"]]["emer"]
-        )
-
-    @property
     def is_on(self):
         return self._tekmar_tha.mode_setting == 0x06
 
