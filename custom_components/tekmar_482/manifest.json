@@ -10,5 +10,5 @@
   "issue_tracker": "https://github.com/WillCodeForCats/tekmar-482/issues",
   "loggers": ["custom_components.tekmar_482"],
   "requirements": [],
-  "version": "0.9.18"
+  "version": "0.9.19"
 }
