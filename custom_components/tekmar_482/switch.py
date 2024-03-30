@@ -38,7 +38,7 @@ async def async_setup_entry(
     for device in hub.tha_devices:
         if DEVICE_TYPES[device.tha_device["type"]] == ThaType.THERMOSTAT:
             if DEVICE_FEATURES[device.tha_device["type"]]["emer"]:
-                entities.append(ConfigEmergencyHeat(device, config_entry))
+                entities.append(EmergencyHeat(device, config_entry))
             if DEVICE_FEATURES[device.tha_device["type"]]["fan"]:
                 entities.append(ConfigVentMode(device, config_entry))
 
@@ -52,7 +52,6 @@ class ThaSwitchBase(SwitchEntity):
     should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
-        """Initialize the sensor."""
         self._tekmar_tha = tekmar_tha
         self._config_entry = config_entry
 
@@ -86,7 +85,6 @@ class ThaSetpointGroup(ThaSwitchBase):
 
     def __init__(self, tekmar_tha, config_entry, group: int):
         super().__init__(tekmar_tha, config_entry)
-
         self._setpoint_group = group
 
     @property
@@ -133,17 +131,21 @@ class ThaSetpointGroup(ThaSwitchBase):
         await self._tekmar_tha.set_setpoint_group_txqueue(self._setpoint_group, 0x00)
 
 
-class ConfigEmergencyHeat(ThaSwitchBase):
-    """Config option for thermostat emergency mode (can't be read via network)."""
+class EmergencyHeat(ThaSwitchBase):
+    """Turn emergency heat on or off"""
 
     entity_category = EntityCategory.CONFIG
     icon = "mdi:hvac"
+
+    def __init__(self, tekmar_tha, config_entry):
+        super().__init__(tekmar_tha, config_entry)
+        self._last_mode_setting = 0x00
 
     @property
     def unique_id(self) -> str:
         return (
             f"{self.config_entry_id}-{self._tekmar_tha.model}-"
-            f"{self._tekmar_tha.device_id}-config-emer-heat"
+            f"{self._tekmar_tha.device_id}-set-emer-heat"
         )
 
     @property
@@ -152,23 +154,21 @@ class ConfigEmergencyHeat(ThaSwitchBase):
 
     @property
     def available(self) -> bool:
-        if DEVICE_FEATURES[self._tekmar_tha.tha_device["type"]]["emer"]:
-            return True
-
-        return super().available
+        return (
+            super().available
+            and DEVICE_FEATURES[self._tekmar_tha.tha_device["type"]]["emer"]
+        )
 
     @property
     def is_on(self):
-        if self._tekmar_tha.config_emergency_heat is True:
-            return True
-        else:
-            return False
+        return self._tekmar_tha.mode_setting == 0x06
 
     async def async_turn_on(self, **kwargs):
-        await self._tekmar_tha.set_config_emer_heat(True)
+        self._last_mode_setting = self._tekmar_tha.mode_setting
+        await self._tekmar_tha.set_mode_setting_txqueue(0x06)
 
     async def async_turn_off(self, **kwargs):
-        await self._tekmar_tha.set_config_emer_heat(False)
+        await self._tekmar_tha.set_mode_setting_txqueue(self._last_mode_setting)
 
 
 class ConfigVentMode(ThaSwitchBase):
