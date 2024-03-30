@@ -151,12 +151,12 @@ class EmergencyHeat(ThaSwitchBase):
     def unique_id(self) -> str:
         return (
             f"{self.config_entry_id}-{self._tekmar_tha.model}-"
-            f"{self._tekmar_tha.device_id}-set-emer-heat"
+            f"{self._tekmar_tha.device_id}-emergency-heat"
         )
 
     @property
     def name(self) -> str:
-        return f"{self._tekmar_tha.tha_full_device_name} Emergency/Aux Heat"
+        return f"{self._tekmar_tha.tha_full_device_name} Emergency Heat"
 
     @property
     def available(self) -> bool:
