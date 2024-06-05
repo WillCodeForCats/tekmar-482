@@ -616,9 +616,6 @@ class TekmarThermostat:
         self._tha_humidity_setpoint_max = None
 
         self._config_vent_mode = self.hub.storage_get(f"{self._id}_config_vent_mode")
-        self._config_emergency_heat = self.hub.storage_get(
-            f"{self._id}_config_emergency_heat"
-        )
         self._config_cooling = self.hub.storage_get(f"{self._id}_config_cooling")
         self._config_heating = self.hub.storage_get(f"{self._id}_config_heating")
         self._config_cool_setpoint_max = self.hub.storage_get(
@@ -896,10 +893,6 @@ class TekmarThermostat:
         return self._tha_heat_setpoints[0x02]
 
     @property
-    def config_emergency_heat(self) -> bool:
-        return self._config_emergency_heat
-
-    @property
     def config_vent_mode(self) -> bool:
         return self._config_vent_mode
 
@@ -975,11 +968,6 @@ class TekmarThermostat:
             return None
         else:
             return self._tha_humidity_setpoint_max
-
-    async def set_config_emer_heat(self, value: bool) -> None:
-        self._config_emergency_heat = value
-        self.hub.storage_put(f"{self._id}_config_emergency_heat", value)
-        await self.publish_updates()
 
     async def set_config_vent_mode(self, value: bool) -> None:
         self._config_vent_mode = value
@@ -1063,11 +1051,6 @@ class TekmarThermostat:
 
     async def set_mode_setting(self, mode: int) -> None:
         self._tha_mode_setting = mode
-
-        if mode == 0x06:
-            self.hub.storage_put(f"{self._id}_config_emergency_heat", True)
-            self._config_emergency_heat = True
-
         await self.publish_updates()
 
     async def set_mode_setting_txqueue(self, value: int) -> None:
