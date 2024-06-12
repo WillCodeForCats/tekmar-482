@@ -1,12 +1,11 @@
 import asyncio
 import logging
-import pickle
-from os.path import exists
 from typing import Any, Callable, Dict, Optional
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers.storage import Store
 from homeassistant.util import dt
 
 from .const import (
@@ -18,6 +17,8 @@ from .const import (
     DOMAIN,
     SETBACK_FAN_MAP,
     SETBACK_SETPOINT_MAP,
+    STORAGE_KEY,
+    STORAGE_VERSION_MAJOR,
     ThaDefault,
     ThaSetback,
     ThaType,
@@ -53,10 +54,7 @@ class TekmarHub:
         self._id = name.lower()
         self._sock = TrpcSocket(host, port)
 
-        self._data_file = hass.config.path(
-            f"{format(DOMAIN)}.{format(self._name)}.pickle"
-        )
-        self._storage = StoredData(self._data_file)
+        self._storage = StoredData(self._hass)
 
         self._tha_inventory = {}
         self.tha_gateway = []
@@ -78,7 +76,7 @@ class TekmarHub:
     async def async_init_tha(self) -> None:
         self._inSetup = True
 
-        await self.storage_put(f"{format(DOMAIN)}.{format(self._name)}.pickle", True)
+        await self.storage_put(f"{DOMAIN}_{self._name}_storage", True)
 
         if await self._sock.open() is False:
             _LOGGER.error(self._sock.error)
@@ -1501,41 +1499,28 @@ class TekmarGateway:
 
 
 class StoredData(object):
-    """Abstraction over pickle data storage."""
+    """Abstraction over Home Assistant Store."""
 
-    def __init__(self, data_file):
-        """Initialize pickle data storage."""
-        self._data_file = data_file
-        self._lock = asyncio.Lock()
-        self._cache_outdated = True
-        self._data = {}
-        self._fetch_data()
+    def __init__(self, hass: HomeAssistant) -> None:
+        self._hass = hass
+        self._data = None
 
-    async def _fetch_data(self):
-        """Fetch data stored into pickle file."""
-        if self._cache_outdated and exists(self._data_file):
-            try:
-                _LOGGER.debug(f"Fetching data from file {self._data_file}")
-                async with self._lock, open(self._data_file, "rb") as myfile:
-                    self._data = pickle.load(myfile) or {}
-                    self._cache_outdated = False
+        self.store: Store[dict[str, Any]] = Store(
+            self._hass,
+            STORAGE_VERSION_MAJOR,
+            STORAGE_KEY,
+        )
 
-            except Exception:
-                _LOGGER.error(f"Error loading data from pickled file {self._data_file}")
+    async def get_setting(self, key: str) -> Any:
+        if self._data is None:
+            self._data = await self.store.async_load()
 
-    async def get_setting(self, key):
-        await self._fetch_data()
         return self._data.get(key)
 
-    async def put_setting(self, key, value):
-        self._fetch_data()
-        async with self._lock, open(self._data_file, "wb") as myfile:
-            self._data.update({key: value})
-            _LOGGER.debug(f"Writing {key}:{value} in storage file {self._data_file}")
-            try:
-                pickle.dump(self._data, myfile)
+    async def put_setting(self, key: str, value: Any) -> None:
+        self._data = await self.store.async_load()
+        if self._data is None:
+            self._data = {}
 
-            except Exception:
-                _LOGGER.error(f"Error saving pickled data to {self._data_file}")
-
-        self._cache_outdated = True
+        self._data.update({key: value})
+        await self.store.async_save(self._data)
