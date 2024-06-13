@@ -76,7 +76,7 @@ class TekmarHub:
     async def async_init_tha(self) -> None:
         self._inSetup = True
 
-        await self.storage_put(f"{self._name}", {"storage", True})
+        await self.storage_put(f"{self._name}", {"storage": True})
 
         if await self._sock.open() is False:
             _LOGGER.error(self._sock.error)
