@@ -1525,3 +1525,13 @@ class StoredData(object):
 
         self._data.update([(self._name, {key: value})])
         await self.store.async_save(self._data)
+
+
+class TekmarStore(Store):
+
+    async def _async_migrate_func(
+        self, old_major_version: int, old_minor_version: int, old_data: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Migrate to the new version."""
+
+        raise NotImplementedError
