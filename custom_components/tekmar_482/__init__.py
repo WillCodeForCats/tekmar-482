@@ -1,14 +1,16 @@
 """The Tekmar 482 Gateway Integration."""
 
 import asyncio
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntry
+from homeassistant.helpers.storage import Store
 
 from . import hub
-from .const import CONF_SETBACK_ENABLE, DOMAIN
+from .const import CONF_SETBACK_ENABLE, DOMAIN, STORAGE_KEY, STORAGE_VERSION_MAJOR
 
 PLATFORMS: list[str] = [
     Platform.SENSOR,
@@ -68,3 +70,17 @@ async def async_remove_config_entry_device(
     """Allow the user to delete a device from the UI."""
 
     return True
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Handle removal of an entry."""
+
+    store: Store[dict[str, Any]] = Store(
+        hass,
+        STORAGE_VERSION_MAJOR,
+        STORAGE_KEY,
+    )
+
+    data = await store.async_load()
+    del data[entry.entry_id]
+    await store.async_save(data)
