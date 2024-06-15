@@ -54,7 +54,7 @@ class TekmarHub:
         self._id = name.lower()
         self._sock = TrpcSocket(host, port)
 
-        self._storage = StoredData(self._hass)
+        self._storage = StoredData(self._hass, self._name)
 
         self._tha_inventory = {}
         self.tha_gateway = []
@@ -76,7 +76,7 @@ class TekmarHub:
     async def async_init_tha(self) -> None:
         self._inSetup = True
 
-        await self.storage_put(f"{self._name}", {"storage": True})
+        await self.storage_put("storage", True)
 
         if await self._sock.open() is False:
             _LOGGER.error(self._sock.error)
@@ -1501,8 +1501,9 @@ class TekmarGateway:
 class StoredData(object):
     """Abstraction over Home Assistant Store."""
 
-    def __init__(self, hass: HomeAssistant) -> None:
+    def __init__(self, hass: HomeAssistant, name: str) -> None:
         self._hass = hass
+        self._name = name
         self._data = None
 
         self.store: Store[dict[str, Any]] = Store(
@@ -1515,12 +1516,12 @@ class StoredData(object):
         if self._data is None:
             self._data = await self.store.async_load()
 
-        return self._data.get(key)
+        return self._data.get(self._name).get(key)
 
     async def put_setting(self, key: str, value: Any) -> None:
         self._data = await self.store.async_load()
         if self._data is None:
             self._data = {}
 
-        self._data.update({key: value})
+        self._data[self._name].update({key: value})
         await self.store.async_save(self._data)
