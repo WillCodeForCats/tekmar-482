@@ -1523,5 +1523,5 @@ class StoredData(object):
         if self._data is None:
             self._data = {}
 
-        self._data[self._name].update({key: value})
+        self._data.update([(self._name, {key: value})])
         await self.store.async_save(self._data)
