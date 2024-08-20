@@ -81,14 +81,13 @@ class ThaFanSelect(ThaSelectBase):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.fan_percent == ThaValue.NA_8:
+        if (
+            self._tekmar_tha.fan_percent == ThaValue.NA_8
+            or self._tekmar_tha.tha_device["attributes"].Fan_Percent == 0
+        ):
             return False
 
-        elif self._tekmar_tha.tha_device["attributes"].Fan_Percent == 0:
-            return False
-
-        else:
-            return True
+        return super().available
 
     @property
     def options(self):

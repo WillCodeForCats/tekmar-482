@@ -31,6 +31,9 @@ DEFAULT_PORT = 3000
 DEFAULT_SETBACK_ENABLE = False
 CONF_SETBACK_ENABLE = "setback_enable"
 
+STORAGE_VERSION_MAJOR = 1
+STORAGE_KEY = DOMAIN
+
 # from voluptuous/validators.py
 DOMAIN_REGEX = re.compile(
     # start anchor, because fullmatch is not available in python 2.7

@@ -107,22 +107,21 @@ class ThaSetpointGroup(ThaSwitchBase):
     def available(self) -> bool:
         setpoint_groups = self._tekmar_tha.setpoint_groups
 
-        if setpoint_groups[self._setpoint_group] is None:
+        if (
+            setpoint_groups[self._setpoint_group] is None
+            or setpoint_groups[self._setpoint_group] == ThaValue.NA_8
+        ):
             return False
 
-        elif setpoint_groups[self._setpoint_group] == ThaValue.NA_8:
-            return False
-
-        else:
-            return True
+        return super().available
 
     @property
     def is_on(self):
         setpoint_groups = self._tekmar_tha.setpoint_groups
 
-        if setpoint_groups[self._setpoint_group] == 0x00:
+        if setpoint_groups[self._setpoint_group] == ThaValue.OFF:
             return False
-        elif setpoint_groups[self._setpoint_group] == 0x01:
+        elif setpoint_groups[self._setpoint_group] == ThaValue.ON:
             return True
         else:
             raise NotImplementedError
@@ -155,15 +154,12 @@ class ConfigEmergencyHeat(ThaSwitchBase):
     def available(self) -> bool:
         if DEVICE_FEATURES[self._tekmar_tha.tha_device["type"]]["emer"]:
             return True
-        else:
-            return False
+
+        return super().available
 
     @property
     def is_on(self):
-        if self._tekmar_tha.config_emergency_heat is True:
-            return True
-        else:
-            return False
+        return self._tekmar_tha.config_emergency_heat
 
     async def async_turn_on(self, **kwargs):
         await self._tekmar_tha.set_config_emer_heat(True)
@@ -193,15 +189,12 @@ class ConfigVentMode(ThaSwitchBase):
     def available(self) -> bool:
         if DEVICE_FEATURES[self._tekmar_tha.tha_device["type"]]["fan"]:
             return True
-        else:
-            return False
+
+        return super().available
 
     @property
     def is_on(self):
-        if self._tekmar_tha.config_vent_mode is True:
-            return True
-        else:
-            return False
+        return self._tekmar_tha.config_vent_mode
 
     async def async_turn_on(self, **kwargs):
         await self._tekmar_tha.set_config_vent_mode(True)
