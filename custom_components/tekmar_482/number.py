@@ -538,5 +538,5 @@ class ThaSlabSetpoint(ThaNumberBase):
         return self._tekmar_tha.config_slab_setpoint_max
 
     async def async_set_native_value(self, value: float) -> None:
-        slab_setpoint = int(degCtoE(value))
+        slab_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_slab_setpoint_txqueue(slab_setpoint)

@@ -628,6 +628,8 @@ class TekmarThermostat:
         self._config_cool_setpoint_min = None
         self._config_heat_setpoint_max = None
         self._config_heat_setpoint_min = None
+        self._config_slab_setpoint_max = None
+        self._config_slab_setpoint_min = None
 
         self._tha_heat_setpoints = {  # degE
             0x00: None,  # day
@@ -644,6 +646,7 @@ class TekmarThermostat:
         self._tha_slab_setpoints = {  # degE
             0x00: None,
             0x01: None,
+            0x02: None,
         }
 
         self._tha_fan_percent = {  # degE
@@ -967,7 +970,12 @@ class TekmarThermostat:
 
     @property
     def slab_setpoint(self) -> str:
-        return self._tha_slab_setpoint
+        try:
+            return self._tha_slab_setpoints[
+                SETBACK_SETPOINT_MAP[self._tha_setback_state]
+            ]
+        except KeyError:
+            return None
 
     @property
     def active_demand(self) -> str:
