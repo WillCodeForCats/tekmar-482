@@ -34,8 +34,7 @@ async def async_setup_entry(
             else:
                 entities.append(ThaHeatSetpoint(device, config_entry))
                 entities.append(ThaCoolSetpoint(device, config_entry))
-                if device.tha_device["attributes"].Slab_Setpoint:
-                    entities.append(ThaSlabSetpoint(device, config_entry))
+                entities.append(ThaSlabSetpoint(device, config_entry))
 
             if DEVICE_FEATURES[device.tha_device["type"]]["humid"]:
                 entities.append(ThaHumiditySetMax(device, config_entry))
@@ -514,13 +513,15 @@ class ThaSlabSetpoint(ThaNumberBase):
 
     @property
     def available(self) -> bool:
-        if (
-            self._tekmar_tha.slab_setpoint == ThaValue.NA_8
-            or not self._tekmar_tha.tha_device["attributes"].Slab_Setpoint
-        ):
-            return False
+        return (
+            self._tekmar_tha.slab_setpoint != ThaValue.NA_8
+            and self._tekmar_tha.tha_device["attributes"].Slab_Setpoint
+            and super().available
+        )
 
-        return super().available
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        return self._tekmar_tha.tha_device["attributes"].Slab_Setpoint
 
     @property
     def native_value(self):
