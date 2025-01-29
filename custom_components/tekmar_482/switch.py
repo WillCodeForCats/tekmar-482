@@ -186,13 +186,6 @@ class ConfigVentMode(ThaSwitchBase):
         return f"{self._tekmar_tha.tha_full_device_name} Enable Vent Mode"
 
     @property
-    def available(self) -> bool:
-        if DEVICE_FEATURES[self._tekmar_tha.tha_device["type"]]["fan"]:
-            return True
-
-        return super().available
-
-    @property
     def is_on(self):
         return self._tekmar_tha.config_vent_mode
 
