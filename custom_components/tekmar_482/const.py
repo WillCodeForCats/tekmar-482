@@ -84,21 +84,21 @@ class ThaDefault(IntEnum):
 class ThaDeviceMode(IntEnum):
     """The operational mode of the device"""
 
-    Off = 0x00
-    Heat = 0x01
-    Auto = 0x02
-    Cool = 0x03
-    Vent = 0x04
-    # Not used = 0x05
-    Emergency = 0x06
+    OFF = 0X00
+    HEAT = 0X01
+    AUTO = 0X02
+    COOL = 0X03
+    VENT = 0X04
+    # NOT USED = 0X05
+    EMERGENCY = 0X06
 
 
 class ThaActiveDemand(IntEnum):
     """The current operating demand of the device: heating, cooling, or none"""
 
-    Idle = 0x00
-    Heat = 0x01
-    Cool = 0x03
+    IDLE = 0X00
+    HEAT = 0X01
+    COOL = 0X03
 
 
 SETBACK_STATE = {

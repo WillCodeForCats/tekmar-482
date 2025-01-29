@@ -210,17 +210,17 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def hvac_mode(self):
-        if self._tekmar_tha.mode_setting == ThaDeviceMode.Off:
+        if self._tekmar_tha.mode_setting == ThaDeviceMode.OFF:
             return HVACMode.OFF
-        elif self._tekmar_tha.mode_setting == ThaDeviceMode.Heat:
+        elif self._tekmar_tha.mode_setting == ThaDeviceMode.HEAT:
             return HVACMode.HEAT
-        elif self._tekmar_tha.mode_setting == ThaDeviceMode.Auto:
+        elif self._tekmar_tha.mode_setting == ThaDeviceMode.AUTO:
             return HVACMode.HEAT_COOL
-        elif self._tekmar_tha.mode_setting == ThaDeviceMode.Cool:
+        elif self._tekmar_tha.mode_setting == ThaDeviceMode.COOL:
             return HVACMode.COOL
-        elif self._tekmar_tha.mode_setting == ThaDeviceMode.Vent:
+        elif self._tekmar_tha.mode_setting == ThaDeviceMode.VENT:
             return HVACMode.FAN_ONLY
-        elif self._tekmar_tha.mode_setting == ThaDeviceMode.Emergency:
+        elif self._tekmar_tha.mode_setting == ThaDeviceMode.EMERGENCY:
             return HVACMode.HEAT
         else:
             return None
@@ -301,16 +301,16 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def hvac_action(self):
-        if self._tekmar_tha.mode_setting == ThaDeviceMode.Off:
+        if self._tekmar_tha.mode_setting == ThaDeviceMode.OFF:
             return HVACAction.OFF
 
-        elif self._tekmar_tha.active_demand == ThaActiveDemand.Idle:
+        elif self._tekmar_tha.active_demand == ThaActiveDemand.IDLE:
             return HVACAction.IDLE
 
-        elif self._tekmar_tha.active_demand == ThaActiveDemand.Heat:
+        elif self._tekmar_tha.active_demand == ThaActiveDemand.HEAT:
             return HVACAction.HEATING
 
-        elif self._tekmar_tha.active_demand == ThaActiveDemand.Cool:
+        elif self._tekmar_tha.active_demand == ThaActiveDemand.COOL:
             return HVACAction.COOLING
 
         else:
@@ -394,13 +394,13 @@ class ThaClimateThermostat(ThaClimateBase):
 
     async def async_set_hvac_mode(self, hvac_mode):
         if hvac_mode == HVACMode.OFF:
-            value = ThaDeviceMode.Off
+            value = ThaDeviceMode.OFF
         elif hvac_mode == HVACMode.HEAT:
-            value = ThaDeviceMode.Heat
+            value = ThaDeviceMode.HEAT
         elif hvac_mode == HVACMode.COOL:
-            value = ThaDeviceMode.Cool
+            value = ThaDeviceMode.COOL
         elif hvac_mode == HVACMode.HEAT_COOL:
-            value = ThaDeviceMode.Auto
+            value = ThaDeviceMode.AUTO
         else:
             raise NotImplementedError()
 
