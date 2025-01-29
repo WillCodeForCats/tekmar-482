@@ -83,14 +83,6 @@ class ThaDefault(IntEnum):
 
 ACTIVE_DEMAND = {0x00: "None", 0x01: "Heat", 0x03: "Cool"}
 
-ACTIVE_MODE = {
-    0x00: "Off",
-    0x01: "Heat",
-    0x02: "Auto",
-    0x03: "Cool",
-    0x04: "Vent",
-    0x05: "Not used",
-    0x06: "Emergency",
 class ThaDeviceMode(IntEnum):
     """The operational mode of the device"""
 
