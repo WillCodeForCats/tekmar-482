@@ -103,6 +103,12 @@ class ThaDeviceMode(IntEnum):
     Emergency = 0x06
 
 
+class ThaActiveDemand(IntEnum):
+    """The current operating demand of the device: heating, cooling, or none"""
+
+    Off = 0x00
+    Heat = 0x01
+    Cool = 0x03
 }
 
 SETBACK_STATE = {

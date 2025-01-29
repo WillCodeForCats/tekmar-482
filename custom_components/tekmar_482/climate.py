@@ -23,6 +23,7 @@ from .const import (
     DEVICE_FEATURES,
     DEVICE_TYPES,
     DOMAIN,
+    ThaActiveDemand,
     ThaDeviceMode,
     ThaType,
     ThaValue,
@@ -300,16 +301,16 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def hvac_action(self):
-        if self._tekmar_tha.mode_setting == 0x00:
+        if self._tekmar_tha.mode_setting == ThaDeviceMode.Off:
             return HVACAction.OFF
 
-        elif self._tekmar_tha.active_demand == 0x00:
+        elif self._tekmar_tha.active_demand == ThaActiveDemand.Off:
             return HVACAction.IDLE
 
-        elif self._tekmar_tha.active_demand == 0x01:
+        elif self._tekmar_tha.active_demand == ThaActiveDemand.Heat:
             return HVACAction.HEATING
 
-        elif self._tekmar_tha.active_demand == 0x03:
+        elif self._tekmar_tha.active_demand == ThaActiveDemand.Cool:
             return HVACAction.COOLING
 
         else:
