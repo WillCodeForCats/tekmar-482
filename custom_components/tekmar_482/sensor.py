@@ -14,13 +14,13 @@ from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
-    ACTIVE_DEMAND,
     DEVICE_FEATURES,
     DEVICE_TYPES,
     DOMAIN,
     SETBACK_DESCRIPTION,
     SETBACK_STATE,
     TN_ERRORS,
+    ThaActiveDemand,
     ThaType,
     ThaValue,
 )
@@ -435,7 +435,7 @@ class SetpointDemand(ThaSensorBase):
     @property
     def native_value(self):
         try:
-            return ACTIVE_DEMAND[self._tekmar_tha.active_demand]
+            return ThaActiveDemand(self._tekmar_tha.active_demand).name
 
         except KeyError:
             return None
