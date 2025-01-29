@@ -1075,7 +1075,7 @@ class TekmarThermostat:
         )
 
     async def set_slab_setpoint(self, setpoint: int, setback: int) -> None:
-        self._tha_SlabSetpoints[SETBACK_SETPOINT_MAP[setback]] = setpoint
+        self._tha_slab_setpoints[SETBACK_SETPOINT_MAP[setback]] = setpoint
         await self.publish_updates()
 
     async def set_slab_setpoint_txqueue(
