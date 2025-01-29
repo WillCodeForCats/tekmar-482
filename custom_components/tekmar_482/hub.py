@@ -649,7 +649,7 @@ class TekmarThermostat:
             0x02: None,  # away
         }
 
-        self._tha_FanPercent = {  # degE
+        self._tha_fan_percent = {  # degE
             0x00: None,  # day
             0x01: None,  # night
         }
@@ -1000,7 +1000,7 @@ class TekmarThermostat:
     @property
     def FanPercent(self) -> str:
         try:
-            return self._tha_FanPercent[SETBACK_FAN_MAP[self.setback_state]]
+            return self._tha_fan_percent[SETBACK_FAN_MAP[self.setback_state]]
         except KeyError:
             return None
 
