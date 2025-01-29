@@ -412,7 +412,7 @@ class TekmarHub:
                     elif tha_method in ["FanPercent"]:
                         for device in self.tha_devices:
                             if device.device_id == b["address"]:
-                                await device.set_FanPercent(
+                                await device.set_fan_percent(
                                     p.body["percent"], p.body["setback"]
                                 )
 
