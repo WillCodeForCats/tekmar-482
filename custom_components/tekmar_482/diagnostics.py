@@ -42,9 +42,7 @@ async def async_get_config_entry_diagnostics(
             f"device_{device.device_id}": {
                 "id": device.device_id,
                 "type": device.tha_device_type,
-                "firmware": device.firmware_version,
-                "model": device.model,
-                "full_name": device.tha_full_device_name,
+                "device_info": device.device_info,
             }
         }
         data.update(async_redact_data(device, REDACT_DEVICE))
