@@ -11,7 +11,6 @@ from homeassistant.util import dt
 from .const import (
     ATTR_MANUFACTURER,
     DEFAULT_SETBACK_ENABLE,
-    DEVICE_ATTRIBUTES,
     DEVICE_FEATURES,
     DEVICE_TYPES,
     DOMAIN,
@@ -19,6 +18,7 @@ from .const import (
     SETBACK_SETPOINT_MAP,
     STORAGE_KEY,
     STORAGE_VERSION_MAJOR,
+    DeviceAttributes,
     ThaDefault,
     ThaSetback,
     ThaType,
@@ -173,7 +173,7 @@ class TekmarHub:
                                 "type": "",
                                 "version": "",
                                 "events": "",
-                                "attributes": DEVICE_ATTRIBUTES(),
+                                "attributes": DeviceAttributes(),
                             }
 
                             self._tx_queue.append(
@@ -405,14 +405,14 @@ class TekmarHub:
                         for device in self.tha_devices:
                             if device.device_id == b["address"]:
                                 # await device.set_setback_state(p.body['setback'])
-                                await device.set_slab_setpoint(
+                                await device.set_SlabSetpoint(
                                     p.body["setpoint"], p.body["setback"]
                                 )
 
                     elif tha_method in ["FanPercent"]:
                         for device in self.tha_devices:
                             if device.device_id == b["address"]:
-                                await device.set_fan_percent(
+                                await device.set_FanPercent(
                                     p.body["percent"], p.body["setback"]
                                 )
 
@@ -451,7 +451,7 @@ class TekmarHub:
                         try:
                             if self._tha_inventory[b["address"]][
                                 "attributes"
-                            ].Fan_Percent:
+                            ].FanPercent:
                                 self._tx_queue.append(
                                     TrpcPacket(
                                         service="Request",
@@ -641,12 +641,12 @@ class TekmarThermostat:
             0x02: None,
         }
 
-        self._tha_slab_setpoints = {  # degE
+        self._tha_SlabSetpoints = {  # degE
             0x00: None,
             0x01: None,
         }
 
-        self._tha_fan_percent = {  # degE
+        self._tha_FanPercent = {  # degE
             0x00: None,
             0x01: None,
         }
@@ -724,7 +724,7 @@ class TekmarThermostat:
         )
 
         if self.setback_enable is True:
-            if self.tha_device["attributes"].Zone_Cooling:
+            if self.tha_device["attributes"].ZoneCooling:
                 self.hub.queue_message(
                     TrpcPacket(
                         service="Request",
@@ -750,7 +750,7 @@ class TekmarThermostat:
                     )
                 )
 
-            if self.tha_device["attributes"].Zone_Heating:
+            if self.tha_device["attributes"].ZoneHeating:
                 self.hub.queue_message(
                     TrpcPacket(
                         service="Request",
@@ -777,7 +777,7 @@ class TekmarThermostat:
                 )
 
         else:
-            if self.tha_device["attributes"].Zone_Cooling:
+            if self.tha_device["attributes"].ZoneCooling:
                 self.hub.queue_message(
                     TrpcPacket(
                         service="Request",
@@ -787,7 +787,7 @@ class TekmarThermostat:
                     )
                 )
 
-            if self.tha_device["attributes"].Zone_Heating:
+            if self.tha_device["attributes"].ZoneHeating:
                 self.hub.queue_message(
                     TrpcPacket(
                         service="Request",
@@ -797,7 +797,7 @@ class TekmarThermostat:
                     )
                 )
 
-        if self.tha_device["attributes"].Fan_Percent:
+        if self.tha_device["attributes"].FanPercent:
             self.hub.queue_message(
                 TrpcPacket(
                     service="Request",
@@ -815,7 +815,7 @@ class TekmarThermostat:
                 )
             )
 
-        if self.tha_device["attributes"].Slab_Setpoint:
+        if self.tha_device["attributes"].SlabSetpoint:
             self.hub.queue_message(
                 TrpcPacket(
                     service="Request",
@@ -952,8 +952,8 @@ class TekmarThermostat:
             return self._config_cool_setpoint_min
 
     @property
-    def slab_setpoint(self) -> str:
-        return self._tha_slab_setpoint
+    def SlabSetpoint(self) -> str:
+        return self._tha_SlabSetpoint
 
     @property
     def active_demand(self) -> str:
@@ -976,9 +976,9 @@ class TekmarThermostat:
         return self._tha_mode_setting
 
     @property
-    def fan_percent(self) -> str:
+    def FanPercent(self) -> str:
         try:
-            return self._tha_fan_percent[SETBACK_FAN_MAP[self.setback_state]]
+            return self._tha_FanPercent[SETBACK_FAN_MAP[self.setback_state]]
         except KeyError:
             return None
 
@@ -1052,15 +1052,15 @@ class TekmarThermostat:
             )
         )
 
-    async def set_slab_setpoint(self, setpoint: int, setback: int) -> None:
-        self._tha_slab_setpoints[SETBACK_SETPOINT_MAP[setback]] = setpoint
+    async def set_SlabSetpoint(self, setpoint: int, setback: int) -> None:
+        self._tha_SlabSetpoints[SETBACK_SETPOINT_MAP[setback]] = setpoint
         await self.publish_updates()
 
-    async def set_fan_percent(self, percent: int, setback: int) -> None:
-        self._tha_fan_percent[SETBACK_FAN_MAP[setback]] = percent
+    async def set_FanPercent(self, percent: int, setback: int) -> None:
+        self._tha_FanPercent[SETBACK_FAN_MAP[setback]] = percent
         await self.publish_updates()
 
-    async def set_fan_percent_txqueue(
+    async def set_FanPercent_txqueue(
         self, percent: int, setback: int = ThaSetback.CURRENT
     ) -> None:
         await self.hub.async_queue_message(

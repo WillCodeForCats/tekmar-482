@@ -137,14 +137,14 @@ class ThaClimateThermostat(ThaClimateBase):
         supported_features = Feature.TURN_OFF
 
         if (
-            self._tekmar_tha.tha_device["attributes"].Zone_Heating == 1
-            and self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 1
+            self._tekmar_tha.tha_device["attributes"].ZoneHeating == 1
+            and self._tekmar_tha.tha_device["attributes"].ZoneCooling == 1
         ):
             supported_features = supported_features | Feature.TARGET_TEMPERATURE_RANGE
         else:
             supported_features = supported_features | Feature.TARGET_TEMPERATURE
 
-        if self._tekmar_tha.tha_device["attributes"].Fan_Percent == 1:
+        if self._tekmar_tha.tha_device["attributes"].FanPercent == 1:
             supported_features = supported_features | Feature.FAN_MODE
 
         if DEVICE_FEATURES[self._tekmar_tha.tha_device["type"]]["humid"]:
@@ -194,15 +194,15 @@ class ThaClimateThermostat(ThaClimateBase):
     def hvac_modes(self) -> list[str]:
         hvac_modes = [HVACMode.OFF]
 
-        if self._tekmar_tha.tha_device["attributes"].Zone_Heating == 1:
+        if self._tekmar_tha.tha_device["attributes"].ZoneHeating == 1:
             hvac_modes.append(HVACMode.HEAT)
 
-        if self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 1:
+        if self._tekmar_tha.tha_device["attributes"].ZoneCooling == 1:
             hvac_modes.append(HVACMode.COOL)
 
         if (
-            self._tekmar_tha.tha_device["attributes"].Zone_Heating == 1
-            and self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 1
+            self._tekmar_tha.tha_device["attributes"].ZoneHeating == 1
+            and self._tekmar_tha.tha_device["attributes"].ZoneCooling == 1
         ):
             hvac_modes.append(HVACMode.HEAT_COOL)
 
@@ -227,7 +227,7 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def fan_modes(self):
-        if self._tekmar_tha.tha_device["attributes"].Fan_Percent == 1:
+        if self._tekmar_tha.tha_device["attributes"].FanPercent == 1:
             return [FAN_ON, FAN_AUTO]
         else:
             return None
@@ -235,13 +235,13 @@ class ThaClimateThermostat(ThaClimateBase):
     @property
     def fan_mode(self):
         if self._tekmar_tha.tha_device["type"] in [99203, 99202, 99201]:
-            if self._tekmar_tha.fan_percent == 10:
+            if self._tekmar_tha.FanPercent == 10:
                 return FAN_ON
             else:
                 return FAN_AUTO
 
         else:
-            if self._tekmar_tha.fan_percent == 100:
+            if self._tekmar_tha.FanPercent == 100:
                 return FAN_ON
             else:
                 return FAN_AUTO
@@ -318,10 +318,10 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def target_temperature(self):
-        if self._tekmar_tha.tha_device["attributes"].Zone_Heating == 1:
+        if self._tekmar_tha.tha_device["attributes"].ZoneHeating == 1:
             this_device_setpoint = self._tekmar_tha.heat_setpoint
 
-        elif self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 1:
+        elif self._tekmar_tha.tha_device["attributes"].ZoneCooling == 1:
             this_device_setpoint = self._tekmar_tha.cool_setpoint
 
         else:
@@ -374,10 +374,10 @@ class ThaClimateThermostat(ThaClimateBase):
         cool_setpoint = None
 
         if self.supported_features & Feature.TARGET_TEMPERATURE:
-            if self._tekmar_tha.tha_device["attributes"].Zone_Heating == 1:
+            if self._tekmar_tha.tha_device["attributes"].ZoneHeating == 1:
                 heat_setpoint = kwargs.get(ATTR_TEMPERATURE)
 
-            elif self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 1:
+            elif self._tekmar_tha.tha_device["attributes"].ZoneCooling == 1:
                 cool_setpoint = kwargs.get(ATTR_TEMPERATURE)
 
         elif self.supported_features & Feature.TARGET_TEMPERATURE_RANGE:
@@ -422,7 +422,7 @@ class ThaClimateThermostat(ThaClimateBase):
         else:
             raise NotImplementedError()
 
-        await self._tekmar_tha.set_fan_percent_txqueue(value)
+        await self._tekmar_tha.set_FanPercent_txqueue(value)
 
     async def async_set_humidity(self, humidity):
         if (

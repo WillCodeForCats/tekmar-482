@@ -401,18 +401,18 @@ DEVICE_FEATURES = {
 }
 
 
-class _DEVICE_ATTRIBUTES(ctypes.LittleEndianStructure):
+class _DeviceAttributes(ctypes.LittleEndianStructure):
     _fields_ = [
-        ("Zone_Heating", c_uint, 1),
-        ("Zone_Cooling", c_uint, 1),
-        ("Slab_Setpoint", c_uint, 1),
-        ("Fan_Percent", c_uint, 1),
+        ("ZoneHeating", c_uint, 1),
+        ("ZoneCooling", c_uint, 1),
+        ("SlabSetpoint", c_uint, 1),
+        ("FanPercent", c_uint, 1),
     ]
 
 
-class DEVICE_ATTRIBUTES(ctypes.Union):
+class DeviceAttributes(ctypes.Union):
     _anonymous_ = ("bit",)
-    _fields_ = [("bit", _DEVICE_ATTRIBUTES), ("attrs", c_uint)]
+    _fields_ = [("bit", _DeviceAttributes), ("attrs", c_uint)]
 
 
 TN_ERRORS = {

@@ -82,8 +82,8 @@ class ThaFanSelect(ThaSelectBase):
     @property
     def available(self) -> bool:
         if (
-            self._tekmar_tha.fan_percent == ThaValue.NA_8
-            or self._tekmar_tha.tha_device["attributes"].Fan_Percent == 0
+            self._tekmar_tha.FanPercent == ThaValue.NA_8
+            or self._tekmar_tha.tha_device["attributes"].FanPercent == 0
         ):
             return False
 
@@ -98,17 +98,17 @@ class ThaFanSelect(ThaSelectBase):
 
     @property
     def current_option(self) -> str:
-        return str(self._tekmar_tha.fan_percent)
+        return str(self._tekmar_tha.FanPercent)
 
     async def async_select_option(self, option: str) -> None:
         if option in ["0", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100"]:
             if self._tekmar_tha.tha_device["type"] in [99203, 99202, 99201]:
                 value = int(option / 10)
-                await self._tekmar_tha.set_fan_percent_txqueue(value)
+                await self._tekmar_tha.set_FanPercent_txqueue(value)
 
             else:
                 value = int(option)
-                await self._tekmar_tha.set_fan_percent_txqueue(value)
+                await self._tekmar_tha.set_FanPercent_txqueue(value)
 
         else:
             raise ValueError
