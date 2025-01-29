@@ -405,7 +405,7 @@ class TekmarHub:
                         for device in self.tha_devices:
                             if device.device_id == b["address"]:
                                 # await device.set_setback_state(p.body['setback'])
-                                await device.set_SlabSetpoint(
+                                await device.set_slab_setpoint(
                                     p.body["setpoint"], p.body["setback"]
                                 )
 
@@ -1074,7 +1074,7 @@ class TekmarThermostat:
             )
         )
 
-    async def set_SlabSetpoint(self, setpoint: int, setback: int) -> None:
+    async def set_slab_setpoint(self, setpoint: int, setback: int) -> None:
         self._tha_SlabSetpoints[SETBACK_SETPOINT_MAP[setback]] = setpoint
         await self.publish_updates()
 
