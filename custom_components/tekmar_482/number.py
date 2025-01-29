@@ -513,10 +513,7 @@ class ThaSlabSetpoint(ThaNumberBase):
 
     @property
     def available(self) -> bool:
-        return (
-            self._tekmar_tha.slab_setpoint != ThaValue.NA_8
-            and super().available
-        )
+        return self._tekmar_tha.slab_setpoint != ThaValue.NA_8 and super().available
 
     @property
     def entity_registry_enabled_default(self) -> bool:

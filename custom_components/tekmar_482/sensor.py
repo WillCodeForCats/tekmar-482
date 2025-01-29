@@ -265,7 +265,7 @@ class CurrentFloorTemperature(ThaSensorBase):
 
     @property
     def entity_registry_enabled_default(self) -> bool:
-        return self._tekmar_tha.tha_device["attributes"].Slab_Setpoint:
+        return self._tekmar_tha.tha_device["attributes"].Slab_Setpoint
 
     @property
     def available(self) -> bool:
