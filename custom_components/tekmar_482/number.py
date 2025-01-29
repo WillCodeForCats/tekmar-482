@@ -515,7 +515,6 @@ class ThaSlabSetpoint(ThaNumberBase):
     def available(self) -> bool:
         return (
             self._tekmar_tha.slab_setpoint != ThaValue.NA_8
-            and self._tekmar_tha.tha_device["attributes"].Slab_Setpoint
             and super().available
         )
 
