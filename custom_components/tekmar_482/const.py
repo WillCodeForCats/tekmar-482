@@ -79,6 +79,8 @@ class ThaDefault(IntEnum):
     HEAT_MAX = 29
     COOL_MIN = 10
     COOL_MAX = 30
+    SLAB_MIN = 5
+    SLAB_MAX = 30
 
 
 class ThaDeviceMode(IntEnum):
