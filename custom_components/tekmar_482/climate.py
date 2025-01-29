@@ -304,7 +304,7 @@ class ThaClimateThermostat(ThaClimateBase):
         if self._tekmar_tha.mode_setting == ThaDeviceMode.Off:
             return HVACAction.OFF
 
-        elif self._tekmar_tha.active_demand == ThaActiveDemand.Off:
+        elif self._tekmar_tha.active_demand == ThaActiveDemand.Idle:
             return HVACAction.IDLE
 
         elif self._tekmar_tha.active_demand == ThaActiveDemand.Heat:

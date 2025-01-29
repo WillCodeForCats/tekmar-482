@@ -96,7 +96,7 @@ class ThaDeviceMode(IntEnum):
 class ThaActiveDemand(IntEnum):
     """The current operating demand of the device: heating, cooling, or none"""
 
-    Off = 0x00
+    Idle = 0x00
     Heat = 0x01
     Cool = 0x03
 
