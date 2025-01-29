@@ -81,8 +81,6 @@ class ThaDefault(IntEnum):
     COOL_MAX = 30
 
 
-ACTIVE_DEMAND = {0x00: "None", 0x01: "Heat", 0x03: "Cool"}
-
 class ThaDeviceMode(IntEnum):
     """The operational mode of the device"""
 
@@ -101,7 +99,7 @@ class ThaActiveDemand(IntEnum):
     Off = 0x00
     Heat = 0x01
     Cool = 0x03
-}
+
 
 SETBACK_STATE = {
     ThaSetback.WAKE_4: "WAKE_4",
