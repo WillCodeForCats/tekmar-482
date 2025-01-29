@@ -998,7 +998,7 @@ class TekmarThermostat:
         return self._tha_mode_setting
 
     @property
-    def FanPercent(self) -> str:
+    def fan_percent(self) -> str:
         try:
             return self._tha_fan_percent[SETBACK_FAN_MAP[self.setback_state]]
         except KeyError:

@@ -82,7 +82,7 @@ class ThaFanSelect(ThaSelectBase):
     @property
     def available(self) -> bool:
         if (
-            self._tekmar_tha.FanPercent == ThaValue.NA_8
+            self._tekmar_tha.fan_percent == ThaValue.NA_8
             or self._tekmar_tha.tha_device["attributes"].FanPercent == 0
         ):
             return False
@@ -98,7 +98,7 @@ class ThaFanSelect(ThaSelectBase):
 
     @property
     def current_option(self) -> str:
-        return str(self._tekmar_tha.FanPercent)
+        return str(self._tekmar_tha.fan_percent)
 
     async def async_select_option(self, option: str) -> None:
         if option in ["0", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100"]:

@@ -235,13 +235,13 @@ class ThaClimateThermostat(ThaClimateBase):
     @property
     def fan_mode(self):
         if self._tekmar_tha.tha_device["type"] in [99203, 99202, 99201]:
-            if self._tekmar_tha.FanPercent == 10:
+            if self._tekmar_tha.fan_percent == 10:
                 return FAN_ON
             else:
                 return FAN_AUTO
 
         else:
-            if self._tekmar_tha.FanPercent == 100:
+            if self._tekmar_tha.fan_percent == 100:
                 return FAN_ON
             else:
                 return FAN_AUTO
