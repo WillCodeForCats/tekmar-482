@@ -145,7 +145,11 @@ class EmergencyHeat(ThaSwitchBase):
 
     def __init__(self, tekmar_tha, config_entry):
         super().__init__(tekmar_tha, config_entry)
-        self._last_mode_setting = 0x00
+
+        # Default to Heat mode when coming out of Emergency. We can't know the true
+        # last mode if HA restarted or the integration reloaded, and Heat is
+        # safer than going to Off (i.e. could cause freezing conditions)
+        self._last_mode_setting = 0x01
 
     @property
     def unique_id(self) -> str:
