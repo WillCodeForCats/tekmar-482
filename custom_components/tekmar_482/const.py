@@ -91,6 +91,18 @@ ACTIVE_MODE = {
     0x04: "Vent",
     0x05: "Not used",
     0x06: "Emergency",
+class ThaDeviceMode(IntEnum):
+    """The operational mode of the device"""
+
+    Off = 0x00
+    Heat = 0x01
+    Auto = 0x02
+    Cool = 0x03
+    Vent = 0x04
+    # Not used = 0x05
+    Emergency = 0x06
+
+
 }
 
 SETBACK_STATE = {

@@ -19,7 +19,14 @@ from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DEVICE_FEATURES, DEVICE_TYPES, DOMAIN, ThaType, ThaValue
+from .const import (
+    DEVICE_FEATURES,
+    DEVICE_TYPES,
+    DOMAIN,
+    ThaDeviceMode,
+    ThaType,
+    ThaValue,
+)
 from .helpers import degCtoE, degEtoC, degHtoC
 
 
@@ -202,19 +209,17 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def hvac_mode(self):
-        if self._tekmar_tha.mode_setting == 0x00:
+        if self._tekmar_tha.mode_setting == ThaDeviceMode.Off:
             return HVACMode.OFF
-        elif self._tekmar_tha.mode_setting == 0x01:
+        elif self._tekmar_tha.mode_setting == ThaDeviceMode.Heat:
             return HVACMode.HEAT
-        elif self._tekmar_tha.mode_setting == 0x02:
+        elif self._tekmar_tha.mode_setting == ThaDeviceMode.Auto:
             return HVACMode.HEAT_COOL
-        elif self._tekmar_tha.mode_setting == 0x03:
+        elif self._tekmar_tha.mode_setting == ThaDeviceMode.Cool:
             return HVACMode.COOL
-        elif self._tekmar_tha.mode_setting == 0x04:
+        elif self._tekmar_tha.mode_setting == ThaDeviceMode.Vent:
             return HVACMode.FAN_ONLY
-        elif self._tekmar_tha.mode_setting == 0x05:
-            return None
-        elif self._tekmar_tha.mode_setting == 0x06:
+        elif self._tekmar_tha.mode_setting == ThaDeviceMode.Emergency:
             return HVACMode.HEAT
         else:
             return None
@@ -388,13 +393,13 @@ class ThaClimateThermostat(ThaClimateBase):
 
     async def async_set_hvac_mode(self, hvac_mode):
         if hvac_mode == HVACMode.OFF:
-            value = 0x00
+            value = ThaDeviceMode.Off
         elif hvac_mode == HVACMode.HEAT:
-            value = 0x01
+            value = ThaDeviceMode.Heat
         elif hvac_mode == HVACMode.COOL:
-            value = 0x03
+            value = ThaDeviceMode.Cool
         elif hvac_mode == HVACMode.HEAT_COOL:
-            value = 0x02
+            value = ThaDeviceMode.Auto
         else:
             raise NotImplementedError()
 
