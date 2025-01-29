@@ -1095,7 +1095,7 @@ class TekmarThermostat:
         self._tha_fan_percent[SETBACK_FAN_MAP[setback]] = percent
         await self.publish_updates()
 
-    async def set_FanPercent_txqueue(
+    async def set_fan_percent_txqueue(
         self, percent: int, setback: int = ThaSetback.CURRENT
     ) -> None:
         await self.hub.async_queue_message(

@@ -104,11 +104,11 @@ class ThaFanSelect(ThaSelectBase):
         if option in ["0", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100"]:
             if self._tekmar_tha.tha_device["type"] in [99203, 99202, 99201]:
                 value = int(option / 10)
-                await self._tekmar_tha.set_FanPercent_txqueue(value)
+                await self._tekmar_tha.set_fan_percent_txqueue(value)
 
             else:
                 value = int(option)
-                await self._tekmar_tha.set_FanPercent_txqueue(value)
+                await self._tekmar_tha.set_fan_percent_txqueue(value)
 
         else:
             raise ValueError
