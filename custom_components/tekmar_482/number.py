@@ -30,9 +30,11 @@ async def async_setup_entry(
                 entities.append(ThaCoolSetpointDay(device, config_entry))
                 entities.append(ThaCoolSetpointNight(device, config_entry))
                 entities.append(ThaCoolSetpointAway(device, config_entry))
+
             else:
                 entities.append(ThaHeatSetpoint(device, config_entry))
                 entities.append(ThaCoolSetpoint(device, config_entry))
+                entities.append(ThaSlabSetpoint(device, config_entry))
 
             if DEVICE_FEATURES[device.tha_device["type"]]["humid"]:
                 entities.append(ThaHumiditySetMax(device, config_entry))
@@ -491,3 +493,47 @@ class ThaCoolSetpointAway(ThaCoolSetpoint):
     async def async_set_native_value(self, value: float) -> None:
         cool_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint, 0x06)
+
+
+class ThaSlabSetpoint(ThaNumberBase):
+    device_class = NumberDeviceClass.TEMPERATURE
+    native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    icon = "mdi:thermostat"
+
+    @property
+    def unique_id(self) -> str:
+        return (
+            f"{self.config_entry_id}-{self._tekmar_tha.model}-"
+            f"{self._tekmar_tha.device_id}-slab-setpoint"
+        )
+
+    @property
+    def name(self) -> str:
+        return f"{self._tekmar_tha.tha_full_device_name} Floor Setpoint"
+
+    @property
+    def available(self) -> bool:
+        return self._tekmar_tha.slab_setpoint != ThaValue.NA_8 and super().available
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        return self._tekmar_tha.tha_device["attributes"].Slab_Setpoint
+
+    @property
+    def native_value(self):
+        try:
+            return degEtoC(self._tekmar_tha.slab_setpoint)
+        except TypeError:
+            return None
+
+    @property
+    def native_min_value(self):
+        return self._tekmar_tha.config_slab_setpoint_min
+
+    @property
+    def native_max_value(self):
+        return self._tekmar_tha.config_slab_setpoint_max
+
+    async def async_set_native_value(self, value: float) -> None:
+        slab_setpoint = int(round(degCtoE(value), 0))
+        await self._tekmar_tha.set_slab_setpoint_txqueue(slab_setpoint)

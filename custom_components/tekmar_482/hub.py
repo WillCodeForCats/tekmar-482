@@ -628,6 +628,8 @@ class TekmarThermostat:
         self._config_cool_setpoint_min = None
         self._config_heat_setpoint_max = None
         self._config_heat_setpoint_min = None
+        self._config_slab_setpoint_max = None
+        self._config_slab_setpoint_min = None
 
         self._tha_heat_setpoints = {  # degE
             0x00: None,  # day
@@ -644,6 +646,7 @@ class TekmarThermostat:
         self._tha_slab_setpoints = {  # degE
             0x00: None,
             0x01: None,
+            0x02: None,
         }
 
         self._tha_fan_percent = {  # degE
@@ -952,8 +955,27 @@ class TekmarThermostat:
             return self._config_cool_setpoint_min
 
     @property
+    def config_slab_setpoint_max(self) -> int:
+        if self._config_slab_setpoint_max is None:
+            return ThaDefault.SLAB_MAX
+        else:
+            return self._config_slab_setpoint_max
+
+    @property
+    def config_slab_setpoint_min(self) -> int:
+        if self._config_slab_setpoint_min is None:
+            return ThaDefault.SLAB_MIN
+        else:
+            return self._config_slab_setpoint_min
+
+    @property
     def slab_setpoint(self) -> str:
-        return self._tha_slab_setpoint
+        try:
+            return self._tha_slab_setpoints[
+                SETBACK_SETPOINT_MAP[self._tha_setback_state]
+            ]
+        except KeyError:
+            return None
 
     @property
     def active_demand(self) -> str:
@@ -1055,6 +1077,19 @@ class TekmarThermostat:
     async def set_slab_setpoint(self, setpoint: int, setback: int) -> None:
         self._tha_slab_setpoints[SETBACK_SETPOINT_MAP[setback]] = setpoint
         await self.publish_updates()
+
+    async def set_slab_setpoint_txqueue(
+        self, value: int, setback: int = ThaSetback.CURRENT
+    ) -> None:
+        await self.hub.async_queue_message(
+            TrpcPacket(
+                service="Update",
+                method="SlabSetpoint",
+                address=self._id,
+                setback=setback,
+                setpoint=value,
+            )
+        )
 
     async def set_fan_percent(self, percent: int, setback: int) -> None:
         self._tha_fan_percent[SETBACK_FAN_MAP[setback]] = percent
