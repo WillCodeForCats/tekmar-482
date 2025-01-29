@@ -220,7 +220,7 @@ class ThaHeatSetpoint(ThaNumberBase):
         return self._tekmar_tha.config_heat_setpoint_max
 
     async def async_set_native_value(self, value: float) -> None:
-        heat_setpoint = int(degCtoE(value))
+        heat_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint)
 
 
@@ -256,7 +256,7 @@ class ThaHeatSetpointDay(ThaHeatSetpoint):
             return None
 
     async def async_set_native_value(self, value: float) -> None:
-        heat_setpoint = int(degCtoE(value))
+        heat_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint, 0x00)
 
 
@@ -292,7 +292,7 @@ class ThaHeatSetpointNight(ThaHeatSetpoint):
             return None
 
     async def async_set_native_value(self, value: float) -> None:
-        heat_setpoint = int(degCtoE(value))
+        heat_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint, 0x03)
 
 
@@ -328,7 +328,7 @@ class ThaHeatSetpointAway(ThaHeatSetpoint):
             return None
 
     async def async_set_native_value(self, value: float) -> None:
-        heat_setpoint = int(degCtoE(value))
+        heat_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint, 0x06)
 
 
@@ -383,7 +383,7 @@ class ThaCoolSetpoint(ThaNumberBase):
         return self._tekmar_tha.config_cool_setpoint_max
 
     async def async_set_native_value(self, value: float) -> None:
-        cool_setpoint = int(degCtoE(value))
+        cool_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint)
 
 
@@ -419,7 +419,7 @@ class ThaCoolSetpointDay(ThaCoolSetpoint):
             return None
 
     async def async_set_native_value(self, value: float) -> None:
-        cool_setpoint = int(degCtoE(value))
+        cool_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint, 0x00)
 
 
@@ -455,7 +455,7 @@ class ThaCoolSetpointNight(ThaCoolSetpoint):
             return None
 
     async def async_set_native_value(self, value: float) -> None:
-        cool_setpoint = int(degCtoE(value))
+        cool_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint, 0x03)
 
 
@@ -491,7 +491,7 @@ class ThaCoolSetpointAway(ThaCoolSetpoint):
             return None
 
     async def async_set_native_value(self, value: float) -> None:
-        cool_setpoint = int(degCtoE(value))
+        cool_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint, 0x06)
 
 

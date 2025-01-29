@@ -343,8 +343,7 @@ class ThaClimateThermostat(ThaClimateBase):
 
         else:
             try:
-                temp = degEtoC(self._tekmar_tha.cool_setpoint)  # degH need degC
-                return round(temp, 0)
+                return degEtoC(self._tekmar_tha.cool_setpoint)
 
             except TypeError:
                 return None
@@ -359,8 +358,7 @@ class ThaClimateThermostat(ThaClimateBase):
 
         else:
             try:
-                temp = degEtoC(self._tekmar_tha.heat_setpoint)  # degH need degC
-                return round(temp, 0)
+                return degEtoC(self._tekmar_tha.heat_setpoint)
 
             except TypeError:
                 return None
@@ -381,11 +379,11 @@ class ThaClimateThermostat(ThaClimateBase):
             cool_setpoint = kwargs.get(ATTR_TARGET_TEMP_HIGH)
 
         if heat_setpoint is not None:
-            heat_setpoint = int(degCtoE(heat_setpoint))
+            heat_setpoint = int(round(degCtoE(heat_setpoint), 0))
             await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint)
 
         if cool_setpoint is not None:
-            cool_setpoint = int(degCtoE(cool_setpoint))
+            cool_setpoint = int(round(degCtoE(cool_setpoint), 0))
             await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint)
 
     async def async_set_hvac_mode(self, hvac_mode):
