@@ -636,19 +636,19 @@ class TekmarThermostat:
         }
 
         self._tha_cool_setpoints = {  # degE
-            0x00: None,
-            0x01: None,
-            0x02: None,
+            0x00: None,  # day
+            0x01: None,  # night
+            0x02: None,  # away
         }
 
         self._tha_SlabSetpoints = {  # degE
-            0x00: None,
-            0x01: None,
+            0x00: None,  # day
+            0x01: None,  # night
         }
 
         self._tha_FanPercent = {  # degE
-            0x00: None,
-            0x01: None,
+            0x00: None,  # day
+            0x01: None,  # night
         }
 
     async def init_device(self) -> None:
