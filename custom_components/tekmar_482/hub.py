@@ -52,6 +52,7 @@ class TekmarHub:
             self._opt_setback_enable = opt_setback_enable
 
         self._id = name.lower()
+        self._online = False
         self._sock = TrpcSocket(host, port)
 
         self._storage = StoredData(self._hass, self._entry_id)
@@ -60,7 +61,6 @@ class TekmarHub:
         self.tha_gateway = []
         self.tha_devices = []
         self.tha_ignore_addr = []
-        self.online = False
 
         self._tha_fw_ver = None
         self._tha_pr_ver = None
@@ -310,6 +310,9 @@ class TekmarHub:
 
                 else:
                     _LOGGER.warning(f"Unknown device at address {address}")
+
+            if not self.online:
+                ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
 
             self.online = True
 
@@ -578,6 +581,17 @@ class TekmarHub:
     @property
     def hub_id(self) -> str:
         return self._id
+
+    @property
+    def online(self) -> bool:
+        return self._online
+
+    @online.setter
+    def online(self, value: bool) -> None:
+        if value is True:
+            self._online = True
+        else:
+            self._online = False
 
     @property
     def tha_fw_ver(self) -> int:
