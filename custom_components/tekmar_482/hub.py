@@ -311,10 +311,9 @@ class TekmarHub:
                 else:
                     _LOGGER.warning(f"Unknown device at address {address}")
 
-
             if not self.online:
                 ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
-                
+
             self.online = True
 
     async def run(self) -> None:
