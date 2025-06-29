@@ -198,7 +198,7 @@ class ThaHeatSetpoint(ThaNumberBase):
         if self._tekmar_tha.heat_setpoint == ThaValue.NA_8:
             return False
 
-        elif self._tekmar_tha.tha_device["attributes"].Zone_Heating == 0:
+        elif self._tekmar_tha.tha_device["attributes"].ZoneHeating == 0:
             return False
 
         else:
@@ -242,7 +242,7 @@ class ThaHeatSetpointDay(ThaHeatSetpoint):
     def available(self) -> bool:
         if (
             self._tekmar_tha.heat_setpoint_day == ThaValue.NA_8
-            or self._tekmar_tha.tha_device["attributes"].Zone_Heating == 0
+            or self._tekmar_tha.tha_device["attributes"].ZoneHeating == 0
         ):
             return False
 
@@ -278,7 +278,7 @@ class ThaHeatSetpointNight(ThaHeatSetpoint):
     def available(self) -> bool:
         if (
             self._tekmar_tha.heat_setpoint_day == ThaValue.NA_8
-            or self._tekmar_tha.tha_device["attributes"].Zone_Heating == 0
+            or self._tekmar_tha.tha_device["attributes"].ZoneHeating == 0
         ):
             return False
 
@@ -314,7 +314,7 @@ class ThaHeatSetpointAway(ThaHeatSetpoint):
     def available(self) -> bool:
         if (
             self._tekmar_tha.heat_setpoint_day == ThaValue.NA_8
-            or self._tekmar_tha.tha_device["attributes"].Zone_Heating == 0
+            or self._tekmar_tha.tha_device["attributes"].ZoneHeating == 0
         ):
             return False
 
@@ -361,7 +361,7 @@ class ThaCoolSetpoint(ThaNumberBase):
     def available(self) -> bool:
         if (
             self._tekmar_tha.cool_setpoint == ThaValue.NA_8
-            or self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0
+            or self._tekmar_tha.tha_device["attributes"].ZoneCooling == 0
         ):
             return False
 
@@ -405,7 +405,7 @@ class ThaCoolSetpointDay(ThaCoolSetpoint):
     def available(self) -> bool:
         if (
             self._tekmar_tha.cool_setpoint_day == ThaValue.NA_8
-            or self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0
+            or self._tekmar_tha.tha_device["attributes"].ZoneCooling == 0
         ):
             return False
 
@@ -441,7 +441,7 @@ class ThaCoolSetpointNight(ThaCoolSetpoint):
     def available(self) -> bool:
         if (
             self._tekmar_tha.cool_setpoint_day == ThaValue.NA_8
-            or self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0
+            or self._tekmar_tha.tha_device["attributes"].ZoneCooling == 0
         ):
             return False
 
@@ -477,7 +477,7 @@ class ThaCoolSetpointAway(ThaCoolSetpoint):
     def available(self) -> bool:
         if (
             self._tekmar_tha.cool_setpoint_day == ThaValue.NA_8
-            or self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0
+            or self._tekmar_tha.tha_device["attributes"].ZoneCooling == 0
         ):
             return False
 

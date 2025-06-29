@@ -11,7 +11,6 @@ from homeassistant.util import dt
 from .const import (
     ATTR_MANUFACTURER,
     DEFAULT_SETBACK_ENABLE,
-    DEVICE_ATTRIBUTES,
     DEVICE_FEATURES,
     DEVICE_TYPES,
     DOMAIN,
@@ -19,6 +18,7 @@ from .const import (
     SETBACK_SETPOINT_MAP,
     STORAGE_KEY,
     STORAGE_VERSION_MAJOR,
+    DeviceAttributes,
     ThaDefault,
     ThaSetback,
     ThaType,
@@ -173,7 +173,7 @@ class TekmarHub:
                                 "type": "",
                                 "version": "",
                                 "events": "",
-                                "attributes": DEVICE_ATTRIBUTES(),
+                                "attributes": DeviceAttributes(),
                             }
 
                             self._tx_queue.append(
@@ -454,7 +454,7 @@ class TekmarHub:
                         try:
                             if self._tha_inventory[b["address"]][
                                 "attributes"
-                            ].Fan_Percent:
+                            ].FanPercent:
                                 self._tx_queue.append(
                                     TrpcPacket(
                                         service="Request",
@@ -652,20 +652,20 @@ class TekmarThermostat:
         }
 
         self._tha_cool_setpoints = {  # degE
-            0x00: None,
-            0x01: None,
-            0x02: None,
+            0x00: None,  # day
+            0x01: None,  # night
+            0x02: None,  # away
         }
 
         self._tha_slab_setpoints = {  # degE
-            0x00: None,
-            0x01: None,
-            0x02: None,
+            0x00: None,  # day
+            0x01: None,  # night
+            0x02: None,  # away
         }
 
         self._tha_fan_percent = {  # degE
-            0x00: None,
-            0x01: None,
+            0x00: None,  # day
+            0x01: None,  # night
         }
 
     async def init_device(self) -> None:
@@ -741,7 +741,7 @@ class TekmarThermostat:
         )
 
         if self.setback_enable is True:
-            if self.tha_device["attributes"].Zone_Cooling:
+            if self.tha_device["attributes"].ZoneCooling:
                 self.hub.queue_message(
                     TrpcPacket(
                         service="Request",
@@ -767,7 +767,7 @@ class TekmarThermostat:
                     )
                 )
 
-            if self.tha_device["attributes"].Zone_Heating:
+            if self.tha_device["attributes"].ZoneHeating:
                 self.hub.queue_message(
                     TrpcPacket(
                         service="Request",
@@ -794,7 +794,7 @@ class TekmarThermostat:
                 )
 
         else:
-            if self.tha_device["attributes"].Zone_Cooling:
+            if self.tha_device["attributes"].ZoneCooling:
                 self.hub.queue_message(
                     TrpcPacket(
                         service="Request",
@@ -804,7 +804,7 @@ class TekmarThermostat:
                     )
                 )
 
-            if self.tha_device["attributes"].Zone_Heating:
+            if self.tha_device["attributes"].ZoneHeating:
                 self.hub.queue_message(
                     TrpcPacket(
                         service="Request",
@@ -814,7 +814,7 @@ class TekmarThermostat:
                     )
                 )
 
-        if self.tha_device["attributes"].Fan_Percent:
+        if self.tha_device["attributes"].FanPercent:
             self.hub.queue_message(
                 TrpcPacket(
                     service="Request",
@@ -832,7 +832,7 @@ class TekmarThermostat:
                 )
             )
 
-        if self.tha_device["attributes"].Slab_Setpoint:
+        if self.tha_device["attributes"].SlabSetpoint:
             self.hub.queue_message(
                 TrpcPacket(
                     service="Request",
