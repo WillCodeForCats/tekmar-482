@@ -33,7 +33,8 @@ After rebooting Home Assistant, this integration can be configured through the i
 [WillCodeForCats/tekmar-482/wiki](https://github.com/WillCodeForCats/tekmar-482/wiki)
 
 ### Required Versions
-* Home Assistant 2024.2.0 or newer
+
+- Home Assistant 2024.2.0 or newer
 
 ## Compatible Equipment
 
@@ -49,4 +50,5 @@ Implemented using "tN4 Gateway 482 - Custom Integration Tools" and "Tekmar Home 
 Tekmar, tekmarNet, tN4, tN2, and related logos and trademarks are copyright 2021 Watts.
 
 ## Project Sponsors
+
 None yet...
