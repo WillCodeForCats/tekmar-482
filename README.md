@@ -1,10 +1,18 @@
-[![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
-
 # Tekmar Gateway 482 (tekmar-482)
+
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
 
 A Home Assistant Integration for the Tekmar Gateway 482
 
 Integrates your Tekmar communicating thermostats, setpoints, and snowmelt controls with Home Assistant.
+
+## Features
+
+- Suports the Tekmar Gateway 482.
+- Works with tN4 and tN2 devices.
+- View the status of devices.
+- Control devices and setpoint groups.
+- View and update device setpoints.
 
 ### Required Add-On
 
@@ -45,7 +53,7 @@ For a list of compatible equipment see the wiki.
 ## Credits
 
 Implemented using "tN4 Gateway 482 - Custom Integration Tools" and "Tekmar Home Automation
-(tHA) Protocol" from: https://www.watts.com/products/hvac-hot-water-solutions/controls/control-accessories/482/482
+(tHA) Protocol" from: [https://www.watts.com/products/hvac-hot-water-solutions/controls/control-accessories/482/482](https://www.watts.com/products/hvac-hot-water-solutions/controls/control-accessories/482/482)
 
 Tekmar, tekmarNet, tN4, tN2, and related logos and trademarks are copyright 2021 Watts.
 
