@@ -31,6 +31,8 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class TekmarHub:
+    """Tekmar hub for communicating with the gateway addon."""
+
     def __init__(
         self,
         hass: HomeAssistant,
@@ -620,6 +622,8 @@ class TekmarHub:
 
 
 class TekmarThermostat:
+    """Tekmar thermostat device."""
+
     def __init__(self, address: int, tha_device: [], hub: TekmarHub) -> None:
         self._id = address
         self.hub = hub
@@ -669,7 +673,6 @@ class TekmarThermostat:
         }
 
     async def init_device(self) -> None:
-
         self._config_vent_mode = await self.hub.storage_get(
             f"{self._id}_config_vent_mode"
         )
@@ -1188,6 +1191,8 @@ class TekmarThermostat:
 
 
 class TekmarSetpoint:
+    """Tekmar setpoint device."""
+
     def __init__(self, address: int, tha_device: [], hub: TekmarHub) -> None:
         self._id = address
         self.hub = hub
@@ -1339,6 +1344,8 @@ class TekmarSetpoint:
 
 
 class TekmarSnowmelt:
+    """Temkar snowmelt device."""
+
     def __init__(self, address: int, tha_device: [], hub: TekmarHub) -> None:
         self._id = address
         self.hub = hub
@@ -1408,6 +1415,8 @@ class TekmarSnowmelt:
 
 
 class TekmarGateway:
+    """Tekmar 482 Gateway device."""
+
     def __init__(self, gatewayid: str, host: str, hub: TekmarHub) -> None:
         self._id = gatewayid
         self._host = host
@@ -1563,6 +1572,7 @@ class StoredData(object):
 
 
 class TekmarStore(Store):
+    """Tekmar data storage."""
 
     async def _async_migrate_func(
         self, old_major_version: int, old_minor_version: int, old_data: dict[str, Any]
