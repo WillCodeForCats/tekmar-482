@@ -52,6 +52,7 @@ class TekmarHub:
             self._opt_setback_enable = opt_setback_enable
 
         self._id = name.lower()
+        self._online = False
         self._sock = TrpcSocket(host, port)
 
         self._storage = StoredData(self._hass, self._entry_id)
@@ -60,7 +61,6 @@ class TekmarHub:
         self.tha_gateway = []
         self.tha_devices = []
         self.tha_ignore_addr = []
-        self.online = False
 
         self._tha_fw_ver = None
         self._tha_pr_ver = None
@@ -310,6 +310,9 @@ class TekmarHub:
 
                 else:
                     _LOGGER.warning(f"Unknown device at address {address}")
+
+            if not self.online:
+                ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
 
             self.online = True
 
@@ -578,6 +581,17 @@ class TekmarHub:
     @property
     def hub_id(self) -> str:
         return self._id
+
+    @property
+    def online(self) -> bool:
+        return self._online
+
+    @online.setter
+    def online(self, value: bool) -> None:
+        if value is True:
+            self._online = True
+        else:
+            self._online = False
 
     @property
     def tha_fw_ver(self) -> int:
@@ -919,10 +933,6 @@ class TekmarThermostat:
         return self._tha_heat_setpoints[0x02]
 
     @property
-    def config_emergency_heat(self) -> bool:
-        return self._config_emergency_heat
-
-    @property
     def config_vent_mode(self) -> bool:
         return self._config_vent_mode
 
@@ -1017,11 +1027,6 @@ class TekmarThermostat:
             return None
         else:
             return self._tha_humidity_setpoint_max
-
-    async def set_config_emer_heat(self, value: bool) -> None:
-        self._config_emergency_heat = value
-        await self.hub.storage_put(f"{self._id}_config_emergency_heat", value)
-        await self.publish_updates()
 
     async def set_config_vent_mode(self, value: bool) -> None:
         self._config_vent_mode = value
@@ -1118,11 +1123,6 @@ class TekmarThermostat:
 
     async def set_mode_setting(self, mode: int) -> None:
         self._tha_mode_setting = mode
-
-        if mode == 0x06:
-            await self.hub.storage_put(f"{self._id}_config_emergency_heat", True)
-            self._config_emergency_heat = True
-
         await self.publish_updates()
 
     async def set_mode_setting_txqueue(self, value: int) -> None:

@@ -13,7 +13,10 @@ from homeassistant.components.climate.const import (
     PRESET_SLEEP,
 )
 from homeassistant.components.climate.const import ClimateEntityFeature as Feature
-from homeassistant.components.climate.const import HVACAction, HVACMode
+from homeassistant.components.climate.const import (
+    HVACAction,
+    HVACMode,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
@@ -88,11 +91,6 @@ class ThaClimateThermostat(ThaClimateBase):
     max_humidity = 80
     min_humidity = 20
 
-    def __init__(self, tekmar_tha, config_entry):
-        super().__init__(tekmar_tha, config_entry)
-
-        self._last_mode_setting = 0x00
-
     @property
     def unique_id(self) -> str:
         return (
@@ -156,9 +154,6 @@ class ThaClimateThermostat(ThaClimateBase):
                 and self._tekmar_tha.humidity_setpoint_max != ThaValue.NA_8
             ):
                 supported_features = supported_features | Feature.TARGET_HUMIDITY
-
-        if self._tekmar_tha.config_emergency_heat is True:
-            supported_features = supported_features | Feature.AUX_HEAT
 
         return supported_features
 
@@ -245,10 +240,6 @@ class ThaClimateThermostat(ThaClimateBase):
                 return FAN_ON
             else:
                 return FAN_AUTO
-
-    @property
-    def is_aux_heat(self):
-        return self._tekmar_tha.mode_setting == 0x06
 
     @property
     def target_humidity(self):
@@ -445,10 +436,3 @@ class ThaClimateThermostat(ThaClimateBase):
 
         else:
             pass
-
-    async def async_turn_aux_heat_on(self):
-        self._last_mode_setting = self._tekmar_tha.mode_setting
-        await self._tekmar_tha.set_mode_setting_txqueue(0x06)
-
-    async def async_turn_aux_heat_off(self):
-        await self._tekmar_tha.set_mode_setting_txqueue(self._last_mode_setting)
