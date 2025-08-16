@@ -517,7 +517,7 @@ class ThaSlabSetpoint(ThaNumberBase):
 
     @property
     def entity_registry_enabled_default(self) -> bool:
-        return self._tekmar_tha.tha_device["attributes"].Slab_Setpoint
+        return self._tekmar_tha.tha_device["attributes"].SlabSetpoint
 
     @property
     def native_value(self):
