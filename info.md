@@ -1,10 +1,10 @@
-## Tekmar Gateway 482 (tekmar-482)
+# Tekmar Gateway 482 (tekmar-482)
 
 A Home Assistant Integration for the Tekmar Gateway 482
 
 Integrates your Tekmar communicating thermostats, setpoints, and snowmelt controls with Home Assistant.
 
-### Features
+## Features
 
 - Suports the Tekmar Gateway 482.
 - Works with tN4 and tN2 devices.
