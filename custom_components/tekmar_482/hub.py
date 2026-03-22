@@ -132,7 +132,9 @@ class TekmarHub:
         while self._inSetup is True:
             if len(self._tx_queue) != 0:
                 try:
-                    await self._sock.write(self._tx_queue.pop(0))
+                    writePacket = self._tx_queue.pop(0)
+                    _LOGGER.debug(f"Setup {writePacket}")
+                    await self._sock.write(writePacket)
                     await asyncio.sleep(0.1)  # writing too fast causes errors
                 except Exception as e:
                     _LOGGER.error(f"Write error: {e}")
@@ -150,6 +152,8 @@ class TekmarHub:
                     h = p.header
                     b = p.body
                     tha_method = name_from_methodID[h["methodID"]]
+
+                    _LOGGER.debug(f"Setup {p}")
 
                     if tha_method in ["FirmwareRevision"]:
                         self._tha_fw_ver = b["revision"]
@@ -339,7 +343,9 @@ class TekmarHub:
                     )
 
                 if len(self._tx_queue) != 0:
-                    await self._sock.write(self._tx_queue.pop(0))
+                    writePacket = self._tx_queue.pop(0)
+                    _LOGGER.debug(f"Run {writePacket}")
+                    await self._sock.write(writePacket)
                     await asyncio.sleep(0.1)
 
                 readCycle += 1
@@ -361,6 +367,8 @@ class TekmarHub:
                     h = p.header
                     b = p.body
                     tha_method = name_from_methodID[h["methodID"]]
+
+                    _LOGGER.debug(f"Run {p}")
 
                     if b["address"] in self.tha_ignore_addr:
                         _LOGGER.debug(f"Ignored {p} from address {b['address']}")
