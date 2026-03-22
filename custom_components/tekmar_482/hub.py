@@ -371,7 +371,9 @@ class TekmarHub:
                     _LOGGER.debug(f"Run {p}")
 
                     if b["address"] in self.tha_ignore_addr:
-                        _LOGGER.debug(f"Ignored {tha_method} from address {b['address']}")
+                        _LOGGER.debug(
+                            f"Ignored {tha_method} from address {b['address']}"
+                        )
                         continue
 
                     if tha_method in ["ReportingState"]:
