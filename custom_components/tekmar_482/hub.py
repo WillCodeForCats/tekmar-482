@@ -266,7 +266,7 @@ class TekmarHub:
                         self._tha_inventory[b["address"]]["events"] = b["events"]
 
                     else:
-                        _LOGGER.warning(f"Ignored method {p} during setup.")
+                        _LOGGER.warning(f"Ignored method {tha_method} during setup.")
 
                 except KeyError as e:
                     _LOGGER.debug(f"Ignored unknown key: {e}")
@@ -371,7 +371,7 @@ class TekmarHub:
                     _LOGGER.debug(f"Run {p}")
 
                     if b["address"] in self.tha_ignore_addr:
-                        _LOGGER.debug(f"Ignored {p} from address {b['address']}")
+                        _LOGGER.debug(f"Ignored {tha_method} from address {b['address']}")
                         continue
 
                     if tha_method in ["ReportingState"]:
@@ -545,7 +545,7 @@ class TekmarHub:
                         pass
 
                     else:
-                        _LOGGER.warning(f"Unhandeled method: {p}")
+                        _LOGGER.warning(f"Unhandeled method: {tha_method}")
 
                 except KeyError as e:
                     _LOGGER.debug(f"Ignored unknown key: {e}")
