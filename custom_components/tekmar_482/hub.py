@@ -152,7 +152,7 @@ class TekmarHub:
                     h = p.header
                     b = p.body
                     tha_method = name_from_methodID[h["methodID"]]
-                    
+
                     _LOGGER.debug(f"Setup {p}")
 
                     if tha_method in ["FirmwareRevision"]:
