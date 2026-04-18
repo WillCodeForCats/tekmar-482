@@ -39,7 +39,9 @@ class TekmarGatewayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry: ConfigEntry) -> TekmarGatewayOptionsFlowHandler:
+    def async_get_options_flow(
+        config_entry: ConfigEntry,
+    ) -> TekmarGatewayOptionsFlowHandler:
         """Create the options flow for Tekmar Gateway 482."""
         return TekmarGatewayOptionsFlowHandler()
 
