@@ -42,7 +42,7 @@ After rebooting Home Assistant, this integration can be configured through the i
 
 ### Required Versions
 
-- Home Assistant 2024.2.0 or newer
+- Home Assistant 2025.12.0 or newer
 
 ## Compatible Equipment
 
