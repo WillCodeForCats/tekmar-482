@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant import config_entries
