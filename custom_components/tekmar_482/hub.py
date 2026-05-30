@@ -1,24 +1,24 @@
 import asyncio
 import logging
-import pickle
-from os.path import exists
-from threading import Lock
 from typing import Any, Callable, Dict, Optional
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers.storage import Store
 from homeassistant.util import dt
 
 from .const import (
     ATTR_MANUFACTURER,
     DEFAULT_SETBACK_ENABLE,
-    DEVICE_ATTRIBUTES,
     DEVICE_FEATURES,
     DEVICE_TYPES,
     DOMAIN,
     SETBACK_FAN_MAP,
     SETBACK_SETPOINT_MAP,
+    STORAGE_KEY,
+    STORAGE_VERSION_MAJOR,
+    DeviceAttributes,
     ThaDefault,
     ThaSetback,
     ThaType,
@@ -31,6 +31,8 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class TekmarHub:
+    """Tekmar hub for communicating with the gateway addon."""
+
     def __init__(
         self,
         hass: HomeAssistant,
@@ -52,19 +54,15 @@ class TekmarHub:
             self._opt_setback_enable = opt_setback_enable
 
         self._id = name.lower()
+        self._online = False
         self._sock = TrpcSocket(host, port)
 
-        self._data_file = hass.config.path(
-            f"{format(DOMAIN)}.{format(self._name)}.pickle"
-        )
-        self._storage = StoredData(self._data_file)
-        self.storage_put(f"{format(DOMAIN)}.{format(self._name)}.pickle", True)
+        self._storage = StoredData(self._hass, self._entry_id)
 
         self._tha_inventory = {}
         self.tha_gateway = []
         self.tha_devices = []
         self.tha_ignore_addr = []
-        self.online = False
 
         self._tha_fw_ver = None
         self._tha_pr_ver = None
@@ -79,6 +77,8 @@ class TekmarHub:
 
     async def async_init_tha(self) -> None:
         self._inSetup = True
+
+        await self.storage_put("storage", True)
 
         if await self._sock.open() is False:
             _LOGGER.error(self._sock.error)
@@ -132,7 +132,9 @@ class TekmarHub:
         while self._inSetup is True:
             if len(self._tx_queue) != 0:
                 try:
-                    await self._sock.write(self._tx_queue.pop(0))
+                    writePacket = self._tx_queue.pop(0)
+                    _LOGGER.debug(f"Setup {writePacket}")
+                    await self._sock.write(writePacket)
                     await asyncio.sleep(0.1)  # writing too fast causes errors
                 except Exception as e:
                     _LOGGER.error(f"Write error: {e}")
@@ -150,6 +152,8 @@ class TekmarHub:
                     h = p.header
                     b = p.body
                     tha_method = name_from_methodID[h["methodID"]]
+
+                    _LOGGER.debug(f"Setup {p}")
 
                     if tha_method in ["FirmwareRevision"]:
                         self._tha_fw_ver = b["revision"]
@@ -175,7 +179,7 @@ class TekmarHub:
                                 "type": "",
                                 "version": "",
                                 "events": "",
-                                "attributes": DEVICE_ATTRIBUTES(),
+                                "attributes": DeviceAttributes(),
                             }
 
                             self._tx_queue.append(
@@ -269,8 +273,10 @@ class TekmarHub:
                     pass
 
         else:
+            new_gateway = TekmarGateway(f"{self._id}", f"{self._host}", self)
+            new_gateway.init_device()
             self.tha_gateway = [
-                TekmarGateway(f"{self._id}", f"{self._host}", self),
+                new_gateway,
             ]
 
             for address in self._tha_inventory:
@@ -282,28 +288,37 @@ class TekmarHub:
                     DEVICE_TYPES[self._tha_inventory[address]["type"]]
                     == ThaType.THERMOSTAT
                 ):
-                    self.tha_devices.append(
-                        TekmarThermostat(address, self._tha_inventory[address], self)
+                    new_thermostat = TekmarThermostat(
+                        address, self._tha_inventory[address], self
                     )
+                    await new_thermostat.init_device()
+                    self.tha_devices.append(new_thermostat)
 
                 elif (
                     DEVICE_TYPES[self._tha_inventory[address]["type"]]
                     == ThaType.SETPOINT
                 ):
-                    self.tha_devices.append(
-                        TekmarSetpoint(address, self._tha_inventory[address], self)
+                    new_setpoint = TekmarSetpoint(
+                        address, self._tha_inventory[address], self
                     )
+                    new_setpoint.init_device()
+                    self.tha_devices.append(new_setpoint)
 
                 elif (
                     DEVICE_TYPES[self._tha_inventory[address]["type"]]
                     == ThaType.SNOWMELT
                 ):
-                    self.tha_devices.append(
-                        TekmarSnowmelt(address, self._tha_inventory[address], self)
+                    new_snowmelt = TekmarSnowmelt(
+                        address, self._tha_inventory[address], self
                     )
+                    new_snowmelt.init_device()
+                    self.tha_devices.append(new_snowmelt)
 
                 else:
-                    _LOGGER.error(f"Unknown device at address {address}")
+                    _LOGGER.warning(f"Unknown device at address {address}")
+
+            if not self.online:
+                ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
 
             self.online = True
 
@@ -328,7 +343,9 @@ class TekmarHub:
                     )
 
                 if len(self._tx_queue) != 0:
-                    await self._sock.write(self._tx_queue.pop(0))
+                    writePacket = self._tx_queue.pop(0)
+                    _LOGGER.debug(f"Run {writePacket}")
+                    await self._sock.write(writePacket)
                     await asyncio.sleep(0.1)
 
                 readCycle += 1
@@ -350,6 +367,8 @@ class TekmarHub:
                     h = p.header
                     b = p.body
                     tha_method = name_from_methodID[h["methodID"]]
+
+                    _LOGGER.debug(f"Run {p}")
 
                     if b["address"] in self.tha_ignore_addr:
                         _LOGGER.debug(f"Ignored {p} from address {b['address']}")
@@ -445,7 +464,7 @@ class TekmarHub:
                         try:
                             if self._tha_inventory[b["address"]][
                                 "attributes"
-                            ].Fan_Percent:
+                            ].FanPercent:
                                 self._tx_queue.append(
                                     TrpcPacket(
                                         service="Request",
@@ -574,6 +593,17 @@ class TekmarHub:
         return self._id
 
     @property
+    def online(self) -> bool:
+        return self._online
+
+    @online.setter
+    def online(self, value: bool) -> None:
+        if value is True:
+            self._online = True
+        else:
+            self._online = False
+
+    @property
     def tha_fw_ver(self) -> int:
         return self._tha_fw_ver
 
@@ -592,14 +622,16 @@ class TekmarHub:
         else:
             return False
 
-    def storage_get(self, key: Any) -> Any:
-        return self._storage.get_setting(key)
+    async def storage_get(self, key: Any) -> Any:
+        return await self._storage.get_setting(key)
 
-    def storage_put(self, key: Any, value: Any) -> None:
-        self._storage.put_setting(key, value)
+    async def storage_put(self, key: Any, value: Any) -> None:
+        await self._storage.put_setting(key, value)
 
 
 class TekmarThermostat:
+    """Tekmar thermostat device."""
+
     def __init__(self, address: int, tha_device: [], hub: TekmarHub) -> None:
         self._id = address
         self.hub = hub
@@ -614,25 +646,16 @@ class TekmarThermostat:
         self._tha_mode_setting = None
         self._tha_humidity_setpoint_min = None
         self._tha_humidity_setpoint_max = None
-
-        self._config_vent_mode = self.hub.storage_get(f"{self._id}_config_vent_mode")
-        self._config_emergency_heat = self.hub.storage_get(
-            f"{self._id}_config_emergency_heat"
-        )
-        self._config_cooling = self.hub.storage_get(f"{self._id}_config_cooling")
-        self._config_heating = self.hub.storage_get(f"{self._id}_config_heating")
-        self._config_cool_setpoint_max = self.hub.storage_get(
-            f"{self._id}_config_cool_setpoint_max"
-        )
-        self._config_cool_setpoint_min = self.hub.storage_get(
-            f"{self._id}_config_cool_setpoint_min"
-        )
-        self._config_heat_setpoint_max = self.hub.storage_get(
-            f"{self._id}_config_heat_setpoint_max"
-        )
-        self._config_heat_setpoint_min = self.hub.storage_get(
-            f"{self._id}_config_heat_setpoint_min"
-        )
+        self._config_vent_mode = None
+        self._config_emergency_heat = None
+        self._config_cooling = None
+        self._config_heating = None
+        self._config_cool_setpoint_max = None
+        self._config_cool_setpoint_min = None
+        self._config_heat_setpoint_max = None
+        self._config_heat_setpoint_min = None
+        self._config_slab_setpoint_max = None
+        self._config_slab_setpoint_min = None
 
         self._tha_heat_setpoints = {  # degE
             0x00: None,  # day
@@ -641,20 +664,43 @@ class TekmarThermostat:
         }
 
         self._tha_cool_setpoints = {  # degE
-            0x00: None,
-            0x01: None,
-            0x02: None,
+            0x00: None,  # day
+            0x01: None,  # night
+            0x02: None,  # away
         }
 
         self._tha_slab_setpoints = {  # degE
-            0x00: None,
-            0x01: None,
+            0x00: None,  # day
+            0x01: None,  # night
+            0x02: None,  # away
         }
 
         self._tha_fan_percent = {  # degE
-            0x00: None,
-            0x01: None,
+            0x00: None,  # day
+            0x01: None,  # night
         }
+
+    async def init_device(self) -> None:
+        self._config_vent_mode = await self.hub.storage_get(
+            f"{self._id}_config_vent_mode"
+        )
+        self._config_emergency_heat = await self.hub.storage_get(
+            f"{self._id}_config_emergency_heat"
+        )
+        self._config_cooling = await self.hub.storage_get(f"{self._id}_config_cooling")
+        self._config_heating = await self.hub.storage_get(f"{self._id}_config_heating")
+        self._config_cool_setpoint_max = await self.hub.storage_get(
+            f"{self._id}_config_cool_setpoint_max"
+        )
+        self._config_cool_setpoint_min = await self.hub.storage_get(
+            f"{self._id}_config_cool_setpoint_min"
+        )
+        self._config_heat_setpoint_max = await self.hub.storage_get(
+            f"{self._id}_config_heat_setpoint_max"
+        )
+        self._config_heat_setpoint_min = await self.hub.storage_get(
+            f"{self._id}_config_heat_setpoint_min"
+        )
 
         # Some static information about this device
         self._device_type = DEVICE_TYPES[self.tha_device["type"]]
@@ -665,7 +711,7 @@ class TekmarThermostat:
         self._device_info = {
             "identifiers": {(DOMAIN, self._id)},
             "name": (
-                f"{hub.hub_id.capitalize()} {self._device_type.capitalize()} "
+                f"{self.hub.hub_id.capitalize()} {self._device_type.capitalize()} "
                 f"{self.model} {self._id}"
             ),
             "manufacturer": ATTR_MANUFACTURER,
@@ -706,7 +752,7 @@ class TekmarThermostat:
         )
 
         if self.setback_enable is True:
-            if self.tha_device["attributes"].Zone_Cooling:
+            if self.tha_device["attributes"].ZoneCooling:
                 self.hub.queue_message(
                     TrpcPacket(
                         service="Request",
@@ -732,7 +778,7 @@ class TekmarThermostat:
                     )
                 )
 
-            if self.tha_device["attributes"].Zone_Heating:
+            if self.tha_device["attributes"].ZoneHeating:
                 self.hub.queue_message(
                     TrpcPacket(
                         service="Request",
@@ -759,7 +805,7 @@ class TekmarThermostat:
                 )
 
         else:
-            if self.tha_device["attributes"].Zone_Cooling:
+            if self.tha_device["attributes"].ZoneCooling:
                 self.hub.queue_message(
                     TrpcPacket(
                         service="Request",
@@ -769,7 +815,7 @@ class TekmarThermostat:
                     )
                 )
 
-            if self.tha_device["attributes"].Zone_Heating:
+            if self.tha_device["attributes"].ZoneHeating:
                 self.hub.queue_message(
                     TrpcPacket(
                         service="Request",
@@ -779,7 +825,7 @@ class TekmarThermostat:
                     )
                 )
 
-        if self.tha_device["attributes"].Fan_Percent:
+        if self.tha_device["attributes"].FanPercent:
             self.hub.queue_message(
                 TrpcPacket(
                     service="Request",
@@ -797,7 +843,7 @@ class TekmarThermostat:
                 )
             )
 
-        if self.tha_device["attributes"].Slab_Setpoint:
+        if self.tha_device["attributes"].SlabSetpoint:
             self.hub.queue_message(
                 TrpcPacket(
                     service="Request",
@@ -807,7 +853,9 @@ class TekmarThermostat:
                 )
             )
 
-        if DEVICE_FEATURES[self.tha_device["type"]]["humid"] and hub.tha_pr_ver in [
+        if DEVICE_FEATURES[self.tha_device["type"]][
+            "humid"
+        ] and self.hub.tha_pr_ver in [
             2,
             3,
         ]:
@@ -896,10 +944,6 @@ class TekmarThermostat:
         return self._tha_heat_setpoints[0x02]
 
     @property
-    def config_emergency_heat(self) -> bool:
-        return self._config_emergency_heat
-
-    @property
     def config_vent_mode(self) -> bool:
         return self._config_vent_mode
 
@@ -932,8 +976,27 @@ class TekmarThermostat:
             return self._config_cool_setpoint_min
 
     @property
+    def config_slab_setpoint_max(self) -> int:
+        if self._config_slab_setpoint_max is None:
+            return ThaDefault.SLAB_MAX
+        else:
+            return self._config_slab_setpoint_max
+
+    @property
+    def config_slab_setpoint_min(self) -> int:
+        if self._config_slab_setpoint_min is None:
+            return ThaDefault.SLAB_MIN
+        else:
+            return self._config_slab_setpoint_min
+
+    @property
     def slab_setpoint(self) -> str:
-        return self._tha_slab_setpoint
+        try:
+            return self._tha_slab_setpoints[
+                SETBACK_SETPOINT_MAP[self._tha_setback_state]
+            ]
+        except KeyError:
+            return None
 
     @property
     def active_demand(self) -> str:
@@ -976,14 +1039,9 @@ class TekmarThermostat:
         else:
             return self._tha_humidity_setpoint_max
 
-    async def set_config_emer_heat(self, value: bool) -> None:
-        self._config_emergency_heat = value
-        self.hub.storage_put(f"{self._id}_config_emergency_heat", value)
-        await self.publish_updates()
-
     async def set_config_vent_mode(self, value: bool) -> None:
         self._config_vent_mode = value
-        self.hub.storage_put(f"{self._id}_config_vent_mode", value)
+        await self.hub.storage_put(f"{self._id}_config_vent_mode", value)
         await self.publish_updates()
 
     async def set_current_temperature(self, temp: int) -> None:
@@ -1036,6 +1094,19 @@ class TekmarThermostat:
         self._tha_slab_setpoints[SETBACK_SETPOINT_MAP[setback]] = setpoint
         await self.publish_updates()
 
+    async def set_slab_setpoint_txqueue(
+        self, value: int, setback: int = ThaSetback.CURRENT
+    ) -> None:
+        await self.hub.async_queue_message(
+            TrpcPacket(
+                service="Update",
+                method="SlabSetpoint",
+                address=self._id,
+                setback=setback,
+                setpoint=value,
+            )
+        )
+
     async def set_fan_percent(self, percent: int, setback: int) -> None:
         self._tha_fan_percent[SETBACK_FAN_MAP[setback]] = percent
         await self.publish_updates()
@@ -1063,11 +1134,6 @@ class TekmarThermostat:
 
     async def set_mode_setting(self, mode: int) -> None:
         self._tha_mode_setting = mode
-
-        if mode == 0x06:
-            self.hub.storage_put(f"{self._id}_config_emergency_heat", True)
-            self._config_emergency_heat = True
-
         await self.publish_updates()
 
     async def set_mode_setting_txqueue(self, value: int) -> None:
@@ -1133,6 +1199,8 @@ class TekmarThermostat:
 
 
 class TekmarSetpoint:
+    """Tekmar setpoint device."""
+
     def __init__(self, address: int, tha_device: [], hub: TekmarHub) -> None:
         self._id = address
         self.hub = hub
@@ -1154,7 +1222,7 @@ class TekmarSetpoint:
         self._device_info = {
             "identifiers": {(DOMAIN, self._id)},
             "name": (
-                f"{hub.hub_id.capitalize()} {self._device_type.capitalize()} "
+                f"{self.hub.hub_id.capitalize()} {self._device_type.capitalize()} "
                 f"{self.model} {self._id}"
             ),
             "manufacturer": ATTR_MANUFACTURER,
@@ -1162,6 +1230,7 @@ class TekmarSetpoint:
             "sw_version": self.firmware_version,
         }
 
+    def init_device(self) -> None:
         self.hub.queue_message(
             TrpcPacket(
                 service="Request",
@@ -1283,6 +1352,8 @@ class TekmarSetpoint:
 
 
 class TekmarSnowmelt:
+    """Temkar snowmelt device."""
+
     def __init__(self, address: int, tha_device: [], hub: TekmarHub) -> None:
         self._id = address
         self.hub = hub
@@ -1300,13 +1371,16 @@ class TekmarSnowmelt:
         self._device_info = {
             "identifiers": {(DOMAIN, self._id)},
             "name": (
-                f"{hub.hub_id.capitalize()} {self._device_type.capitalize()} "
+                f"{self.hub.hub_id.capitalize()} {self._device_type.capitalize()} "
                 f"{self.model} {self._id}"
             ),
             "manufacturer": ATTR_MANUFACTURER,
             "model": self.model,
             "sw_version": self.firmware_version,
         }
+
+    def init_device(self) -> None:
+        pass
 
     @property
     def device_id(self) -> str:
@@ -1349,6 +1423,8 @@ class TekmarSnowmelt:
 
 
 class TekmarGateway:
+    """Tekmar 482 Gateway device."""
+
     def __init__(self, gatewayid: str, host: str, hub: TekmarHub) -> None:
         self._id = gatewayid
         self._host = host
@@ -1373,17 +1449,18 @@ class TekmarGateway:
         }
 
         # Some static information about this device
-        self.firmware_version = f"{hub.tha_fw_ver} protocol {hub.tha_pr_ver}"
+        self.firmware_version = f"{self.hub.tha_fw_ver} protocol {self.hub.tha_pr_ver}"
         self.model = "482"
 
         self._device_info = {
             "identifiers": {(DOMAIN, self.hub.hub_id)},
-            "name": f"{hub.hub_id.capitalize()} Gateway",
+            "name": f"{self.hub.hub_id.capitalize()} Gateway",
             "manufacturer": ATTR_MANUFACTURER,
             "model": self.model,
             "sw_version": self.firmware_version,
         }
 
+    def init_device(self) -> None:
         self.hub.queue_message(
             TrpcPacket(service="Request", method="OutdoorTemperature")
         )
@@ -1474,41 +1551,40 @@ class TekmarGateway:
 
 
 class StoredData(object):
-    """Abstraction over pickle data storage."""
+    """Abstraction over Home Assistant Store."""
 
-    def __init__(self, data_file):
-        """Initialize pickle data storage."""
-        self._data_file = data_file
-        self._lock = Lock()
-        self._cache_outdated = True
-        self._data = {}
-        self._fetch_data()
+    def __init__(self, hass: HomeAssistant, entry_id: str) -> None:
+        self._hass = hass
+        self._entry_id = entry_id
+        self._data = None
 
-    def _fetch_data(self):
-        """Fetch data stored into pickle file."""
-        if self._cache_outdated and exists(self._data_file):
-            try:
-                _LOGGER.debug(f"Fetching data from file {self._data_file}")
-                with self._lock, open(self._data_file, "rb") as myfile:
-                    self._data = pickle.load(myfile) or {}
-                    self._cache_outdated = False
+        self.store: Store[dict[str, Any]] = TekmarStore(
+            self._hass,
+            STORAGE_VERSION_MAJOR,
+            STORAGE_KEY,
+        )
 
-            except Exception:
-                _LOGGER.error(f"Error loading data from pickled file {self._data_file}")
+    async def get_setting(self, key: str) -> Any:
+        if self._data is None:
+            self._data = await self.store.async_load()
 
-    def get_setting(self, key):
-        self._fetch_data()
-        return self._data.get(key)
+        return self._data.get(self._entry_id).get(key)
 
-    def put_setting(self, key, value):
-        self._fetch_data()
-        with self._lock, open(self._data_file, "wb") as myfile:
-            self._data.update({key: value})
-            _LOGGER.debug(f"Writing {key}:{value} in storage file {self._data_file}")
-            try:
-                pickle.dump(self._data, myfile)
+    async def put_setting(self, key: str, value: Any) -> None:
+        self._data = await self.store.async_load()
+        if self._data is None:
+            self._data = {}
 
-            except Exception:
-                _LOGGER.error(f"Error saving pickled data to {self._data_file}")
+        self._data.update([(self._entry_id, {key: value})])
+        await self.store.async_save(self._data)
 
-        self._cache_outdated = True
+
+class TekmarStore(Store):
+    """Tekmar data storage."""
+
+    async def _async_migrate_func(
+        self, old_major_version: int, old_minor_version: int, old_data: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Migrate to the new version."""
+
+        raise NotImplementedError

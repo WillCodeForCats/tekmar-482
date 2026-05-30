@@ -30,9 +30,11 @@ async def async_setup_entry(
                 entities.append(ThaCoolSetpointDay(device, config_entry))
                 entities.append(ThaCoolSetpointNight(device, config_entry))
                 entities.append(ThaCoolSetpointAway(device, config_entry))
+
             else:
                 entities.append(ThaHeatSetpoint(device, config_entry))
                 entities.append(ThaCoolSetpoint(device, config_entry))
+                entities.append(ThaSlabSetpoint(device, config_entry))
 
             if DEVICE_FEATURES[device.tha_device["type"]]["humid"]:
                 entities.append(ThaHumiditySetMax(device, config_entry))
@@ -196,7 +198,7 @@ class ThaHeatSetpoint(ThaNumberBase):
         if self._tekmar_tha.heat_setpoint == ThaValue.NA_8:
             return False
 
-        elif self._tekmar_tha.tha_device["attributes"].Zone_Heating == 0:
+        elif self._tekmar_tha.tha_device["attributes"].ZoneHeating == 0:
             return False
 
         else:
@@ -218,7 +220,7 @@ class ThaHeatSetpoint(ThaNumberBase):
         return self._tekmar_tha.config_heat_setpoint_max
 
     async def async_set_native_value(self, value: float) -> None:
-        heat_setpoint = int(degCtoE(value))
+        heat_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint)
 
 
@@ -240,7 +242,7 @@ class ThaHeatSetpointDay(ThaHeatSetpoint):
     def available(self) -> bool:
         if (
             self._tekmar_tha.heat_setpoint_day == ThaValue.NA_8
-            or self._tekmar_tha.tha_device["attributes"].Zone_Heating == 0
+            or self._tekmar_tha.tha_device["attributes"].ZoneHeating == 0
         ):
             return False
 
@@ -254,7 +256,7 @@ class ThaHeatSetpointDay(ThaHeatSetpoint):
             return None
 
     async def async_set_native_value(self, value: float) -> None:
-        heat_setpoint = int(degCtoE(value))
+        heat_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint, 0x00)
 
 
@@ -276,7 +278,7 @@ class ThaHeatSetpointNight(ThaHeatSetpoint):
     def available(self) -> bool:
         if (
             self._tekmar_tha.heat_setpoint_day == ThaValue.NA_8
-            or self._tekmar_tha.tha_device["attributes"].Zone_Heating == 0
+            or self._tekmar_tha.tha_device["attributes"].ZoneHeating == 0
         ):
             return False
 
@@ -290,7 +292,7 @@ class ThaHeatSetpointNight(ThaHeatSetpoint):
             return None
 
     async def async_set_native_value(self, value: float) -> None:
-        heat_setpoint = int(degCtoE(value))
+        heat_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint, 0x03)
 
 
@@ -312,7 +314,7 @@ class ThaHeatSetpointAway(ThaHeatSetpoint):
     def available(self) -> bool:
         if (
             self._tekmar_tha.heat_setpoint_day == ThaValue.NA_8
-            or self._tekmar_tha.tha_device["attributes"].Zone_Heating == 0
+            or self._tekmar_tha.tha_device["attributes"].ZoneHeating == 0
         ):
             return False
 
@@ -326,7 +328,7 @@ class ThaHeatSetpointAway(ThaHeatSetpoint):
             return None
 
     async def async_set_native_value(self, value: float) -> None:
-        heat_setpoint = int(degCtoE(value))
+        heat_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint, 0x06)
 
 
@@ -359,7 +361,7 @@ class ThaCoolSetpoint(ThaNumberBase):
     def available(self) -> bool:
         if (
             self._tekmar_tha.cool_setpoint == ThaValue.NA_8
-            or self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0
+            or self._tekmar_tha.tha_device["attributes"].ZoneCooling == 0
         ):
             return False
 
@@ -381,7 +383,7 @@ class ThaCoolSetpoint(ThaNumberBase):
         return self._tekmar_tha.config_cool_setpoint_max
 
     async def async_set_native_value(self, value: float) -> None:
-        cool_setpoint = int(degCtoE(value))
+        cool_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint)
 
 
@@ -403,7 +405,7 @@ class ThaCoolSetpointDay(ThaCoolSetpoint):
     def available(self) -> bool:
         if (
             self._tekmar_tha.cool_setpoint_day == ThaValue.NA_8
-            or self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0
+            or self._tekmar_tha.tha_device["attributes"].ZoneCooling == 0
         ):
             return False
 
@@ -417,7 +419,7 @@ class ThaCoolSetpointDay(ThaCoolSetpoint):
             return None
 
     async def async_set_native_value(self, value: float) -> None:
-        cool_setpoint = int(degCtoE(value))
+        cool_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint, 0x00)
 
 
@@ -439,7 +441,7 @@ class ThaCoolSetpointNight(ThaCoolSetpoint):
     def available(self) -> bool:
         if (
             self._tekmar_tha.cool_setpoint_day == ThaValue.NA_8
-            or self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0
+            or self._tekmar_tha.tha_device["attributes"].ZoneCooling == 0
         ):
             return False
 
@@ -453,7 +455,7 @@ class ThaCoolSetpointNight(ThaCoolSetpoint):
             return None
 
     async def async_set_native_value(self, value: float) -> None:
-        cool_setpoint = int(degCtoE(value))
+        cool_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint, 0x03)
 
 
@@ -475,7 +477,7 @@ class ThaCoolSetpointAway(ThaCoolSetpoint):
     def available(self) -> bool:
         if (
             self._tekmar_tha.cool_setpoint_day == ThaValue.NA_8
-            or self._tekmar_tha.tha_device["attributes"].Zone_Cooling == 0
+            or self._tekmar_tha.tha_device["attributes"].ZoneCooling == 0
         ):
             return False
 
@@ -489,5 +491,49 @@ class ThaCoolSetpointAway(ThaCoolSetpoint):
             return None
 
     async def async_set_native_value(self, value: float) -> None:
-        cool_setpoint = int(degCtoE(value))
+        cool_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint, 0x06)
+
+
+class ThaSlabSetpoint(ThaNumberBase):
+    device_class = NumberDeviceClass.TEMPERATURE
+    native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    icon = "mdi:thermostat"
+
+    @property
+    def unique_id(self) -> str:
+        return (
+            f"{self.config_entry_id}-{self._tekmar_tha.model}-"
+            f"{self._tekmar_tha.device_id}-slab-setpoint"
+        )
+
+    @property
+    def name(self) -> str:
+        return f"{self._tekmar_tha.tha_full_device_name} Floor Setpoint"
+
+    @property
+    def available(self) -> bool:
+        return self._tekmar_tha.slab_setpoint != ThaValue.NA_8 and super().available
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        return self._tekmar_tha.tha_device["attributes"].SlabSetpoint
+
+    @property
+    def native_value(self):
+        try:
+            return degEtoC(self._tekmar_tha.slab_setpoint)
+        except TypeError:
+            return None
+
+    @property
+    def native_min_value(self):
+        return self._tekmar_tha.config_slab_setpoint_min
+
+    @property
+    def native_max_value(self):
+        return self._tekmar_tha.config_slab_setpoint_max
+
+    async def async_set_native_value(self, value: float) -> None:
+        slab_setpoint = int(round(degCtoE(value), 0))
+        await self._tekmar_tha.set_slab_setpoint_txqueue(slab_setpoint)

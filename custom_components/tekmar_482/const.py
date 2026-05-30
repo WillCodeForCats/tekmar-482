@@ -31,6 +31,9 @@ DEFAULT_PORT = 3000
 DEFAULT_SETBACK_ENABLE = False
 CONF_SETBACK_ENABLE = "setback_enable"
 
+STORAGE_VERSION_MAJOR = 1
+STORAGE_KEY = DOMAIN
+
 # from voluptuous/validators.py
 DOMAIN_REGEX = re.compile(
     # start anchor, because fullmatch is not available in python 2.7
@@ -76,19 +79,29 @@ class ThaDefault(IntEnum):
     HEAT_MAX = 29
     COOL_MIN = 10
     COOL_MAX = 30
+    SLAB_MIN = 5
+    SLAB_MAX = 30
 
 
-ACTIVE_DEMAND = {0x00: "None", 0x01: "Heat", 0x03: "Cool"}
+class ThaDeviceMode(IntEnum):
+    """The operational mode of the device"""
 
-ACTIVE_MODE = {
-    0x00: "Off",
-    0x01: "Heat",
-    0x02: "Auto",
-    0x03: "Cool",
-    0x04: "Vent",
-    0x05: "Not used",
-    0x06: "Emergency",
-}
+    OFF = 0x00
+    HEAT = 0x01
+    AUTO = 0x02
+    COOL = 0x03
+    VENT = 0x04
+    # NOT USED = 0X05
+    EMERGENCY = 0x06
+
+
+class ThaActiveDemand(IntEnum):
+    """The current operating demand of the device: heating, cooling, or none"""
+
+    IDLE = 0x00
+    HEAT = 0x01
+    COOL = 0x03
+
 
 SETBACK_STATE = {
     ThaSetback.WAKE_4: "WAKE_4",
@@ -390,18 +403,18 @@ DEVICE_FEATURES = {
 }
 
 
-class _DEVICE_ATTRIBUTES(ctypes.LittleEndianStructure):
+class _DeviceAttributes(ctypes.LittleEndianStructure):
     _fields_ = [
-        ("Zone_Heating", c_uint, 1),
-        ("Zone_Cooling", c_uint, 1),
-        ("Slab_Setpoint", c_uint, 1),
-        ("Fan_Percent", c_uint, 1),
+        ("ZoneHeating", c_uint, 1),
+        ("ZoneCooling", c_uint, 1),
+        ("SlabSetpoint", c_uint, 1),
+        ("FanPercent", c_uint, 1),
     ]
 
 
-class DEVICE_ATTRIBUTES(ctypes.Union):
+class DeviceAttributes(ctypes.Union):
     _anonymous_ = ("bit",)
-    _fields_ = [("bit", _DEVICE_ATTRIBUTES), ("attrs", c_uint)]
+    _fields_ = [("bit", _DeviceAttributes), ("attrs", c_uint)]
 
 
 TN_ERRORS = {
