@@ -14,13 +14,13 @@ Integrates your Tekmar communicating thermostats, setpoints, and snowmelt contro
 - Control devices and setpoint groups.
 - View and update device setpoints.
 
-### Required Add-On
+### Required App
 
-This Integration requires the Tekmar Packet Server Add-On:
+This Integration requires the Tekmar Packet Server App:
 
 [WillCodeForCats/tekmar-packetserv](https://github.com/WillCodeForCats/tekmar-packetserv)
 
-The Tekmar Packet Server Add-On is required for this integration to communicate with a Tekmar Gateway 482.
+The Tekmar Packet Server App is required for this integration to communicate with a Tekmar Gateway 482.
 
 ## Installation
 
@@ -42,7 +42,7 @@ After rebooting Home Assistant, this integration can be configured through the i
 
 ### Required Versions
 
-- Home Assistant 2024.2.0 or newer
+- Home Assistant 2025.12.0 or newer
 
 ## Compatible Equipment
 

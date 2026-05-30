@@ -6,7 +6,7 @@ labels: ""
 assignees: ""
 ---
 
-Before reporting a bug, make sure you are running the latest version of `tekmar-482` integration and the `tekmar-packetserv` add-on.
+Before reporting a bug, make sure you are running the latest version of `tekmar-482` integration and the `tekmar-packetserv` app.
 
 **Describe the bug**
 A clear and concise description of what the bug is.
