@@ -1568,17 +1568,16 @@ class StoredData(object):
 
     async def get_setting(self, key: str) -> Any:
         if self._data is None:
-            self._data = await self.store.async_load()
+            self._data = await self.store.async_load() or {}
 
-        return self._data.get(self._entry_id).get(key)
+        return self._data.get(self._entry_id, {}).get(key)
 
     async def put_setting(self, key: str, value: Any) -> None:
-        self._data = await self.store.async_load()
-        if self._data is None:
-            self._data = {}
+        data = await self.store.async_load() or {}
+        data.setdefault(self._entry_id, {})[key] = value
 
-        self._data.update([(self._entry_id, {key: value})])
-        await self.store.async_save(self._data)
+        self._data = data
+        await self.store.async_save(data)
 
 
 class TekmarStore(Store):
