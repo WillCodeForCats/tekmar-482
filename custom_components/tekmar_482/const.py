@@ -167,6 +167,7 @@ DEVICE_TYPES = {
     105801: ThaType.SNOWMELT,
     108401: ThaType.SNOWMELT,
     108402: ThaType.SNOWMELT,
+    10599181: ThaType.THERMOSTAT,  # alternate for 99301
 }
 
 DEVICE_FEATURES = {
@@ -263,6 +264,16 @@ DEVICE_FEATURES = {
     99301: {
         "model": "541",
         "type": DEVICE_TYPES[99301],
+        "heat": 1,
+        "cool": 0,
+        "fan": 0,
+        "humid": 0,
+        "snow": 0,
+        "emer": 0,
+    },
+    10599181: {  # alternate for 99301
+        "model": "541",
+        "type": DEVICE_TYPES[10599181],
         "heat": 1,
         "cool": 0,
         "fan": 0,

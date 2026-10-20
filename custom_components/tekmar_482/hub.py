@@ -707,7 +707,7 @@ class TekmarThermostat:
         # Some static information about this device
         self._device_type = DEVICE_TYPES[self.tha_device["type"]]
         self._tha_full_device_name = self.tha_device["entity"]
-        self.firmware_version = self.tha_device["version"]
+        self.firmware_version = str(self.tha_device["version"])
         self.model = DEVICE_FEATURES[self.tha_device["type"]]["model"]
 
         self._device_info = {
@@ -1218,7 +1218,7 @@ class TekmarSetpoint:
         # Some static information about this device
         self._device_type = DEVICE_TYPES[self.tha_device["type"]]
         self._tha_full_device_name = self.tha_device["entity"]
-        self.firmware_version = self.tha_device["version"]
+        self.firmware_version = str(self.tha_device["version"])
         self.model = DEVICE_FEATURES[self.tha_device["type"]]["model"]
 
         self._device_info = {
@@ -1367,7 +1367,7 @@ class TekmarSnowmelt:
         # Some static information about this device
         self._device_type = DEVICE_TYPES[self.tha_device["type"]]
         self._tha_full_device_name = self.tha_device["entity"]
-        self.firmware_version = self.tha_device["version"]
+        self.firmware_version = str(self.tha_device["version"])
         self.model = DEVICE_FEATURES[self.tha_device["type"]]["model"]
 
         self._device_info = {

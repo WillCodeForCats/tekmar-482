@@ -11,7 +11,6 @@ class TrpcSocket:
         self._sock_writer = None
         self._is_open = False
         self._error = None
-        self._rx_queue = []
 
         self.addr = addr
         self.port = port
@@ -61,23 +60,17 @@ class TrpcSocket:
         Otherwise a tHA object is returned.
         """
         if self._sock_reader is not None:
-            if len(self._rx_queue) != 0:
-                return self._rx_queue.pop(0)
+            try:
+                rx_data = await asyncio.wait_for(
+                    self._sock_reader.readline(), timeout=0.5
+                )
+                if rx_data:
+                    return TrpcPacket.from_rx_packet(rx_data.rstrip(b"\n"))
 
-            else:
-                try:
-                    rx_data = await asyncio.wait_for(
-                        self._sock_reader.read(1024), timeout=0.5
-                    )
-                    rx_data = rx_data.rsplit("\n".encode())
-                    for st in [r for r in rx_data if r]:
-                        self._rx_queue.append(TrpcPacket.from_rx_packet(st))
+            except asyncio.TimeoutError:
+                pass
 
-                except asyncio.TimeoutError:
-                    return None
-
-        else:
-            return None
+        return None
 
     # **************************************************************************
     async def write(self, trpc_packet) -> None:
