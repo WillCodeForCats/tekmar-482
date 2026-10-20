@@ -74,6 +74,11 @@ class TekmarHub:
         self._inReconnect = False
 
         self._tx_queue = []
+        self._tasks: list[asyncio.Task] = []
+
+    def add_task(self, task: asyncio.Task) -> None:
+        """Track a background task so shutdown() can cancel it."""
+        self._tasks.append(task)
 
     async def async_init_tha(self) -> None:
         self._inSetup = True
@@ -581,6 +586,11 @@ class TekmarHub:
     async def shutdown(self) -> None:
         self._tx_queue = []
         self._inRun = False
+
+        for task in self._tasks:
+            task.cancel()
+        await asyncio.gather(*self._tasks, return_exceptions=True)
+        self._tasks.clear()
 
         if await self._sock.open():
             await self._sock.write(
