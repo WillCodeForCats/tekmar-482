@@ -1,6 +1,5 @@
 """The Tekmar 482 Gateway Integration."""
 
-import asyncio
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -39,8 +38,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    asyncio.create_task(tekmar_gateway.run())
-    asyncio.create_task(tekmar_gateway.timekeeper())
+    # Tracked by the hub so shutdown() can cancel them on unload.
+    tekmar_gateway.add_task(
+        entry.async_create_background_task(
+            hass, tekmar_gateway.run(), f"{DOMAIN}_{entry.entry_id}_run"
+        )
+    )
+    tekmar_gateway.add_task(
+        entry.async_create_background_task(
+            hass, tekmar_gateway.timekeeper(), f"{DOMAIN}_{entry.entry_id}_timekeeper"
+        )
+    )
 
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
