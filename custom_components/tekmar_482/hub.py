@@ -582,13 +582,18 @@ class TekmarHub:
         self._tx_queue = []
         self._inRun = False
 
-        if await self._sock.open():
-            await self._sock.write(
-                TrpcPacket(
-                    service="Update", method="ReportingState", state=ThaValue.OFF
+        # Reuse the open connection; only reconnect if it has dropped.
+        if self._sock.is_open or await self._sock.open():
+            try:
+                await self._sock.write(
+                    TrpcPacket(
+                        service="Update", method="ReportingState", state=ThaValue.OFF
+                    )
                 )
-            )
-            await self._sock.close()
+            except OSError as e:
+                _LOGGER.debug("Could not turn off reporting on shutdown: %s", e)
+
+        await self._sock.close()
 
     @property
     def hub_id(self) -> str:
