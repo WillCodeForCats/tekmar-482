@@ -20,13 +20,13 @@ class Packet:
     format = FieldList("PacketFormat", Int8(None))
 
     # --------------------------------------------------------------------------
-    def __init__(self, type=TYPE_GENERAL, data=None):
+    def __init__(self, pkt_type=TYPE_GENERAL, data=None):
         if data is None:
             self.data = []
         else:
             self.data = list(data)
 
-        self.type = type
+        self.type = pkt_type
 
     # --------------------------------------------------------------------------
     def __str__(self):
@@ -57,12 +57,12 @@ class Packet:
         if ln == 0:
             return Packet()
         try:
-            type, data = Packet.format.unpack(
+            pkt_type, data = Packet.format.unpack(
                 list(
                     [int(x, 16) for x in [s[idx : idx + 2] for idx in range(0, ln, 2)]]
                 )
             )
-            return Packet(type[0], data)
+            return Packet(pkt_type[0], data)
         except ValueError:
             return Packet()
 

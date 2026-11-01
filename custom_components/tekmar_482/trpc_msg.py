@@ -200,7 +200,7 @@ class TrpcPacket:
         if "serviceID" in kwargs:
             # Get the format based on MethodID.  If the method lookup fails, use
             # an empty message.
-            format = service_formats.get(kwargs["serviceID"], empty_field_list)
+            body_format = service_formats.get(kwargs["serviceID"], empty_field_list)
 
         else:
             try:
@@ -210,18 +210,18 @@ class TrpcPacket:
                 # - Lookup the format for that service.
                 service_id = serviceID_from_name[kwargs["service"]]
                 kwargs["serviceID"] = service_id
-                format = service_formats[service_id]
+                body_format = service_formats[service_id]
 
             except KeyError:
                 # If any of the above lookups fails, the format is unknown
                 # and we'll use the empty field list.
-                format = empty_field_list
+                body_format = empty_field_list
 
         # Determine the format of the message body.
         if "methodID" in kwargs:
             # Get the format based on MethodID.  If the method lookup fails, use
             # an empty message.
-            format = method_formats.get(kwargs["methodID"], empty_field_list)
+            body_format = method_formats.get(kwargs["methodID"], empty_field_list)
 
         else:
             try:
@@ -231,15 +231,15 @@ class TrpcPacket:
                 # - Lookup the format for that method.
                 method_id = methodID_from_name[kwargs["method"]]
                 kwargs["methodID"] = method_id
-                format = method_formats[method_id]
+                body_format = method_formats[method_id]
 
             except KeyError:
                 # If any of the above lookups fails, the format is unknown
                 # and we'll use the empty field list.
-                format = empty_field_list
+                body_format = empty_field_list
 
         # Apply the formatting.
-        self.body, self.extra = Record.create(format)
+        self.body, self.extra = Record.create(body_format)
 
         # Fill any provided values that are relevant.  Note here that if any
         # field names in the header and data match, they will be assigned
