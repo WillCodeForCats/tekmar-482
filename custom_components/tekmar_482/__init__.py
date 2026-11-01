@@ -82,5 +82,6 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     )
 
     data = await store.async_load()
-    if data is not None and data.pop(entry.entry_id, None) is not None:
+    if data is not None and entry.entry_id in data:
+        del data[entry.entry_id]
         await store.async_save(data)
