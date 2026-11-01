@@ -137,9 +137,9 @@ class TekmarHub:
         while self._inSetup is True:
             if len(self._tx_queue) != 0:
                 try:
-                    writePacket = self._tx_queue.pop(0)
-                    _LOGGER.debug("Setup %s", writePacket)
-                    await self._sock.write(writePacket)
+                    write_packet = self._tx_queue.pop(0)
+                    _LOGGER.debug("Setup %s", write_packet)
+                    await self._sock.write(write_packet)
                     await asyncio.sleep(0.1)  # writing too fast causes errors
                 except OSError as e:
                     _LOGGER.error("Write error: %s", e)
@@ -320,12 +320,12 @@ class TekmarHub:
     async def run(self) -> None:
         """Process the transmit queue and incoming packets until shutdown."""
         self._inRun = True
-        readCycle = 0
+        read_cycle = 0
 
         while self._inRun is True:
             try:
                 if not self._sock.is_open:
-                    readCycle = 0
+                    read_cycle = 0
                     if await self._sock.open() is False:
                         raise ConnectionError(f"Connection to {self._host} failed")
 
@@ -339,15 +339,15 @@ class TekmarHub:
                     )
 
                 if len(self._tx_queue) != 0:
-                    writePacket = self._tx_queue.pop(0)
-                    _LOGGER.debug("Run %s", writePacket)
-                    await self._sock.write(writePacket)
+                    write_packet = self._tx_queue.pop(0)
+                    _LOGGER.debug("Run %s", write_packet)
+                    await self._sock.write(write_packet)
                     await asyncio.sleep(0.1)
 
-                readCycle += 1
+                read_cycle += 1
                 p = await self._sock.read()
 
-                if readCycle > 130:
+                if read_cycle > 130:
                     raise ConnectionError(f"No reports from {self._host}")
 
             except (OSError, ValueError) as e:
@@ -357,7 +357,7 @@ class TekmarHub:
                 p = None
 
             if p is not None:
-                readCycle = 0
+                read_cycle = 0
 
                 try:
                     h = p.header
