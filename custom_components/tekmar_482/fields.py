@@ -20,8 +20,10 @@ class Field:
 
 # ******************************************************************************
 class Bitmask(Field):
-    """Naming utility.  This is the same as a field, but is implemented for
-    readability reasons when creating Bitfield objects.
+    """Naming utility.
+
+    This is the same as a field, but is implemented for readability reasons
+    when creating Bitfield objects.
     """
 
 
@@ -145,8 +147,10 @@ class FieldList(Field):
 
     # --------------------------------------------------------------------------
     def __init__(self, name, *lst):
-        """Name the list of fields and provide a list of field or FieldList
-        objects that specify the format of the data.
+        """Name the list of fields and provide the fields that define it.
+
+        lst is a sequence of Field or FieldList objects that specify the
+        format of the data.
         """
         self.name = name
         self.size = sum([f.size for f in lst])
@@ -154,8 +158,9 @@ class FieldList(Field):
 
     # --------------------------------------------------------------------------
     def names(self):
-        """Return a list of the field names.  The list is ordered according
-        to the data order.
+        """Return a list of the field names.
+
+        The list is ordered according to the data order.
         """
         name_list = []
         for f in self.fields:
@@ -167,7 +172,9 @@ class FieldList(Field):
 
     # --------------------------------------------------------------------------
     def unpack(self, bytes):
-        """Similar to the unpack method for the Field object except a series
+        """Unpack a series of Fields and FieldLists.
+
+        Similar to the unpack method for the Field object except a series
         of Fields and FieldLists can be unpacked.
         """
         vals = []
@@ -178,7 +185,9 @@ class FieldList(Field):
 
     # --------------------------------------------------------------------------
     def pack(self, values):
-        """Similar to the pack method for the Field object except a series
+        """Pack a series of Fields and FieldLists.
+
+        Similar to the pack method for the Field object except a series
         of Fields and FieldLists can be packed.
         """
         bytes = []
@@ -255,7 +264,9 @@ class Bitfield(FieldList):
 
     # --------------------------------------------------------------------------
     def unpack(self, bytes):
-        """Similar to the unpack method for the Field object except a series
+        """Unpack a series of bit-granular Fields and FieldLists.
+
+        Similar to the unpack method for the Field object except a series
         of bit-granular Fields and FieldLists can be unpacked.
         """
         total, bytes = self.helper.unpack(bytes)
@@ -268,7 +279,9 @@ class Bitfield(FieldList):
 
     # --------------------------------------------------------------------------
     def pack(self, values):
-        """Similar to the pack method for the Field object except a series
+        """Pack a series of bit-granular Fields and FieldLists.
+
+        Similar to the pack method for the Field object except a series
         of bit-granular Fields and FieldLists can be packed.
         """
         val = 0
@@ -292,10 +305,11 @@ class Record:
 
     # --------------------------------------------------------------------------
     def create(field_list, bytes=None):
-        """Create a record by specifying a field list.  Optionally provide a
-        sequence of bytes to unpack as record data.  If no bytes or if
-        insufficent bytes are provided, the data is padded with zeroes to
-        fill in the missing bytes.
+        """Create a record by specifying a field list.
+
+        Optionally provide a sequence of bytes to unpack as record data.  If
+        no bytes or if insufficient bytes are provided, the data is padded
+        with zeroes to fill in the missing bytes.
 
         The created record is returned.
 
@@ -318,8 +332,9 @@ class Record:
 
     # --------------------------------------------------------------------------
     def unpack(self, bytes):
-        """Unpack the sequence of bytes into the underlying dictionary and
-        keep track of any extra data.
+        """Unpack the sequence of bytes into the underlying dictionary.
+
+        Any extra data beyond the record is kept track of.
 
         Return the list of values and the extra data as a tuple.
         """
@@ -329,7 +344,9 @@ class Record:
 
     # --------------------------------------------------------------------------
     def pack(self, **values):
-        """Pack whatever fields are provided in the keyword arguments (values)
+        """Pack the record, updating it with any provided field values.
+
+        Pack whatever fields are provided in the keyword arguments (values)
         along with whatever data is already present in the record and
         return the resulting sequence of bytes (and extra data) as a tuple.
         """
@@ -350,9 +367,7 @@ class Record:
 
     # --------------------------------------------------------------------------
     def set(self, **values):
-        """Set values for the fields that are specified in the provided
-        keyword arguments.
-        """
+        """Set values for the fields specified in the keyword arguments."""
         for v in values:
             if v in self.values:
                 self.values[v] = values[v]

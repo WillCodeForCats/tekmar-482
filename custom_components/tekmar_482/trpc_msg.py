@@ -182,11 +182,10 @@ class TrpcPacket:
 
     # *************************************************************************
     def __init__(self, **kwargs):
-        """Create a TrpcPacket from a set of keyword arguments.  Return
-        the created packet.
+        """Create a TrpcPacket from a set of keyword arguments.
 
         kwargs is expected to contain at least one of name or id in order
-        to identify the format of the message.  If neith6er are provided or
+        to identify the format of the message.  If neither are provided or
         if evaluating them can not find a valid formatter object, an
         empty packet is created.
 
@@ -254,8 +253,10 @@ class TrpcPacket:
 
     # *************************************************************************
     def from_rx_packet(pck_str):
-        """Create a TrpcPacket from a packet string (as it would be received
-        from a socket connection.
+        """Create a TrpcPacket from a packet string.
+
+        The string is in the form it would be received from a socket
+        connection.
         """
         p = Packet.from_str(pck_str)
         if p.type != TYPE_TRPC:
@@ -278,7 +279,9 @@ class TrpcPacket:
 
     # *************************************************************************
     def to_tpck(self):
-        """Take the packet in all its glory and boil it down to a basic
+        """Convert this packet to a basic Packet object.
+
+        Take the packet in all its glory and boil it down to a basic
         Packet object.
 
         Return the converted packet.

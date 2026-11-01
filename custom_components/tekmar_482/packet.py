@@ -30,8 +30,9 @@ class Packet:
 
     # --------------------------------------------------------------------------
     def __str__(self):
-        """Create a string-representation of the packet (see the docs for the
-        module.
+        """Create a string representation of the packet.
+
+        See the module docs for the format.
         """
         lst = ["%02X" % b for b in self.joined()]
         lst.append("\n")
@@ -39,17 +40,16 @@ class Packet:
 
     # --------------------------------------------------------------------------
     def joined(self):
-        """Join the type and data into a single sequence and return the
-        result.
-        """
+        """Join the type and data into a single sequence and return it."""
         lst = [self.type]
         lst.extend(self.data)
         return lst
 
     # --------------------------------------------------------------------------
     def from_str(s):
-        """Convert a packet in string form (see the module docs) into a
-        a packet object and return the result.
+        """Convert a packet in string form into a packet object.
+
+        See the module docs for the string format.  Return the result.
         """
         ln = len(s)
         if ln & 1:

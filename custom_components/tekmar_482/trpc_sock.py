@@ -54,10 +54,10 @@ class TrpcSocket:
 
     # **************************************************************************
     async def read(self):
-        """Read a packet from the socket.  If no packet is avaialble,
-        None is returned.
+        """Read a packet from the socket.
 
-        Otherwise a tHA object is returned.
+        If no packet is available, None is returned.  Otherwise a tHA object
+        is returned.
         """
         if self._sock_reader is not None:
             try:
