@@ -37,22 +37,13 @@ service_formats = {
 # *****************************************************************************
 # Lookup service IDs from service names.
 #
-name_from_serviceID = dict(
-    list(
-        zip(
-            list(service_formats.keys()),
-            (f.name for f in list(service_formats.values())),
-        )
-    )
-)
+name_from_serviceID = {sid: f.name for sid, f in service_formats.items()}
 
 # *****************************************************************************
 # Lookup service names from service IDs.  This is the reverse of
 # name_from_serviceID.
 #
-serviceID_from_name = dict(
-    list(zip(list(name_from_serviceID.values()), list(name_from_serviceID.keys())))
-)
+serviceID_from_name = {name: sid for sid, name in name_from_serviceID.items()}
 
 method_formats = {
     # *********************************************************************
@@ -157,21 +148,13 @@ method_formats = {
 # *****************************************************************************
 # Lookup method IDs from method names.
 #
-name_from_methodID = dict(
-    list(
-        zip(
-            list(method_formats.keys()), (f.name for f in list(method_formats.values()))
-        )
-    )
-)
+name_from_methodID = {mid: f.name for mid, f in method_formats.items()}
 
 # *****************************************************************************
 # Lookup method names from method IDs.  This is the reverse of
 # name_from_methodID.
 #
-methodID_from_name = dict(
-    list(zip(list(name_from_methodID.values()), list(name_from_methodID.keys())))
-)
+methodID_from_name = {name: mid for mid, name in name_from_methodID.items()}
 
 
 # *****************************************************************************
