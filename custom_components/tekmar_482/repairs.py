@@ -7,7 +7,7 @@ from typing import cast
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant import data_entry_flow
-from homeassistant.components.repairs import RepairsFlow
+from homeassistant.components.repairs import ConfirmRepairFlow, RepairsFlow
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
@@ -84,3 +84,4 @@ async def async_create_fix_flow(
     if (entry := hass.config_entries.async_get_entry(entry_id)) is not None:
         if issue_id == "check_configuration":
             return CheckConfigurationRepairFlow(entry)
+    return ConfirmRepairFlow()
