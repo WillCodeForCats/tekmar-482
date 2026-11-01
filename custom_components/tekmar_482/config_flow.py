@@ -32,6 +32,22 @@ def tekmar_482_entries(hass: HomeAssistant):
     )
 
 
+def generate_config_schema(step_id: str, user_input: dict[str, Any]) -> vol.Schema:
+    """Generate config flow or repair schema."""
+    schema: dict[vol.Marker, Any] = {}
+
+    if step_id == "user":
+        schema |= {vol.Required(CONF_NAME, default=user_input[CONF_NAME]): cv.string}
+
+    if step_id in ["reconfigure", "user"]:
+        schema |= {
+            vol.Required(CONF_HOST, default=user_input[CONF_HOST]): cv.string,
+            vol.Required(CONF_PORT, default=user_input[CONF_PORT]): vol.Coerce(int),
+        }
+
+    return vol.Schema(schema)
+
+
 class TekmarGatewayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Tekmar Gateway configflow."""
 
@@ -45,8 +61,10 @@ class TekmarGatewayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Create the options flow for Tekmar Gateway 482."""
         return TekmarGatewayOptionsFlowHandler()
 
-    async def async_step_user(self, user_input=None) -> FlowResult:
-        """Handle the initial step."""
+    async def async_step_user(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Handle the initial config flow step."""
         errors = {}
 
         if user_input is not None:
@@ -84,6 +102,44 @@ class TekmarGatewayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     ),
                 },
             ),
+            errors=errors,
+        )
+
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Handle the reconfigure flow step."""
+        errors = {}
+        config_entry = self._get_reconfigure_entry()
+
+        if user_input is not None:
+            user_input[CONF_HOST] = user_input[CONF_HOST].lower()
+
+            other_hosts = tekmar_482_entries(self.hass) - {
+                config_entry.data[CONF_HOST].lower()
+            }
+
+            if not host_valid(user_input[CONF_HOST]):
+                errors[CONF_HOST] = "invalid_host"
+            elif user_input[CONF_HOST] in other_hosts:
+                errors[CONF_HOST] = "already_configured"
+            elif not 1 <= user_input[CONF_PORT] <= 65535:
+                errors[CONF_PORT] = "invalid_tcp_port"
+            else:
+                # The entry's update listener reloads the integration.
+                self.hass.config_entries.async_update_entry(
+                    config_entry, data={**config_entry.data, **user_input}
+                )
+                return self.async_abort(reason="reconfigure_successful")
+        else:
+            user_input = {
+                CONF_HOST: config_entry.data[CONF_HOST],
+                CONF_PORT: config_entry.data.get(CONF_PORT, DEFAULT_PORT),
+            }
+
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=generate_config_schema("reconfigure", user_input),
             errors=errors,
         )
 
