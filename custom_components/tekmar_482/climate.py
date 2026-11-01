@@ -195,7 +195,10 @@ class ThaClimateThermostat(ThaClimateBase):
         """Return the hvac modes."""
         hvac_modes = [HVACMode.OFF]
 
-        if self._tekmar_tha.tha_device["attributes"].ZoneHeating == 1:
+        if (
+            self._tekmar_tha.tha_device["attributes"].ZoneHeating == 1
+            or self._tekmar_tha.tha_device["attributes"].SlabSetpoint == 1
+        ):
             hvac_modes.append(HVACMode.HEAT)
 
         if self._tekmar_tha.tha_device["attributes"].ZoneCooling == 1:
@@ -320,6 +323,9 @@ class ThaClimateThermostat(ThaClimateBase):
         elif self._tekmar_tha.tha_device["attributes"].ZoneCooling == 1:
             this_device_setpoint = self._tekmar_tha.cool_setpoint
 
+        elif self._tekmar_tha.tha_device["attributes"].SlabSetpoint == 1:
+            this_device_setpoint = self._tekmar_tha.slab_setpoint
+
         else:
             return None
 
@@ -368,6 +374,7 @@ class ThaClimateThermostat(ThaClimateBase):
         """Set temperature."""
         heat_setpoint = None
         cool_setpoint = None
+        slab_setpoint = None
 
         if self.supported_features & Feature.TARGET_TEMPERATURE:
             if self._tekmar_tha.tha_device["attributes"].ZoneHeating == 1:
@@ -375,6 +382,9 @@ class ThaClimateThermostat(ThaClimateBase):
 
             elif self._tekmar_tha.tha_device["attributes"].ZoneCooling == 1:
                 cool_setpoint = kwargs.get(ATTR_TEMPERATURE)
+
+            elif self._tekmar_tha.tha_device["attributes"].SlabSetpoint == 1:
+                slab_setpoint = kwargs.get(ATTR_TEMPERATURE)
 
         elif self.supported_features & Feature.TARGET_TEMPERATURE_RANGE:
             heat_setpoint = kwargs.get(ATTR_TARGET_TEMP_LOW)
@@ -387,6 +397,10 @@ class ThaClimateThermostat(ThaClimateBase):
         if cool_setpoint is not None:
             cool_setpoint = int(round(degCtoE(cool_setpoint), 0))
             await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint)
+
+        if slab_setpoint is not None:
+            slab_setpoint = int(round(degCtoE(slab_setpoint), 0))
+            await self._tekmar_tha.set_slab_setpoint_txqueue(slab_setpoint)
 
     async def async_set_hvac_mode(self, hvac_mode):
         """Set hvac mode."""

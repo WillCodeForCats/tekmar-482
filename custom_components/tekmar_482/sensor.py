@@ -275,7 +275,10 @@ class CurrentFloorTemperature(ThaSensorBase):
     @property
     def entity_registry_enabled_default(self) -> bool:
         """Return the entity registry enabled default."""
-        return self._tekmar_tha.tha_device["attributes"].SlabSetpoint
+        return bool(
+            self._tekmar_tha.tha_device["attributes"].SlabSetpoint
+            or self._tekmar_tha.tha_device["attributes"].RoomAndSlab
+        )
 
     @property
     def available(self) -> bool:
