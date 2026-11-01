@@ -1,3 +1,5 @@
+"""tRPC message formats and the TrpcPacket class."""
+
 from .fields import FieldList, Int8, Int16, Int32, Record
 from .packet import TYPE_TRPC, Packet
 
@@ -174,6 +176,8 @@ methodID_from_name = dict(
 
 # *****************************************************************************
 class TrpcPacket:
+    """A tRPC message: a header with service and method IDs, plus a body."""
+
     # *************************************************************************
     # Format of all tRPC packets (except the message body - that has to be
     # determined based on method ID.

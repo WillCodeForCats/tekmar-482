@@ -1,3 +1,10 @@
+"""Generic packets exchanged with the gateway packet server.
+
+In string form, a packet is a sequence of two-digit uppercase hex
+values, one per byte: the packet type first, followed by the data
+bytes, and terminated by a newline.
+"""
+
 from .fields import FieldList, Int8
 
 # ******************************************************************************
@@ -16,6 +23,8 @@ from .fields import FieldList, Int8
 
 # ******************************************************************************
 class Packet:
+    """A packet with a type and a sequence of data bytes."""
+
     # --------------------------------------------------------------------------
     format = FieldList("PacketFormat", Int8(None))
 

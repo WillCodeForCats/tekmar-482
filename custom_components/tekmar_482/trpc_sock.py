@@ -1,3 +1,5 @@
+"""Async socket for exchanging tRPC packets with the packet server."""
+
 import asyncio
 
 from .trpc_msg import TrpcPacket
@@ -5,6 +7,8 @@ from .trpc_msg import TrpcPacket
 
 # ******************************************************************************
 class TrpcSocket:
+    """Async TCP connection to the gateway packet server."""
+
     # **************************************************************************
     def __init__(self, addr=None, port=None):
         """Store the address and port; call open() to connect."""

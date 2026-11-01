@@ -37,7 +37,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up a climate entity for each thermostat."""
+    """Setup entry."""
     hub = hass.data[DOMAIN][config_entry.entry_id]
 
     entities = []
@@ -63,17 +63,17 @@ class ThaClimateBase(ClimateEntity):
 
     @property
     def device_info(self):
-        """Return device information for the device registry."""
+        """Return the device info."""
         return self._tekmar_tha.device_info
 
     @property
     def available(self) -> bool:
-        """Return True if the device and hub are online."""
+        """Return the available."""
         return self._tekmar_tha.online and self._tekmar_tha.hub.online
 
     @property
     def config_entry_id(self):
-        """Return the config entry ID."""
+        """Return the config entry id."""
         return self._config_entry.entry_id
 
     @property
@@ -82,11 +82,11 @@ class ThaClimateBase(ClimateEntity):
         return self._config_entry.data["name"]
 
     async def async_added_to_hass(self):
-        """Register for state updates when added to Home Assistant."""
+        """Added to hass."""
         self._tekmar_tha.register_callback(self.async_write_ha_state)
 
     async def async_will_remove_from_hass(self):
-        """Remove the state update callback before removal."""
+        """Will remove from hass."""
         self._tekmar_tha.remove_callback(self.async_write_ha_state)
 
 
@@ -99,7 +99,7 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def unique_id(self) -> str:
-        """Return the unique ID of the entity."""
+        """Return the unique id."""
         return (
             f"{self.config_entry_id}-{self._tekmar_tha.model}-"
             f"{self._tekmar_tha.device_id}-climate"
@@ -107,12 +107,12 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def name(self) -> str:
-        """Return the name of the entity."""
+        """Return the name."""
         return f"{self._tekmar_tha.tha_full_device_name}"
 
     @property
     def max_temp(self):
-        """Return the higher of the heat and cool maximum setpoints."""
+        """Return the max temp."""
         if self.hvac_mode == HVACMode.OFF:
             return None
 
@@ -125,7 +125,7 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def min_temp(self):
-        """Return the lower of the heat and cool minimum setpoints."""
+        """Return the min temp."""
         if self.hvac_mode == HVACMode.OFF:
             return None
 
@@ -138,7 +138,7 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def supported_features(self):
-        """Return the features supported by this thermostat."""
+        """Return the supported features."""
         supported_features = Feature.TURN_OFF
 
         if (
@@ -169,7 +169,7 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def current_temperature(self):
-        """Return the current temperature in degrees Celsius."""
+        """Return the current temperature."""
         if (
             self._tekmar_tha.current_temperature == ThaValue.NA_16
             or self._tekmar_tha.current_temperature is None
@@ -186,7 +186,7 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def current_humidity(self):
-        """Return the current relative humidity."""
+        """Return the current humidity."""
         if (
             self._tekmar_tha.relative_humidity == ThaValue.NA_8
             or self._tekmar_tha.relative_humidity is None
@@ -197,7 +197,7 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def hvac_modes(self) -> list[str]:
-        """Return the HVAC modes this zone supports."""
+        """Return the hvac modes."""
         hvac_modes = [HVACMode.OFF]
 
         if self._tekmar_tha.tha_device["attributes"].ZoneHeating == 1:
@@ -216,7 +216,7 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def hvac_mode(self):
-        """Return the current HVAC mode mapped from the thermostat mode."""
+        """Return the hvac mode."""
         if self._tekmar_tha.mode_setting == ThaDeviceMode.OFF:
             return HVACMode.OFF
         if self._tekmar_tha.mode_setting == ThaDeviceMode.HEAT:
@@ -233,14 +233,14 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def fan_modes(self):
-        """Return the available fan modes."""
+        """Return the fan modes."""
         if self._tekmar_tha.tha_device["attributes"].FanPercent == 1:
             return [FAN_ON, FAN_AUTO]
         return None
 
     @property
     def fan_mode(self):
-        """Return the current fan mode."""
+        """Return the fan mode."""
         if self._tekmar_tha.tha_device["type"] in [99203, 99202, 99201]:
             if self._tekmar_tha.fan_percent == 10:
                 return FAN_ON
@@ -252,7 +252,7 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def target_humidity(self):
-        """Return the humidity setpoint, if exactly one is configured."""
+        """Return the target humidity."""
         if (
             self._tekmar_tha.humidity_setpoint_min != ThaValue.NA_8
             and self._tekmar_tha.humidity_setpoint_max == ThaValue.NA_8
@@ -275,7 +275,7 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def preset_mode(self):
-        """Return the preset mode mapped from the setback state."""
+        """Return the preset mode."""
         if self._tekmar_tha.setback_state == 0x00:
             return PRESET_HOME
 
@@ -301,7 +301,7 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def hvac_action(self):
-        """Return the current HVAC action."""
+        """Return the hvac action."""
         if self._tekmar_tha.mode_setting == ThaDeviceMode.OFF:
             return HVACAction.OFF
 
@@ -318,7 +318,7 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def target_temperature(self):
-        """Return the active heat or cool setpoint in degrees Celsius."""
+        """Return the target temperature."""
         if self._tekmar_tha.tha_device["attributes"].ZoneHeating == 1:
             this_device_setpoint = self._tekmar_tha.heat_setpoint
 
@@ -341,7 +341,7 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def target_temperature_high(self):
-        """Return the cooling setpoint in degrees Celsius."""
+        """Return the target temperature high."""
         if (
             self._tekmar_tha.cool_setpoint == ThaValue.NA_8
             or self._tekmar_tha.cool_setpoint is None
@@ -356,7 +356,7 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def target_temperature_low(self):
-        """Return the heating setpoint in degrees Celsius."""
+        """Return the target temperature low."""
         if (
             self._tekmar_tha.heat_setpoint == ThaValue.NA_8
             or self._tekmar_tha.heat_setpoint is None
@@ -370,7 +370,7 @@ class ThaClimateThermostat(ThaClimateBase):
             return None
 
     async def async_set_temperature(self, **kwargs):
-        """Send new heat and/or cool setpoints to the thermostat."""
+        """Set temperature."""
         heat_setpoint = None
         cool_setpoint = None
 
@@ -394,7 +394,7 @@ class ThaClimateThermostat(ThaClimateBase):
             await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint)
 
     async def async_set_hvac_mode(self, hvac_mode):
-        """Send a new HVAC mode."""
+        """Set hvac mode."""
         if hvac_mode == HVACMode.OFF:
             value = ThaDeviceMode.OFF
         elif hvac_mode == HVACMode.HEAT:
@@ -409,11 +409,11 @@ class ThaClimateThermostat(ThaClimateBase):
         await self._tekmar_tha.set_mode_setting_txqueue(value)
 
     async def async_turn_off(self):
-        """Turn the thermostat off."""
+        """Turn the entity off."""
         await self.async_set_hvac_mode(self, HVACMode.OFF)
 
     async def async_set_fan_mode(self, fan_mode):
-        """Send a new fan mode."""
+        """Set fan mode."""
         if fan_mode == FAN_ON:
             if self._tekmar_tha.tha_device["type"] in [99203, 99202, 99201]:
                 value = 10
@@ -429,7 +429,7 @@ class ThaClimateThermostat(ThaClimateBase):
         await self._tekmar_tha.set_fan_percent_txqueue(value)
 
     async def async_set_humidity(self, humidity):
-        """Send a new humidity setpoint to whichever setpoint is configured."""
+        """Set humidity."""
         if (
             self._tekmar_tha.humidity_setpoint_min != ThaValue.NA_8
             and self._tekmar_tha.humidity_setpoint_max == ThaValue.NA_8

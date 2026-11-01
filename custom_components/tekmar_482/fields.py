@@ -1,3 +1,5 @@
+"""Field definitions for packing and unpacking binary records."""
+
 LITTLE_ENDIAN = False
 BIG_ENDIAN = True
 
@@ -6,11 +8,13 @@ DEFAULT_BYTE_ORDER = LITTLE_ENDIAN
 
 # ******************************************************************************
 class FieldError(Exception):
-    pass
+    """Raised when a field definition is invalid."""
 
 
 # ******************************************************************************
 class Field:
+    """Base class for a named field of a fixed size."""
+
     # --------------------------------------------------------------------------
     def __init__(self, name, size):
         """A field has a name and a size.  The size is in bytes."""
@@ -29,6 +33,8 @@ class Bitmask(Field):
 
 # ******************************************************************************
 class Int8(Field):
+    """An unsigned 8-bit integer field."""
+
     # --------------------------------------------------------------------------
     def __init__(self, name):
         """Create a named 1-byte field."""
@@ -49,6 +55,8 @@ class Int8(Field):
 
 # ******************************************************************************
 class Int16(Field):
+    """An unsigned 16-bit integer field."""
+
     # --------------------------------------------------------------------------
     def __init__(self, name, order=DEFAULT_BYTE_ORDER):
         """Create a named 2-byte field with the given byte order."""
@@ -79,6 +87,8 @@ class Int16(Field):
 
 # ******************************************************************************
 class Int24(Field):
+    """An unsigned 24-bit integer field."""
+
     # --------------------------------------------------------------------------
     def __init__(self, name, order=DEFAULT_BYTE_ORDER):
         """Create a named 3-byte field with the given byte order."""
@@ -110,6 +120,8 @@ class Int24(Field):
 
 # ******************************************************************************
 class Int32(Field):
+    """An unsigned 32-bit integer field."""
+
     # --------------------------------------------------------------------------
     def __init__(self, name, order=DEFAULT_BYTE_ORDER):
         """Create a named 4-byte field with the given byte order."""

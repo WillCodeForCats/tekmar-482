@@ -1,3 +1,5 @@
+"""The Tekmar Gateway 482 helpers module."""
+
 from __future__ import annotations
 
 import ipaddress

@@ -18,7 +18,7 @@ else:
         from enum import Enum
 
         class StrEnum(str, Enum):
-            pass
+            """Fallback StrEnum for Python versions before 3.11."""
 
 
 c_uint = ctypes.c_uint
@@ -50,6 +50,8 @@ DOMAIN_REGEX = re.compile(
 
 
 class ThaSetback(IntEnum):
+    """Setback states for 4-event and 2-event schedules, plus away and current."""
+
     WAKE_4 = 0x00
     UNOCC_4 = 0x01
     OCC_4 = 0x02
@@ -61,6 +63,8 @@ class ThaSetback(IntEnum):
 
 
 class ThaValue(IntEnum):
+    """Common tRPC values, including the 'not available' sentinels."""
+
     ON = 0x01
     OFF = 0x00
     NA_8 = 0xFF
@@ -69,12 +73,16 @@ class ThaValue(IntEnum):
 
 
 class ThaType(StrEnum):
+    """Device types supported by the integration."""
+
     THERMOSTAT = "thermostat"
     SETPOINT = "setpoint"
     SNOWMELT = "snowmelt"
 
 
 class ThaDefault(IntEnum):
+    """Default setpoint limits in degrees Celsius."""
+
     HEAT_MIN = 7
     HEAT_MAX = 29
     COOL_MIN = 10
@@ -424,6 +432,8 @@ class _DeviceAttributes(ctypes.LittleEndianStructure):
 
 
 class DeviceAttributes(ctypes.Union):
+    """Device attribute flags, readable as bits or as the raw attrs value."""
+
     _anonymous_ = ("bit",)
     _fields_ = [("bit", _DeviceAttributes), ("attrs", c_uint)]
 

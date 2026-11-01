@@ -1,3 +1,5 @@
+"""The Tekmar Gateway 482 hub module."""
+
 import asyncio
 from collections.abc import Callable
 import logging
@@ -43,7 +45,7 @@ class TekmarHub:
         port: int,
         opt_setback_enable: bool,
     ) -> None:
-        """Initialize the hub for a gateway packet server."""
+        """Initialize the Tekmar hub."""
         self._hass = hass
         self._entry_id = entry_id
         self._name = name
@@ -577,12 +579,12 @@ class TekmarHub:
 
     @property
     def hub_id(self) -> str:
-        """Return the hub ID."""
+        """Return the hub id."""
         return self._id
 
     @property
     def online(self) -> bool:
-        """Return True if the hub is online."""
+        """Return the online."""
         return self._online
 
     @online.setter
@@ -594,22 +596,22 @@ class TekmarHub:
 
     @property
     def tha_fw_ver(self) -> int:
-        """Return the gateway firmware revision."""
+        """Return the tha fw ver."""
         return self._tha_fw_ver
 
     @property
     def tha_pr_ver(self) -> int:
-        """Return the gateway protocol version."""
+        """Return the tha pr ver."""
         return self._tha_pr_ver
 
     @property
     def tha_reporting_state(self) -> int:
-        """Return the gateway reporting state."""
+        """Return the tha reporting state."""
         return self._tha_reporting_state
 
     @property
     def tha_setback_enable(self) -> bool:
-        """Return True if setback is enabled."""
+        """Return the tha setback enable."""
         if self._tha_setback_enable:
             return True
         return False
@@ -627,7 +629,7 @@ class TekmarThermostat:
     """Tekmar thermostat device."""
 
     def __init__(self, address: int, tha_device: [], hub: TekmarHub) -> None:
-        """Initialize a thermostat at a TN4 bus address."""
+        """Initialize the Tekmar thermostat."""
         self._id = address
         self.hub = hub
         self.tha_device = tha_device
@@ -869,17 +871,17 @@ class TekmarThermostat:
 
     @property
     def device_id(self) -> str:
-        """Return the TN4 bus address of the device."""
+        """Return the device id."""
         return self._id
 
     @property
     def tha_device_type(self) -> str:
-        """Return the device type name."""
+        """Return the tha device type."""
         return self._device_type
 
     @property
     def tha_full_device_name(self) -> str:
-        """Return the full display name of the device."""
+        """Return the tha full device name."""
         return self._tha_full_device_name
 
     @property
@@ -889,21 +891,21 @@ class TekmarThermostat:
 
     @property
     def current_floor_temperature(self) -> str:
-        """Return the current floor temperature in degH (protocol 3 only)."""
+        """Return the current floor temperature in degH."""
         if self.hub.tha_pr_ver != 3:
             return None
         return self._tha_current_floor_temperature
 
     @property
     def relative_humidity(self) -> str:
-        """Return the relative humidity (protocol 2 and 3 only)."""
+        """Return the relative humidity."""
         if self.hub.tha_pr_ver not in [2, 3]:
             return None
         return self._tha_relative_humidity
 
     @property
     def cool_setpoint(self) -> str:
-        """Return the cool setpoint (degE) for the current setback state."""
+        """Return the cool setpoint in degE."""
         try:
             return self._tha_cool_setpoints[
                 SETBACK_SETPOINT_MAP[self._tha_setback_state]
@@ -913,22 +915,22 @@ class TekmarThermostat:
 
     @property
     def cool_setpoint_day(self) -> str:
-        """Return the day cool setpoint in degE."""
+        """Return the cool setpoint day in degE."""
         return self._tha_cool_setpoints[0x00]
 
     @property
     def cool_setpoint_night(self) -> str:
-        """Return the night cool setpoint in degE."""
+        """Return the cool setpoint night in degE."""
         return self._tha_cool_setpoints[0x01]
 
     @property
     def cool_setpoint_away(self) -> str:
-        """Return the away cool setpoint in degE."""
+        """Return the cool setpoint away in degE."""
         return self._tha_cool_setpoints[0x02]
 
     @property
     def heat_setpoint(self) -> str:
-        """Return the heat setpoint (degE) for the current setback state."""
+        """Return the heat setpoint in degE."""
         try:
             return self._tha_heat_setpoints[
                 SETBACK_SETPOINT_MAP[self._tha_setback_state]
@@ -938,69 +940,69 @@ class TekmarThermostat:
 
     @property
     def heat_setpoint_day(self) -> str:
-        """Return the day heat setpoint in degE."""
+        """Return the heat setpoint day in degE."""
         return self._tha_heat_setpoints[0x00]
 
     @property
     def heat_setpoint_night(self) -> str:
-        """Return the night heat setpoint in degE."""
+        """Return the heat setpoint night in degE."""
         return self._tha_heat_setpoints[0x01]
 
     @property
     def heat_setpoint_away(self) -> str:
-        """Return the away heat setpoint in degE."""
+        """Return the heat setpoint away in degE."""
         return self._tha_heat_setpoints[0x02]
 
     @property
     def config_vent_mode(self) -> bool:
-        """Return True if vent mode is enabled."""
+        """Return the config vent mode."""
         return self._config_vent_mode
 
     @property
     def config_heat_setpoint_max(self) -> int:
-        """Return the maximum heat setpoint, or the default if unset."""
+        """Return the config heat setpoint max."""
         if self._config_heat_setpoint_max is None:
             return ThaDefault.HEAT_MAX
         return self._config_heat_setpoint_max
 
     @property
     def config_heat_setpoint_min(self) -> int:
-        """Return the minimum heat setpoint, or the default if unset."""
+        """Return the config heat setpoint min."""
         if self._config_heat_setpoint_min is None:
             return ThaDefault.HEAT_MIN
         return self._config_heat_setpoint_min
 
     @property
     def config_cool_setpoint_max(self) -> int:
-        """Return the maximum cool setpoint, or the default if unset."""
+        """Return the config cool setpoint max."""
         if self._config_cool_setpoint_max is None:
             return ThaDefault.COOL_MAX
         return self._config_cool_setpoint_max
 
     @property
     def config_cool_setpoint_min(self) -> int:
-        """Return the minimum cool setpoint, or the default if unset."""
+        """Return the config cool setpoint min."""
         if self._config_cool_setpoint_min is None:
             return ThaDefault.COOL_MIN
         return self._config_cool_setpoint_min
 
     @property
     def config_slab_setpoint_max(self) -> int:
-        """Return the maximum slab setpoint, or the default if unset."""
+        """Return the config slab setpoint max."""
         if self._config_slab_setpoint_max is None:
             return ThaDefault.SLAB_MAX
         return self._config_slab_setpoint_max
 
     @property
     def config_slab_setpoint_min(self) -> int:
-        """Return the minimum slab setpoint, or the default if unset."""
+        """Return the config slab setpoint min."""
         if self._config_slab_setpoint_min is None:
             return ThaDefault.SLAB_MIN
         return self._config_slab_setpoint_min
 
     @property
     def slab_setpoint(self) -> str:
-        """Return the slab setpoint (degE) for the current setback state."""
+        """Return the slab setpoint in degE."""
         try:
             return self._tha_slab_setpoints[
                 SETBACK_SETPOINT_MAP[self._tha_setback_state]
@@ -1010,32 +1012,32 @@ class TekmarThermostat:
 
     @property
     def active_demand(self) -> str:
-        """Return the current active demand."""
+        """Return the active demand."""
         return self._tha_active_demand
 
     @property
     def setback_enable(self) -> bool:
-        """Return True if setback is enabled on the gateway."""
+        """Return the setback enable."""
         return self.hub.tha_setback_enable
 
     @property
     def setback_state(self) -> str:
-        """Return the current setback state."""
+        """Return the setback state."""
         return self._tha_setback_state
 
     @property
     def setback_events(self) -> str:
-        """Return the setback events value."""
+        """Return the setback events."""
         return self.tha_device["events"]
 
     @property
     def mode_setting(self) -> str:
-        """Return the thermostat mode setting."""
+        """Return the mode setting."""
         return self._tha_mode_setting
 
     @property
     def fan_percent(self) -> str:
-        """Return the fan percentage for the current setback state."""
+        """Return the fan percent."""
         try:
             return self._tha_fan_percent[SETBACK_FAN_MAP[self.setback_state]]
         except KeyError:
@@ -1043,14 +1045,14 @@ class TekmarThermostat:
 
     @property
     def humidity_setpoint_min(self) -> str:
-        """Return the minimum humidity setpoint (protocol 2 and 3 only)."""
+        """Return the humidity setpoint min."""
         if self.hub.tha_pr_ver not in [2, 3]:
             return None
         return self._tha_humidity_setpoint_min
 
     @property
     def humidity_setpoint_max(self) -> str:
-        """Return the maximum humidity setpoint (protocol 2 and 3 only)."""
+        """Return the humidity setpoint max."""
         if self.hub.tha_pr_ver not in [2, 3]:
             return None
         return self._tha_humidity_setpoint_max
@@ -1232,7 +1234,7 @@ class TekmarThermostat:
 
     @property
     def device_info(self) -> dict[str, Any] | None:
-        """Return device information for the device registry."""
+        """Return the device info."""
         return self._device_info
 
 
@@ -1240,7 +1242,7 @@ class TekmarSetpoint:
     """Tekmar setpoint device."""
 
     def __init__(self, address: int, tha_device: [], hub: TekmarHub) -> None:
-        """Initialize a setpoint control at a TN4 bus address."""
+        """Initialize the Tekmar setpoint."""
         self._id = address
         self.hub = hub
         self.tha_device = tha_device
@@ -1314,17 +1316,17 @@ class TekmarSetpoint:
 
     @property
     def device_id(self) -> str:
-        """Return the TN4 bus address of the device."""
+        """Return the device id."""
         return self._id
 
     @property
     def tha_device_type(self) -> str:
-        """Return the device type name."""
+        """Return the tha device type."""
         return self._device_type
 
     @property
     def tha_full_device_name(self) -> str:
-        """Return the full display name of the device."""
+        """Return the tha full device name."""
         return self._tha_full_device_name
 
     @property
@@ -1334,29 +1336,29 @@ class TekmarSetpoint:
 
     @property
     def current_floor_temperature(self) -> str:
-        """Return the current floor temperature in degH (protocol 3 only)."""
+        """Return the current floor temperature in degH."""
         if self.hub.tha_pr_ver != 3:
             return None
         return self._tha_current_floor_temperature
 
     @property
     def setpoint_target(self) -> str:
-        """Return the setpoint target temperature in degH."""
+        """Return the setpoint target in degH."""
         return self._tha_setpoint_target_temperature
 
     @property
     def setback_enable(self) -> bool:
-        """Return True if setback is enabled on the gateway."""
+        """Return the setback enable."""
         return self.hub.tha_setback_enable
 
     @property
     def setback_state(self) -> str:
-        """Return the current setback state."""
+        """Return the setback state."""
         return self._tha_setback_state
 
     @property
     def active_demand(self) -> str:
-        """Return the current active demand."""
+        """Return the active demand."""
         return self._tha_active_demand
 
     async def set_current_temperature(self, temp: int) -> None:
@@ -1385,15 +1387,15 @@ class TekmarSetpoint:
         await self.publish_updates()
 
     def register_callback(self, callback: Callable[[], None]) -> None:
-        """Register a callback, called when the device changes state."""
+        """Register callback, called when TekmarSetpoint changes state."""
         self._callbacks.add(callback)
 
     def remove_callback(self, callback: Callable[[], None]) -> None:
-        """Remove a previously registered callback."""
+        """Remove previously registered callback."""
         self._callbacks.discard(callback)
 
     async def publish_updates(self) -> None:
-        """Call all registered callbacks."""
+        """Schedule call all registered callbacks."""
         for callback in self._callbacks:
             callback()
 
@@ -1404,7 +1406,7 @@ class TekmarSetpoint:
 
     @property
     def device_info(self) -> dict[str, Any] | None:
-        """Return device information for the device registry."""
+        """Return the device info."""
         return self._device_info
 
 
@@ -1412,7 +1414,7 @@ class TekmarSnowmelt:
     """Temkar snowmelt device."""
 
     def __init__(self, address: int, tha_device: [], hub: TekmarHub) -> None:
-        """Initialize a snowmelt control at a TN4 bus address."""
+        """Initialize the Tekmar snowmelt."""
         self._id = address
         self.hub = hub
         self.tha_device = tha_device
@@ -1442,22 +1444,22 @@ class TekmarSnowmelt:
 
     @property
     def device_id(self) -> str:
-        """Return the TN4 bus address of the device."""
+        """Return the device id."""
         return self._id
 
     @property
     def tha_device_type(self) -> str:
-        """Return the device type name."""
+        """Return the tha device type."""
         return self._device_type
 
     @property
     def tha_full_device_name(self) -> str:
-        """Return the full display name of the device."""
+        """Return the tha full device name."""
         return self._tha_full_device_name
 
     @property
     def active_demand(self) -> str:
-        """Return the current active demand."""
+        """Return the active demand."""
         return self._tha_active_demand
 
     async def set_active_demand(self, demand: int) -> None:
@@ -1466,15 +1468,15 @@ class TekmarSnowmelt:
         await self.publish_updates()
 
     def register_callback(self, callback: Callable[[], None]) -> None:
-        """Register a callback, called when the device changes state."""
+        """Register callback, called when TekmarSnowmelt changes state."""
         self._callbacks.add(callback)
 
     def remove_callback(self, callback: Callable[[], None]) -> None:
-        """Remove a previously registered callback."""
+        """Remove previously registered callback."""
         self._callbacks.discard(callback)
 
     async def publish_updates(self) -> None:
-        """Call all registered callbacks."""
+        """Schedule call all registered callbacks."""
         for callback in self._callbacks:
             callback()
 
@@ -1485,7 +1487,7 @@ class TekmarSnowmelt:
 
     @property
     def device_info(self) -> dict[str, Any] | None:
-        """Return device information for the device registry."""
+        """Return the device info."""
         return self._device_info
 
 
@@ -1493,7 +1495,7 @@ class TekmarGateway:
     """Tekmar 482 Gateway device."""
 
     def __init__(self, gatewayid: str, host: str, hub: TekmarHub) -> None:
-        """Initialize the gateway device."""
+        """Initialize the Tekmar gateway."""
         self._id = gatewayid
         self._host = host
         self.hub = hub
@@ -1543,12 +1545,12 @@ class TekmarGateway:
 
     @property
     def gateway_id(self) -> str:
-        """Return the gateway ID."""
+        """Return the gateway id."""
         return self._id
 
     @property
     def name(self) -> str:
-        """Return the gateway host."""
+        """Return the name."""
         return self._host
 
     async def set_reporting_state(self, state: int) -> None:
@@ -1603,32 +1605,32 @@ class TekmarGateway:
 
     @property
     def reporting_state(self) -> int:
-        """Return the gateway reporting state."""
+        """Return the reporting state."""
         return self.hub.tha_reporting_state
 
     @property
     def setback_enable(self) -> bool:
-        """Return True if setback is enabled on the gateway."""
+        """Return the setback enable."""
         return self.hub.tha_setback_enable
 
     @property
     def outdoor_temprature(self) -> int:
-        """Return the outdoor temperature in degH."""
+        """Return the outdoor temprature in degH."""
         return self._tha_outdoor_temperature
 
     @property
     def network_error(self) -> int:
-        """Return the network error code."""
+        """Return the network error."""
         return self._tha_network_error
 
     @property
     def setpoint_groups(self) -> dict[int, Any]:
-        """Return the enable state of each setpoint group."""
+        """Return the setpoint groups."""
         return self._tha_setpoint_groups
 
     @property
     def device_info(self) -> dict[str, Any] | None:
-        """Return device information for the device registry."""
+        """Return the device info."""
         return self._device_info
 
 
@@ -1636,7 +1638,7 @@ class StoredData:
     """Abstraction over Home Assistant Store."""
 
     def __init__(self, hass: HomeAssistant, entry_id: str) -> None:
-        """Initialize storage for a config entry."""
+        """Initialize the stored data."""
         self._hass = hass
         self._entry_id = entry_id
         self._data = None
