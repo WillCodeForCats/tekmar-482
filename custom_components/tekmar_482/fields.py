@@ -33,11 +33,13 @@ class Int8(Field):
 
     # --------------------------------------------------------------------------
     def unpack(self, bytes):
+        """Unpack one byte; return the value and remaining bytes."""
         b = bytes.pop(0)
         return [b], bytes
 
     # --------------------------------------------------------------------------
     def pack(self, values):
+        """Pack one value into a byte; return it and remaining values."""
         val = values.pop(0)
         return [val & 0xFF], values
 
@@ -51,6 +53,7 @@ class Int16(Field):
 
     # --------------------------------------------------------------------------
     def unpack(self, bytes):
+        """Unpack two bytes; return the value and remaining bytes."""
         b0 = bytes.pop(0)
         b1 = bytes.pop(0)
         if self.order == LITTLE_ENDIAN:
@@ -61,6 +64,7 @@ class Int16(Field):
 
     # --------------------------------------------------------------------------
     def pack(self, values):
+        """Pack one value into two bytes; return them and remaining values."""
         val = values.pop(0)
         if self.order == LITTLE_ENDIAN:
             b = [val & 0xFF, (val >> 8) & 0xFF]
@@ -78,6 +82,7 @@ class Int24(Field):
 
     # --------------------------------------------------------------------------
     def unpack(self, bytes):
+        """Unpack three bytes; return the value and remaining bytes."""
         b0 = bytes.pop(0)
         b1 = bytes.pop(0)
         b2 = bytes.pop(0)
@@ -89,6 +94,7 @@ class Int24(Field):
 
     # --------------------------------------------------------------------------
     def pack(self, values):
+        """Pack one value into three bytes; return them and remaining values."""
         val = values.pop(0)
         if self.order == LITTLE_ENDIAN:
             b = [val & 0xFF, (val >> 8) & 0xFF, (val >> 16) & 0xFF]
@@ -106,6 +112,7 @@ class Int32(Field):
 
     # --------------------------------------------------------------------------
     def unpack(self, bytes):
+        """Unpack four bytes; return the value and remaining bytes."""
         b0 = bytes.pop(0)
         b1 = bytes.pop(0)
         b2 = bytes.pop(0)
@@ -118,6 +125,7 @@ class Int32(Field):
 
     # --------------------------------------------------------------------------
     def pack(self, values):
+        """Pack one value into four bytes; return them and remaining values."""
         val = values.pop(0)
         if self.order == LITTLE_ENDIAN:
             b = [val & 0xFF, (val >> 8) & 0xFF, (val >> 16) & 0xFF, (val >> 24) & 0xFF]

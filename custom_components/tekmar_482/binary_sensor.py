@@ -43,24 +43,30 @@ class ThaBinarySensorBase(BinarySensorEntity):
 
     @property
     def device_info(self):
+        """Return device information for the device registry."""
         return self._tekmar_tha.device_info
 
     @property
     def available(self) -> bool:
+        """Return True if the device and hub are online."""
         return self._tekmar_tha.online and self._tekmar_tha.hub.online
 
     @property
     def config_entry_id(self):
+        """Return the config entry ID."""
         return self._config_entry.entry_id
 
     @property
     def config_entry_name(self):
+        """Return the config entry name."""
         return self._config_entry.data["name"]
 
     async def async_added_to_hass(self):
+        """Register for state updates when added to Home Assistant."""
         self._tekmar_tha.register_callback(self.async_write_ha_state)
 
     async def async_will_remove_from_hass(self):
+        """Remove the state update callback before removal."""
         self._tekmar_tha.remove_callback(self.async_write_ha_state)
 
 
@@ -72,14 +78,17 @@ class ReportingState(ThaBinarySensorBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique ID of the entity."""
         return f"{self.config_entry_id}-gateway-reporting-state"
 
     @property
     def name(self) -> str:
+        """Return the name of the entity."""
         return f"{self.config_entry_name.capitalize()} Gateway Reporting State"
 
     @property
     def is_on(self):
+        """Return True if the gateway is reporting."""
         return self._tekmar_tha.reporting_state == ThaValue.ON
 
 
@@ -91,14 +100,17 @@ class SetbackEnable(ThaBinarySensorBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique ID of the entity."""
         return f"{self.config_entry_id}-gateway-setback-enable"
 
     @property
     def name(self) -> str:
+        """Return the name of the entity."""
         return f"{self.config_entry_name.capitalize()} Gateway Setback Enable"
 
     @property
     def available(self) -> bool:
+        """Return True if setback enable is known and the device is online."""
         if (
             self._tekmar_tha.setback_enable is None
             or self._tekmar_tha.setback_enable == ThaValue.NA_8
@@ -109,4 +121,5 @@ class SetbackEnable(ThaBinarySensorBase):
 
     @property
     def is_on(self):
+        """Return True if setback is enabled on the gateway."""
         return self._tekmar_tha.setback_enable == ThaValue.ON

@@ -57,24 +57,30 @@ class ThaSwitchBase(SwitchEntity):
 
     @property
     def device_info(self):
+        """Return device information for the device registry."""
         return self._tekmar_tha.device_info
 
     @property
     def available(self) -> bool:
+        """Return True if the device and hub are online."""
         return self._tekmar_tha.online and self._tekmar_tha.hub.online
 
     @property
     def config_entry_id(self):
+        """Return the config entry ID."""
         return self._config_entry.entry_id
 
     @property
     def config_entry_name(self):
+        """Return the config entry name."""
         return self._config_entry.data["name"]
 
     async def async_added_to_hass(self):
+        """Register for state updates when added to Home Assistant."""
         self._tekmar_tha.register_callback(self.async_write_ha_state)
 
     async def async_will_remove_from_hass(self):
+        """Remove the state update callback before removal."""
         self._tekmar_tha.remove_callback(self.async_write_ha_state)
 
 
@@ -89,6 +95,7 @@ class ThaSetpointGroup(ThaSwitchBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique ID of the entity."""
         return (
             f"{self.config_entry_id}-gateway-setpoint-group-"
             f"{int(self._setpoint_group):02d}"
@@ -96,6 +103,7 @@ class ThaSetpointGroup(ThaSwitchBase):
 
     @property
     def name(self) -> str:
+        """Return the name of the entity."""
         return (
             f"{self.config_entry_name.capitalize()} Gateway Setpoint Group "
             f"{int(self._setpoint_group):02d}"
@@ -103,6 +111,7 @@ class ThaSetpointGroup(ThaSwitchBase):
 
     @property
     def available(self) -> bool:
+        """Return True if the setpoint group state is known and online."""
         setpoint_groups = self._tekmar_tha.setpoint_groups
 
         if (
@@ -115,6 +124,7 @@ class ThaSetpointGroup(ThaSwitchBase):
 
     @property
     def is_on(self):
+        """Return True if the setpoint group is enabled."""
         setpoint_groups = self._tekmar_tha.setpoint_groups
 
         if setpoint_groups[self._setpoint_group] == ThaValue.OFF:
@@ -124,9 +134,11 @@ class ThaSetpointGroup(ThaSwitchBase):
         raise NotImplementedError
 
     async def async_turn_on(self, **kwargs):
+        """Enable the setpoint group."""
         await self._tekmar_tha.set_setpoint_group_txqueue(self._setpoint_group, 0x01)
 
     async def async_turn_off(self, **kwargs):
+        """Disable the setpoint group."""
         await self._tekmar_tha.set_setpoint_group_txqueue(self._setpoint_group, 0x00)
 
 
@@ -152,6 +164,7 @@ class EmergencyHeat(ThaSwitchBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique ID of the entity."""
         return (
             f"{self.config_entry_id}-{self._tekmar_tha.model}-"
             f"{self._tekmar_tha.device_id}-emergency-heat"
@@ -159,17 +172,21 @@ class EmergencyHeat(ThaSwitchBase):
 
     @property
     def name(self) -> str:
+        """Return the name of the entity."""
         return f"{self._tekmar_tha.tha_full_device_name} Emergency Heat"
 
     @property
     def is_on(self):
+        """Return True if the thermostat is in emergency heat mode."""
         return self._tekmar_tha.mode_setting == 0x06
 
     async def async_turn_on(self, **kwargs):
+        """Save the current mode and switch to emergency heat."""
         self._last_mode_setting = self._tekmar_tha.mode_setting
         await self._tekmar_tha.set_mode_setting_txqueue(0x06)
 
     async def async_turn_off(self, **kwargs):
+        """Restore the mode used before emergency heat."""
         await self._tekmar_tha.set_mode_setting_txqueue(self._last_mode_setting)
 
 
@@ -181,6 +198,7 @@ class ConfigVentMode(ThaSwitchBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique ID of the entity."""
         return (
             f"{self.config_entry_id}-{self._tekmar_tha.model}-"
             f"{self._tekmar_tha.device_id}-config-vent-mode"
@@ -188,14 +206,18 @@ class ConfigVentMode(ThaSwitchBase):
 
     @property
     def name(self) -> str:
+        """Return the name of the entity."""
         return f"{self._tekmar_tha.tha_full_device_name} Enable Vent Mode"
 
     @property
     def is_on(self):
+        """Return True if vent mode is enabled."""
         return self._tekmar_tha.config_vent_mode
 
     async def async_turn_on(self, **kwargs):
+        """Enable vent mode."""
         await self._tekmar_tha.set_config_vent_mode(True)
 
     async def async_turn_off(self, **kwargs):
+        """Disable vent mode."""
         await self._tekmar_tha.set_config_vent_mode(False)

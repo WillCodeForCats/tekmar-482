@@ -81,8 +81,10 @@ class TrpcSocket:
 
     @property
     def is_open(self) -> bool:
+        """Return True if the socket is connected."""
         return self._is_open
 
     @property
     def error(self) -> str | None:
+        """Return the last error raised while opening the socket."""
         return self._error
