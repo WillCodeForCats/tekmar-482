@@ -32,6 +32,30 @@ from .trpc_sock import TrpcSocket
 
 _LOGGER = logging.getLogger(__name__)
 
+# Updates from the gateway
+_GATEWAY_UPDATES = {
+    "ReportingState": ("set_reporting_state", ("state",)),
+    "NetworkError": ("set_network_error", ("error",)),
+    "OutdoorTemperature": ("set_outdoor_temperature", ("temp",)),
+    "SetpointGroupEnable": ("set_setpoint_group", ("groupid", "enable")),
+}
+
+# Updates from a device behind the gateway
+_DEVICE_UPDATES = {
+    "CurrentTemperature": ("set_current_temperature", ("temp",)),
+    "CurrentFloorTemperature": ("set_current_floor_temperature", ("temp",)),
+    "HeatSetpoint": ("set_heat_setpoint", ("setpoint", "setback")),
+    "CoolSetpoint": ("set_cool_setpoint", ("setpoint", "setback")),
+    "SlabSetpoint": ("set_slab_setpoint", ("setpoint", "setback")),
+    "FanPercent": ("set_fan_percent", ("percent", "setback")),
+    "RelativeHumidity": ("set_relative_humidity", ("percent",)),
+    "SetbackEvents": ("set_setback_events", ("events",)),
+    "ModeSetting": ("set_mode_setting", ("mode",)),
+    "HumiditySetMin": ("set_humidity_setpoint_min", ("percent",)),
+    "HumiditySetMax": ("set_humidity_setpoint_max", ("percent",)),
+    "SetpointDevice": ("set_setpoint_target", ("temp", "setback")),
+}
+
 
 class TekmarHub:
     """Tekmar hub for communicating with the gateway addon."""
