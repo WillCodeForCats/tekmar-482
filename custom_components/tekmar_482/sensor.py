@@ -188,18 +188,15 @@ class NetworkError(ThaSensorBase):
                         return {
                             "description": f"{TN_ERRORS[err_low]} {sen_err} {ag_id}"
                         }
-                    else:
-                        return {"description": f"{TN_ERRORS[err_low]} {sen_err}"}
+                    return {"description": f"{TN_ERRORS[err_low]} {sen_err}"}
 
-                elif err_low in [0x04]:
+                if err_low in [0x04]:
                     device_id = err_high & 0x1F
                     return {"description": f"{TN_ERRORS[err_low]}: device {device_id}"}
 
-                else:
-                    return {"description": f"{TN_ERRORS[err_low]}"}
-
-            else:
                 return {"description": f"{TN_ERRORS[err_low]}"}
+
+            return {"description": f"{TN_ERRORS[err_low]}"}
 
         except KeyError:
             return {"description": "Unknown Error"}
@@ -341,8 +338,7 @@ class SetbackState(ThaSensorBase):
     def entity_registry_enabled_default(self) -> bool:
         if self._tekmar_tha.setback_enable is True:
             return True
-        else:
-            return False
+        return False
 
     @property
     def available(self) -> bool:

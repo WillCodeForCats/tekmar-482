@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typing import Any
 
-import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry, OptionsFlow
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
+import homeassistant.helpers.config_validation as cv
+import voluptuous as vol
 
 from .const import (
     CONF_SETBACK_ENABLE,
@@ -153,18 +153,17 @@ class TekmarGatewayOptionsFlowHandler(OptionsFlow):
 
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
-        else:
-            if self.config_entry.options.get(CONF_SETBACK_ENABLE) is None:
-                user_input = {
-                    CONF_SETBACK_ENABLE: DEFAULT_SETBACK_ENABLE,
-                }
+        if self.config_entry.options.get(CONF_SETBACK_ENABLE) is None:
+            user_input = {
+                CONF_SETBACK_ENABLE: DEFAULT_SETBACK_ENABLE,
+            }
 
-            else:
-                user_input = {
-                    CONF_SETBACK_ENABLE: self.config_entry.options.get(
-                        CONF_SETBACK_ENABLE
-                    ),
-                }
+        else:
+            user_input = {
+                CONF_SETBACK_ENABLE: self.config_entry.options.get(
+                    CONF_SETBACK_ENABLE
+                ),
+            }
 
         return self.async_show_form(
             step_id="init",

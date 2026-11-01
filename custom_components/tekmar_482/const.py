@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import ctypes
+from enum import IntEnum
 import re
 import sys
-from enum import IntEnum
 
 if sys.version_info.minor >= 11:
     # Needs Python 3.11

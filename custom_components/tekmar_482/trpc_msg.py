@@ -261,19 +261,18 @@ class TrpcPacket:
         if p.type != TYPE_TRPC:
             return None
 
-        else:
-            trpc = TrpcPacket()
-            trpc.header, d = Record.create(TrpcPacket.format, p.data)
+        trpc = TrpcPacket()
+        trpc.header, d = Record.create(TrpcPacket.format, p.data)
 
-            try:
-                trpc.body, trpc.extra = Record.create(
-                    method_formats[trpc.header["methodID"]], d
-                )
+        try:
+            trpc.body, trpc.extra = Record.create(
+                method_formats[trpc.header["methodID"]], d
+            )
 
-            except KeyError:
-                trpc.body, trpc.extra = Record.create(empty_field_list, d)
+        except KeyError:
+            trpc.body, trpc.extra = Record.create(empty_field_list, d)
 
-            return trpc
+        return trpc
 
     from_rx_packet = staticmethod(from_rx_packet)
 
@@ -314,5 +313,4 @@ class TrpcPacket:
         d.extend(self.extra)
         if len(d) == 0:
             return hs
-        else:
-            return "".join([hs, " <", "".join(["%02X" % x for x in d]), ">"])
+        return "".join([hs, " <", "".join(["%02X" % x for x in d]), ">"])

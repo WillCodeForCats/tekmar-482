@@ -103,8 +103,7 @@ class ThaHumiditySetMax(ThaNumberBase):
             and self._tekmar_tha.humidity_setpoint_max != ThaValue.NA_8
         ):
             return True
-        else:
-            return False
+        return False
 
     @property
     def available(self) -> bool:
@@ -149,8 +148,7 @@ class ThaHumiditySetMin(ThaNumberBase):
             and self._tekmar_tha.humidity_setpoint_max != ThaValue.NA_8
         ):
             return True
-        else:
-            return False
+        return False
 
     @property
     def available(self) -> bool:
@@ -201,8 +199,7 @@ class ThaHeatSetpoint(ThaNumberBase):
         ):
             return False
 
-        else:
-            return True
+        return True
 
     @property
     def native_value(self):
@@ -354,8 +351,7 @@ class ThaCoolSetpoint(ThaNumberBase):
     def entity_registry_enabled_default(self) -> bool:
         if self._tekmar_tha.setback_enable is False:
             return True
-        else:
-            return False
+        return False
 
     @property
     def available(self) -> bool:

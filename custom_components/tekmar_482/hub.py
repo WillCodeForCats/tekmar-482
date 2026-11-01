@@ -1,6 +1,6 @@
 import asyncio
-import logging
 from collections.abc import Callable
+import logging
 from typing import Any
 
 from homeassistant.core import HomeAssistant
@@ -599,8 +599,7 @@ class TekmarHub:
     def tha_setback_enable(self) -> bool:
         if self._tha_setback_enable:
             return True
-        else:
-            return False
+        return False
 
     async def storage_get(self, key: Any) -> Any:
         return await self._storage.get_setting(key)
@@ -871,15 +870,13 @@ class TekmarThermostat:
     def current_floor_temperature(self) -> str:
         if self.hub.tha_pr_ver not in [3]:
             return None
-        else:
-            return self._tha_current_floor_temperature
+        return self._tha_current_floor_temperature
 
     @property
     def relative_humidity(self) -> str:
         if self.hub.tha_pr_ver not in [2, 3]:
             return None
-        else:
-            return self._tha_relative_humidity
+        return self._tha_relative_humidity
 
     @property
     def cool_setpoint(self) -> str:
@@ -931,43 +928,37 @@ class TekmarThermostat:
     def config_heat_setpoint_max(self) -> int:
         if self._config_heat_setpoint_max is None:
             return ThaDefault.HEAT_MAX
-        else:
-            return self._config_heat_setpoint_max
+        return self._config_heat_setpoint_max
 
     @property
     def config_heat_setpoint_min(self) -> int:
         if self._config_heat_setpoint_min is None:
             return ThaDefault.HEAT_MIN
-        else:
-            return self._config_heat_setpoint_min
+        return self._config_heat_setpoint_min
 
     @property
     def config_cool_setpoint_max(self) -> int:
         if self._config_cool_setpoint_max is None:
             return ThaDefault.COOL_MAX
-        else:
-            return self._config_cool_setpoint_max
+        return self._config_cool_setpoint_max
 
     @property
     def config_cool_setpoint_min(self) -> int:
         if self._config_cool_setpoint_min is None:
             return ThaDefault.COOL_MIN
-        else:
-            return self._config_cool_setpoint_min
+        return self._config_cool_setpoint_min
 
     @property
     def config_slab_setpoint_max(self) -> int:
         if self._config_slab_setpoint_max is None:
             return ThaDefault.SLAB_MAX
-        else:
-            return self._config_slab_setpoint_max
+        return self._config_slab_setpoint_max
 
     @property
     def config_slab_setpoint_min(self) -> int:
         if self._config_slab_setpoint_min is None:
             return ThaDefault.SLAB_MIN
-        else:
-            return self._config_slab_setpoint_min
+        return self._config_slab_setpoint_min
 
     @property
     def slab_setpoint(self) -> str:
@@ -1009,15 +1000,13 @@ class TekmarThermostat:
     def humidity_setpoint_min(self) -> str:
         if self.hub.tha_pr_ver not in [2, 3]:
             return None
-        else:
-            return self._tha_humidity_setpoint_min
+        return self._tha_humidity_setpoint_min
 
     @property
     def humidity_setpoint_max(self) -> str:
         if self.hub.tha_pr_ver not in [2, 3]:
             return None
-        else:
-            return self._tha_humidity_setpoint_max
+        return self._tha_humidity_setpoint_max
 
     async def set_config_vent_mode(self, value: bool) -> None:
         self._config_vent_mode = value
@@ -1272,8 +1261,7 @@ class TekmarSetpoint:
     def current_floor_temperature(self) -> str:
         if self.hub.tha_pr_ver not in [3]:
             return None
-        else:
-            return self._tha_current_floor_temperature
+        return self._tha_current_floor_temperature
 
     @property
     def setpoint_target(self) -> str:

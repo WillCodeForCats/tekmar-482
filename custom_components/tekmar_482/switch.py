@@ -119,10 +119,9 @@ class ThaSetpointGroup(ThaSwitchBase):
 
         if setpoint_groups[self._setpoint_group] == ThaValue.OFF:
             return False
-        elif setpoint_groups[self._setpoint_group] == ThaValue.ON:
+        if setpoint_groups[self._setpoint_group] == ThaValue.ON:
             return True
-        else:
-            raise NotImplementedError
+        raise NotImplementedError
 
     async def async_turn_on(self, **kwargs):
         await self._tekmar_tha.set_setpoint_group_txqueue(self._setpoint_group, 0x01)
