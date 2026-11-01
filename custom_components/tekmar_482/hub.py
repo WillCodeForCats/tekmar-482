@@ -138,18 +138,18 @@ class TekmarHub:
             if len(self._tx_queue) != 0:
                 try:
                     writePacket = self._tx_queue.pop(0)
-                    _LOGGER.debug(f"Setup {writePacket}")
+                    _LOGGER.debug("Setup %s", writePacket)
                     await self._sock.write(writePacket)
                     await asyncio.sleep(0.1)  # writing too fast causes errors
                 except Exception as e:
-                    _LOGGER.error(f"Write error: {e}")
+                    _LOGGER.error("Write error: %s", e)
                     raise ConfigEntryNotReady("Write error while in setup.")
 
             try:
                 p = await self._sock.read()
 
             except Exception as e:
-                _LOGGER.error(f"Read error: {e}")
+                _LOGGER.error("Read error: %s", e)
                 raise ConfigEntryNotReady("Read error while in setup.")
 
             if p is not None:
@@ -158,7 +158,7 @@ class TekmarHub:
                     b = p.body
                     tha_method = name_from_methodID[h["methodID"]]
 
-                    _LOGGER.debug(f"Setup {p}")
+                    _LOGGER.debug("Setup %s", p)
 
                     if tha_method == "FirmwareRevision":
                         self._tha_fw_ver = b["revision"]
@@ -177,7 +177,7 @@ class TekmarHub:
 
                     elif tha_method == "DeviceInventory":
                         if b["address"] > 0:
-                            _LOGGER.debug(f"Setting up address {b['address']}")
+                            _LOGGER.debug("Setting up address %s", b["address"])
 
                             self._tha_inventory[b["address"]] = {
                                 "entity": "",
@@ -240,39 +240,42 @@ class TekmarHub:
                                     self._name.capitalize(),
                                 )
                             )
-                            _LOGGER.debug(f"Address {b['address']} type {b['type']}")
+                            _LOGGER.debug("Address %s type %s", b["address"], b["type"])
 
                         except KeyError:
                             _LOGGER.warning(
-                                f"Unknown device type {b['type']} at address "
-                                f"{b['address']}. This address will be ignored."
+                                "Unknown device type %s at address %s. This address will be ignored.",
+                                b["type"],
+                                b["address"],
                             )
 
                             self.tha_ignore_addr.append(b["address"])
 
                     elif tha_method == "DeviceAttributes":
                         _LOGGER.debug(
-                            f"Address {b['address']} attributes {b['attributes']}"
+                            "Address %s attributes %s", b["address"], b["attributes"]
                         )
                         self._tha_inventory[b["address"]]["attributes"].attrs = int(
                             b["attributes"]
                         )
 
                     elif tha_method == "DeviceVersion":
-                        _LOGGER.debug(f"Address {b['address']} version {b['j_number']}")
+                        _LOGGER.debug(
+                            "Address %s version %s", b["address"], b["j_number"]
+                        )
                         self._tha_inventory[b["address"]]["version"] = b["j_number"]
 
                     elif tha_method == "SetbackEvents":
                         _LOGGER.debug(
-                            f"Address {b['address']} setback events {b['events']}"
+                            "Address %s setback events %s", b["address"], b["events"]
                         )
                         self._tha_inventory[b["address"]]["events"] = b["events"]
 
                     else:
-                        _LOGGER.warning(f"Ignored method {tha_method} during setup.")
+                        _LOGGER.warning("Ignored method %s during setup.", tha_method)
 
                 except KeyError as e:
-                    _LOGGER.debug(f"Ignored unknown key: {e}")
+                    _LOGGER.debug("Ignored unknown key: %s", e)
 
         new_gateway = TekmarGateway(f"{self._id}", f"{self._host}", self)
         new_gateway.init_device()
@@ -282,7 +285,7 @@ class TekmarHub:
 
         for address in self._tha_inventory:
             if address in self.tha_ignore_addr:
-                _LOGGER.debug(f"Ignored address {address} while creating devices.")
+                _LOGGER.debug("Ignored address %s while creating devices.", address)
                 continue
 
             if DEVICE_TYPES[self._tha_inventory[address]["type"]] == ThaType.THERMOSTAT:
@@ -307,7 +310,7 @@ class TekmarHub:
                 self.tha_devices.append(new_snowmelt)
 
             else:
-                _LOGGER.warning(f"Unknown device at address {address}")
+                _LOGGER.warning("Unknown device at address %s", address)
 
         if not self.online:
             ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
@@ -337,7 +340,7 @@ class TekmarHub:
 
                 if len(self._tx_queue) != 0:
                     writePacket = self._tx_queue.pop(0)
-                    _LOGGER.debug(f"Run {writePacket}")
+                    _LOGGER.debug("Run %s", writePacket)
                     await self._sock.write(writePacket)
                     await asyncio.sleep(0.1)
 
@@ -348,7 +351,7 @@ class TekmarHub:
                     raise ConnectionError(f"No reports from {self._host}")
 
             except Exception as e:
-                _LOGGER.warning(f"Socket error: {e} - reconnecting.")
+                _LOGGER.warning("Socket error: %s - reconnecting.", e)
                 await self._sock.close()
                 await asyncio.sleep(5)
                 p = None
@@ -361,11 +364,11 @@ class TekmarHub:
                     b = p.body
                     tha_method = name_from_methodID[h["methodID"]]
 
-                    _LOGGER.debug(f"Run {p}")
+                    _LOGGER.debug("Run %s", p)
 
                     if b["address"] in self.tha_ignore_addr:
                         _LOGGER.debug(
-                            f"Ignored {tha_method} from address {b['address']}"
+                            "Ignored %s from address %s", tha_method, b["address"]
                         )
                         continue
 
@@ -444,8 +447,8 @@ class TekmarHub:
                                 )
                         except KeyError as e:
                             _LOGGER.warning(
-                                f"Device address {e} not in inventory. "
-                                "Reloading integration..."
+                                "Device address %s not in inventory. Reloading integration...",
+                                e,
                             )
                             await self._hass.config_entries.async_reload(self._entry_id)
 
@@ -471,8 +474,8 @@ class TekmarHub:
                                     await device.set_setback_state(p.body["setback"])
                         except KeyError as e:
                             _LOGGER.warning(
-                                f"Device address {e} not in inventory. "
-                                "Reloading integration..."
+                                "Device address %s not in inventory. Reloading integration...",
+                                e,
                             )
                             await self._hass.config_entries.async_reload(self._entry_id)
 
@@ -515,26 +518,28 @@ class TekmarHub:
 
                     elif tha_method == "TakingAddress":
                         _LOGGER.warning(
-                            f"Device at address {p.body['old_address']} moved to "
-                            f"{p.body['new_address']}. Reloading integration..."
+                            "Device at address %s moved to %s. Reloading integration...",
+                            p.body["old_address"],
+                            p.body["new_address"],
                         )
                         await self._hass.config_entries.async_reload(self._entry_id)
 
                     elif tha_method == "DeviceAttributes":
                         _LOGGER.debug(
-                            f"Ignoring attributes from {b['address']} in run: "
-                            f"received {int(b['attributes'])} setup with "
-                            f"{self._tha_inventory[b['address']]['attributes'].attrs}"
+                            "Ignoring attributes from %s in run: received %s setup with %s",
+                            b["address"],
+                            int(b["attributes"]),
+                            self._tha_inventory[b["address"]]["attributes"].attrs,
                         )
 
                     elif tha_method in ("NullMethod", "DateTime"):
                         pass
 
                     else:
-                        _LOGGER.warning(f"Unhandeled method: {tha_method}")
+                        _LOGGER.warning("Unhandled method: %s", tha_method)
 
                 except KeyError as e:
-                    _LOGGER.debug(f"Ignored unknown key: {e}")
+                    _LOGGER.debug("Ignored unknown key: %s", e)
 
     async def timekeeper(self, interval: int = 86400) -> None:
         """Periodically send the current date and time."""
