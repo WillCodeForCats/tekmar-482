@@ -195,7 +195,10 @@ class ThaHeatSetpoint(ThaNumberBase):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.heat_setpoint == ThaValue.NA_8 or self._tekmar_tha.tha_device["attributes"].ZoneHeating == 0:
+        if (
+            self._tekmar_tha.heat_setpoint == ThaValue.NA_8
+            or self._tekmar_tha.tha_device["attributes"].ZoneHeating == 0
+        ):
             return False
 
         else:

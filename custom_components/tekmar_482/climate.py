@@ -157,7 +157,10 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def current_temperature(self):
-        if self._tekmar_tha.current_temperature == ThaValue.NA_16 or self._tekmar_tha.current_temperature is None:
+        if (
+            self._tekmar_tha.current_temperature == ThaValue.NA_16
+            or self._tekmar_tha.current_temperature is None
+        ):
             return None
 
         else:

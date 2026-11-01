@@ -240,10 +240,8 @@ class TekmarHub:
 
                         except KeyError:
                             _LOGGER.warning(
-                                
-                                    f"Unknown device type {b['type']} at address "
-                                    f"{b['address']}. This address will be ignored."
-                                
+                                f"Unknown device type {b['type']} at address "
+                                f"{b['address']}. This address will be ignored."
                             )
 
                             self.tha_ignore_addr.append(b["address"])
@@ -283,30 +281,21 @@ class TekmarHub:
                 _LOGGER.debug(f"Ignored address {address} while creating devices.")
                 continue
 
-            if (
-                DEVICE_TYPES[self._tha_inventory[address]["type"]]
-                == ThaType.THERMOSTAT
-            ):
+            if DEVICE_TYPES[self._tha_inventory[address]["type"]] == ThaType.THERMOSTAT:
                 new_thermostat = TekmarThermostat(
                     address, self._tha_inventory[address], self
                 )
                 await new_thermostat.init_device()
                 self.tha_devices.append(new_thermostat)
 
-            elif (
-                DEVICE_TYPES[self._tha_inventory[address]["type"]]
-                == ThaType.SETPOINT
-            ):
+            elif DEVICE_TYPES[self._tha_inventory[address]["type"]] == ThaType.SETPOINT:
                 new_setpoint = TekmarSetpoint(
                     address, self._tha_inventory[address], self
                 )
                 new_setpoint.init_device()
                 self.tha_devices.append(new_setpoint)
 
-            elif (
-                DEVICE_TYPES[self._tha_inventory[address]["type"]]
-                == ThaType.SNOWMELT
-            ):
+            elif DEVICE_TYPES[self._tha_inventory[address]["type"]] == ThaType.SNOWMELT:
                 new_snowmelt = TekmarSnowmelt(
                     address, self._tha_inventory[address], self
                 )
@@ -450,10 +439,8 @@ class TekmarHub:
                                 )
                         except KeyError as e:
                             _LOGGER.warning(
-                                
-                                    f"Device address {e} not in inventory. "
-                                    "Reloading integration..."
-                                
+                                f"Device address {e} not in inventory. "
+                                "Reloading integration..."
                             )
                             await self._hass.config_entries.async_reload(self._entry_id)
 
@@ -479,10 +466,8 @@ class TekmarHub:
                                     await device.set_setback_state(p.body["setback"])
                         except KeyError as e:
                             _LOGGER.warning(
-                                
-                                    f"Device address {e} not in inventory. "
-                                    "Reloading integration..."
-                                
+                                f"Device address {e} not in inventory. "
+                                "Reloading integration..."
                             )
                             await self._hass.config_entries.async_reload(self._entry_id)
 
@@ -525,10 +510,8 @@ class TekmarHub:
 
                     elif tha_method in ["TakingAddress"]:
                         _LOGGER.warning(
-                            
-                                f"Device at address {p.body['old_address']} moved to "
-                                f"{p.body['new_address']}. Reloading integration..."
-                            
+                            f"Device at address {p.body['old_address']} moved to "
+                            f"{p.body['new_address']}. Reloading integration..."
                         )
                         await self._hass.config_entries.async_reload(self._entry_id)
 
