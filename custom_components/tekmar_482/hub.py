@@ -158,22 +158,22 @@ class TekmarHub:
 
                     _LOGGER.debug(f"Setup {p}")
 
-                    if tha_method in ["FirmwareRevision"]:
+                    if tha_method == "FirmwareRevision":
                         self._tha_fw_ver = b["revision"]
 
-                    elif tha_method in ["ProtocolVersion"]:
+                    elif tha_method == "ProtocolVersion":
                         self._tha_pr_ver = b["version"]
 
-                    elif tha_method in ["SetbackEnable"]:
+                    elif tha_method == "SetbackEnable":
                         self._tha_setback_enable = b["enable"]
 
-                    elif tha_method in ["ReportingState"]:
+                    elif tha_method == "ReportingState":
                         self._tha_reporting_state = b["state"]
 
                         if self._tha_reporting_state == 1:
                             self._inSetup = False
 
-                    elif tha_method in ["DeviceInventory"]:
+                    elif tha_method == "DeviceInventory":
                         if b["address"] > 0:
                             _LOGGER.debug(f"Setting up address {b['address']}")
 
@@ -223,7 +223,7 @@ class TekmarHub:
                                 )
                             )
 
-                    elif tha_method in ["DeviceType"]:
+                    elif tha_method == "DeviceType":
                         try:
                             self._tha_inventory[b["address"]]["type"] = b["type"]
                             self._tha_inventory[b["address"]]["entity"] = (
@@ -248,7 +248,7 @@ class TekmarHub:
 
                             self.tha_ignore_addr.append(b["address"])
 
-                    elif tha_method in ["DeviceAttributes"]:
+                    elif tha_method == "DeviceAttributes":
                         _LOGGER.debug(
                             f"Address {b['address']} attributes {b['attributes']}"
                         )
@@ -256,11 +256,11 @@ class TekmarHub:
                             b["attributes"]
                         )
 
-                    elif tha_method in ["DeviceVersion"]:
+                    elif tha_method == "DeviceVersion":
                         _LOGGER.debug(f"Address {b['address']} version {b['j_number']}")
                         self._tha_inventory[b["address"]]["version"] = b["j_number"]
 
-                    elif tha_method in ["SetbackEvents"]:
+                    elif tha_method == "SetbackEvents":
                         _LOGGER.debug(
                             f"Address {b['address']} setback events {b['events']}"
                         )
@@ -367,31 +367,31 @@ class TekmarHub:
                         )
                         continue
 
-                    if tha_method in ["ReportingState"]:
+                    if tha_method == "ReportingState":
                         for gateway in self.tha_gateway:
                             await gateway.set_reporting_state(b["state"])
 
-                    elif tha_method in ["NetworkError"]:
+                    elif tha_method == "NetworkError":
                         for gateway in self.tha_gateway:
                             await gateway.set_network_error(b["error"])
 
-                    elif tha_method in ["OutdoorTemperature"]:
+                    elif tha_method == "OutdoorTemperature":
                         for gateway in self.tha_gateway:
                             await gateway.set_outdoor_temperature(p.body["temp"])
 
-                    elif tha_method in ["CurrentTemperature"]:
+                    elif tha_method == "CurrentTemperature":
                         for device in self.tha_devices:
                             if device.device_id == b["address"]:
                                 await device.set_current_temperature(p.body["temp"])
 
-                    elif tha_method in ["CurrentFloorTemperature"]:
+                    elif tha_method == "CurrentFloorTemperature":
                         for device in self.tha_devices:
                             if device.device_id == b["address"]:
                                 await device.set_current_floor_temperature(
                                     p.body["temp"]
                                 )
 
-                    elif tha_method in ["HeatSetpoint"]:
+                    elif tha_method == "HeatSetpoint":
                         for device in self.tha_devices:
                             if device.device_id == b["address"]:
                                 # await device.set_setback_state(p.body['setback'])
@@ -399,7 +399,7 @@ class TekmarHub:
                                     p.body["setpoint"], p.body["setback"]
                                 )
 
-                    elif tha_method in ["CoolSetpoint"]:
+                    elif tha_method == "CoolSetpoint":
                         for device in self.tha_devices:
                             if device.device_id == b["address"]:
                                 # await device.set_setback_state(p.body['setback'])
@@ -407,7 +407,7 @@ class TekmarHub:
                                     p.body["setpoint"], p.body["setback"]
                                 )
 
-                    elif tha_method in ["SlabSetpoint"]:
+                    elif tha_method == "SlabSetpoint":
                         for device in self.tha_devices:
                             if device.device_id == b["address"]:
                                 # await device.set_setback_state(p.body['setback'])
@@ -415,19 +415,19 @@ class TekmarHub:
                                     p.body["setpoint"], p.body["setback"]
                                 )
 
-                    elif tha_method in ["FanPercent"]:
+                    elif tha_method == "FanPercent":
                         for device in self.tha_devices:
                             if device.device_id == b["address"]:
                                 await device.set_fan_percent(
                                     p.body["percent"], p.body["setback"]
                                 )
 
-                    elif tha_method in ["RelativeHumidity"]:
+                    elif tha_method == "RelativeHumidity":
                         for device in self.tha_devices:
                             if device.device_id == b["address"]:
                                 await device.set_relative_humidity(p.body["percent"])
 
-                    elif tha_method in ["ActiveDemand"]:
+                    elif tha_method == "ActiveDemand":
                         try:
                             if (
                                 DEVICE_TYPES[self._tha_inventory[b["address"]]["type"]]
@@ -451,7 +451,7 @@ class TekmarHub:
                             if device.device_id == b["address"]:
                                 await device.set_active_demand(p.body["demand"])
 
-                    elif tha_method in ["SetbackState"]:
+                    elif tha_method == "SetbackState":
                         try:
                             if self._tha_inventory[b["address"]][
                                 "attributes"
@@ -474,58 +474,58 @@ class TekmarHub:
                             )
                             await self._hass.config_entries.async_reload(self._entry_id)
 
-                    elif tha_method in ["SetbackEvents"]:
+                    elif tha_method == "SetbackEvents":
                         for device in self.tha_devices:
                             if device.device_id == b["address"]:
                                 await device.set_setback_events(p.body["events"])
 
-                    elif tha_method in ["ModeSetting"]:
+                    elif tha_method == "ModeSetting":
                         for device in self.tha_devices:
                             if device.device_id == b["address"]:
                                 await device.set_mode_setting(p.body["mode"])
 
-                    elif tha_method in ["HumiditySetMin"]:
+                    elif tha_method == "HumiditySetMin":
                         for device in self.tha_devices:
                             if device.device_id == b["address"]:
                                 await device.set_humidity_setpoint_min(
                                     p.body["percent"]
                                 )
 
-                    elif tha_method in ["HumiditySetMax"]:
+                    elif tha_method == "HumiditySetMax":
                         for device in self.tha_devices:
                             if device.device_id == b["address"]:
                                 await device.set_humidity_setpoint_max(
                                     p.body["percent"]
                                 )
 
-                    elif tha_method in ["SetpointGroupEnable"]:
+                    elif tha_method == "SetpointGroupEnable":
                         for gateway in self.tha_gateway:
                             await gateway.set_setpoint_group(
                                 p.body["groupid"], p.body["enable"]
                             )
 
-                    elif tha_method in ["SetpointDevice"]:
+                    elif tha_method == "SetpointDevice":
                         for device in self.tha_devices:
                             if device.device_id == b["address"]:
                                 await device.set_setpoint_target(
                                     p.body["temp"], p.body["setback"]
                                 )
 
-                    elif tha_method in ["TakingAddress"]:
+                    elif tha_method == "TakingAddress":
                         _LOGGER.warning(
                             f"Device at address {p.body['old_address']} moved to "
                             f"{p.body['new_address']}. Reloading integration..."
                         )
                         await self._hass.config_entries.async_reload(self._entry_id)
 
-                    elif tha_method in ["DeviceAttributes"]:
+                    elif tha_method == "DeviceAttributes":
                         _LOGGER.debug(
                             f"Ignoring attributes from {b['address']} in run: "
                             f"received {int(b['attributes'])} setup with "
                             f"{self._tha_inventory[b['address']]['attributes'].attrs}"
                         )
 
-                    elif tha_method in ["NullMethod"] or tha_method in ["DateTime"]:
+                    elif tha_method in ("NullMethod", "DateTime"):
                         pass
 
                     else:
@@ -890,7 +890,7 @@ class TekmarThermostat:
     @property
     def current_floor_temperature(self) -> str:
         """Return the current floor temperature in degH (protocol 3 only)."""
-        if self.hub.tha_pr_ver not in [3]:
+        if self.hub.tha_pr_ver != 3:
             return None
         return self._tha_current_floor_temperature
 
@@ -1335,7 +1335,7 @@ class TekmarSetpoint:
     @property
     def current_floor_temperature(self) -> str:
         """Return the current floor temperature in degH (protocol 3 only)."""
-        if self.hub.tha_pr_ver not in [3]:
+        if self.hub.tha_pr_ver != 3:
             return None
         return self._tha_current_floor_temperature
 

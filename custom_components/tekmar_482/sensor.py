@@ -51,11 +51,11 @@ async def async_setup_entry(
             ] and hub.tha_pr_ver in [2, 3]:
                 entities.append(RelativeHumidity(device, config_entry))
 
-            if hub.tha_pr_ver in [3]:
+            if hub.tha_pr_ver == 3:
                 entities.append(CurrentFloorTemperature(device, config_entry))
 
         if DEVICE_TYPES[device.tha_device["type"]] == ThaType.SETPOINT:
-            if hub.tha_pr_ver in [3]:
+            if hub.tha_pr_ver == 3:
                 entities.append(CurrentFloorTemperature(device, config_entry))
             entities.append(CurrentTemperature(device, config_entry))
             entities.append(SetbackState(device, config_entry))
@@ -205,7 +205,7 @@ class NetworkError(ThaSensorBase):
                         }
                     return {"description": f"{TN_ERRORS[err_low]} {sen_err}"}
 
-                if err_low in [0x04]:
+                if err_low == 0x04:
                     device_id = err_high & 0x1F
                     return {"description": f"{TN_ERRORS[err_low]}: device {device_id}"}
 
