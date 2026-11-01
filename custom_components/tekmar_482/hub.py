@@ -141,16 +141,16 @@ class TekmarHub:
                     _LOGGER.debug("Setup %s", writePacket)
                     await self._sock.write(writePacket)
                     await asyncio.sleep(0.1)  # writing too fast causes errors
-                except Exception as e:
+                except OSError as e:
                     _LOGGER.error("Write error: %s", e)
-                    raise ConfigEntryNotReady("Write error while in setup.")
+                    raise ConfigEntryNotReady("Write error while in setup.") from e
 
             try:
                 p = await self._sock.read()
 
-            except Exception as e:
+            except (OSError, ValueError) as e:
                 _LOGGER.error("Read error: %s", e)
-                raise ConfigEntryNotReady("Read error while in setup.")
+                raise ConfigEntryNotReady("Read error while in setup.") from e
 
             if p is not None:
                 try:
@@ -350,7 +350,7 @@ class TekmarHub:
                 if readCycle > 130:
                     raise ConnectionError(f"No reports from {self._host}")
 
-            except Exception as e:
+            except (OSError, ValueError) as e:
                 _LOGGER.warning("Socket error: %s - reconnecting.", e)
                 await self._sock.close()
                 await asyncio.sleep(5)

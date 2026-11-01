@@ -34,7 +34,7 @@ class TrpcSocket:
             self._is_open = True
             return True
 
-        except Exception as e:
+        except OSError as e:
             self._sock_reader = None
             self._sock_writer = None
             self._is_open = False
@@ -49,7 +49,7 @@ class TrpcSocket:
                 self._sock_writer.close()
                 await self._sock_writer.wait_closed()
 
-            except Exception:
+            except OSError:
                 pass
 
             self._sock_writer = None
