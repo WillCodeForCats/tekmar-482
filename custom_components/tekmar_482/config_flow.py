@@ -160,9 +160,7 @@ class TekmarGatewayOptionsFlowHandler(OptionsFlow):
 
         else:
             user_input = {
-                CONF_SETBACK_ENABLE: self.config_entry.options.get(
-                    CONF_SETBACK_ENABLE
-                ),
+                CONF_SETBACK_ENABLE: self.config_entry.options.get(CONF_SETBACK_ENABLE),
             }
 
         return self.async_show_form(
