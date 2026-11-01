@@ -557,6 +557,31 @@ class TekmarHub:
                 except KeyError as e:
                     _LOGGER.debug("Ignored unknown key: %s", e)
 
+    async def _async_handle_active_demand(self, b: Record) -> None:
+        """Store active demand and request the mode setting for thermostats."""
+        try:
+            if (
+                DEVICE_TYPES[self._tha_inventory[b["address"]]["type"]]
+                == ThaType.THERMOSTAT
+            ):
+                self._tx_queue.append(
+                    TrpcPacket(
+                        service="Request",
+                        method="ModeSetting",
+                        address=b["address"],
+                    )
+                )
+        except KeyError as e:
+            _LOGGER.warning(
+                "Device address %s not in inventory. Reloading integration...",
+                e,
+            )
+            await self._hass.config_entries.async_reload(self._entry_id)
+
+        for device in self.tha_devices:
+            if device.device_id == b["address"]:
+                await device.set_active_demand(b["demand"])
+
     async def _async_handle_setback_state(self, b: Record) -> None:
         """Store setback state and request the fan percent if supported."""
         try:
