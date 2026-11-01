@@ -231,12 +231,12 @@ class TrpcPacket:
         # Fill any provided values that are relevant.  Note here that if any
         # field names in the header and data match, they will be assigned
         # to the data, AND NOT THE HEADER.
-        for v in kwargs:
-            if v in self.body:
-                self.body[v] = kwargs[v]
+        for name, value in kwargs.items():
+            if name in self.body:
+                self.body[name] = value
 
-            elif v in self.header:
-                self.header[v] = kwargs[v]
+            elif name in self.header:
+                self.header[name] = value
 
     # *************************************************************************
     @staticmethod
