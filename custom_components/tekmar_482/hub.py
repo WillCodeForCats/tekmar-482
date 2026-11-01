@@ -550,6 +550,10 @@ class TekmarHub:
         """Return the tha reporting state."""
         return self._tha_reporting_state
 
+    @tha_reporting_state.setter
+    def tha_reporting_state(self, value: int) -> None:
+        self._tha_reporting_state = value
+
     @property
     def tha_setback_enable(self) -> bool:
         """Return the tha setback enable."""
@@ -1496,7 +1500,7 @@ class TekmarGateway:
 
     async def set_reporting_state(self, state: int) -> None:
         """Store the hub reporting state and notify."""
-        self.hub._tha_reporting_state = state
+        self.hub.tha_reporting_state = state
         await self.publish_updates()
 
     async def set_outdoor_temperature(self, temp: int) -> None:
