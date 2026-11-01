@@ -51,6 +51,7 @@ class ThaNumberBase(NumberEntity):
     should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
+        """Initialize the number entity."""
         self._tekmar_tha = tekmar_tha
         self._config_entry = config_entry
 

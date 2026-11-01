@@ -57,6 +57,7 @@ class ThaClimateBase(ClimateEntity):
     _enable_turn_on_off_backwards_compatibility = False
 
     def __init__(self, tekmar_tha, config_entry):
+        """Initialize the climate entity."""
         self._tekmar_tha = tekmar_tha
         self._config_entry = config_entry
 

@@ -53,6 +53,7 @@ class ThaSwitchBase(SwitchEntity):
     should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
+        """Initialize the switch."""
         self._tekmar_tha = tekmar_tha
         self._config_entry = config_entry
 
@@ -91,6 +92,7 @@ class ThaSetpointGroup(ThaSwitchBase):
     icon = "mdi:select-group"
 
     def __init__(self, tekmar_tha, config_entry, group: int):
+        """Initialize the switch for a setpoint group (1-12)."""
         super().__init__(tekmar_tha, config_entry)
         self._setpoint_group = group
 
@@ -156,6 +158,7 @@ class EmergencyHeat(ThaSwitchBase):
     icon = "mdi:hvac"
 
     def __init__(self, tekmar_tha, config_entry):
+        """Initialize the switch, defaulting the restore mode to heat."""
         super().__init__(tekmar_tha, config_entry)
 
         # Default to Heat mode when coming out of Emergency. We can't know the true

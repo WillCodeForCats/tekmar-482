@@ -43,6 +43,7 @@ class TekmarHub:
         port: int,
         opt_setback_enable: bool,
     ) -> None:
+        """Initialize the hub for a gateway packet server."""
         self._hass = hass
         self._entry_id = entry_id
         self._name = name
@@ -626,6 +627,7 @@ class TekmarThermostat:
     """Tekmar thermostat device."""
 
     def __init__(self, address: int, tha_device: [], hub: TekmarHub) -> None:
+        """Initialize a thermostat at a TN4 bus address."""
         self._id = address
         self.hub = hub
         self.tha_device = tha_device
@@ -1238,6 +1240,7 @@ class TekmarSetpoint:
     """Tekmar setpoint device."""
 
     def __init__(self, address: int, tha_device: [], hub: TekmarHub) -> None:
+        """Initialize a setpoint control at a TN4 bus address."""
         self._id = address
         self.hub = hub
         self.tha_device = tha_device
@@ -1409,6 +1412,7 @@ class TekmarSnowmelt:
     """Temkar snowmelt device."""
 
     def __init__(self, address: int, tha_device: [], hub: TekmarHub) -> None:
+        """Initialize a snowmelt control at a TN4 bus address."""
         self._id = address
         self.hub = hub
         self.tha_device = tha_device
@@ -1489,6 +1493,7 @@ class TekmarGateway:
     """Tekmar 482 Gateway device."""
 
     def __init__(self, gatewayid: str, host: str, hub: TekmarHub) -> None:
+        """Initialize the gateway device."""
         self._id = gatewayid
         self._host = host
         self.hub = hub
@@ -1631,6 +1636,7 @@ class StoredData:
     """Abstraction over Home Assistant Store."""
 
     def __init__(self, hass: HomeAssistant, entry_id: str) -> None:
+        """Initialize storage for a config entry."""
         self._hass = hass
         self._entry_id = entry_id
         self._data = None

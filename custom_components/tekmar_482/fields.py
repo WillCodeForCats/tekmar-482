@@ -31,6 +31,7 @@ class Bitmask(Field):
 class Int8(Field):
     # --------------------------------------------------------------------------
     def __init__(self, name):
+        """Create a named 1-byte field."""
         Field.__init__(self, name, 1)
 
     # --------------------------------------------------------------------------
@@ -50,6 +51,7 @@ class Int8(Field):
 class Int16(Field):
     # --------------------------------------------------------------------------
     def __init__(self, name, order=DEFAULT_BYTE_ORDER):
+        """Create a named 2-byte field with the given byte order."""
         Field.__init__(self, name, 2)
         self.order = order
 
@@ -79,6 +81,7 @@ class Int16(Field):
 class Int24(Field):
     # --------------------------------------------------------------------------
     def __init__(self, name, order=DEFAULT_BYTE_ORDER):
+        """Create a named 3-byte field with the given byte order."""
         Field.__init__(self, name, 3)
         self.order = order
 
@@ -109,6 +112,7 @@ class Int24(Field):
 class Int32(Field):
     # --------------------------------------------------------------------------
     def __init__(self, name, order=DEFAULT_BYTE_ORDER):
+        """Create a named 4-byte field with the given byte order."""
         Field.__init__(self, name, 4)
         self.order = order
 
@@ -246,6 +250,7 @@ class Bitfield(FieldList):
 
     # --------------------------------------------------------------------------
     def __init__(self, name, order, *lst):
+        """Create a bitfield from bit-sized fields, packed in the given byte order."""
         self.name = name
         self.order = order
         self.fields = lst
@@ -328,6 +333,7 @@ class Record:
 
     # --------------------------------------------------------------------------
     def __init__(self, field_list):
+        """Create an empty record; use Record.create() instead."""
         self.fields = field_list
 
     # --------------------------------------------------------------------------

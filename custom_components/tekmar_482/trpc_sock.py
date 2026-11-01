@@ -7,6 +7,7 @@ from .trpc_msg import TrpcPacket
 class TrpcSocket:
     # **************************************************************************
     def __init__(self, addr=None, port=None):
+        """Store the address and port; call open() to connect."""
         self._sock_reader = None
         self._sock_writer = None
         self._is_open = False

@@ -21,6 +21,7 @@ class Packet:
 
     # --------------------------------------------------------------------------
     def __init__(self, pkt_type=TYPE_GENERAL, data=None):
+        """Create a packet with a type and optional data bytes."""
         if data is None:
             self.data = []
         else:
