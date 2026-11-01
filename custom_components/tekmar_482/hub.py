@@ -27,6 +27,7 @@ from .const import (
     ThaType,
     ThaValue,
 )
+from .fields import Record
 from .trpc_msg import TrpcPacket, name_from_methodID
 from .trpc_sock import TrpcSocket
 
@@ -555,6 +556,28 @@ class TekmarHub:
 
                 except KeyError as e:
                     _LOGGER.debug("Ignored unknown key: %s", e)
+
+    async def _async_handle_setback_state(self, b: Record) -> None:
+        """Store setback state and request the fan percent if supported."""
+        try:
+            if self._tha_inventory[b["address"]]["attributes"].FanPercent:
+                self._tx_queue.append(
+                    TrpcPacket(
+                        service="Request",
+                        method="FanPercent",
+                        setback=ThaSetback.CURRENT,
+                        address=b["address"],
+                    )
+                )
+            for device in self.tha_devices:
+                if device.device_id == b["address"]:
+                    await device.set_setback_state(b["setback"])
+        except KeyError as e:
+            _LOGGER.warning(
+                "Device address %s not in inventory. Reloading integration...",
+                e,
+            )
+            await self._hass.config_entries.async_reload(self._entry_id)
 
     async def timekeeper(self, interval: int = 86400) -> None:
         """Periodically send the current date and time."""
