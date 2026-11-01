@@ -1,6 +1,7 @@
 import asyncio
 import logging
-from typing import Any, Callable, Dict, Optional
+from collections.abc import Callable
+from typing import Any
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
@@ -239,10 +240,10 @@ class TekmarHub:
 
                         except KeyError:
                             _LOGGER.warning(
-                                (
+                                
                                     f"Unknown device type {b['type']} at address "
                                     f"{b['address']}. This address will be ignored."
-                                )
+                                
                             )
 
                             self.tha_ignore_addr.append(b["address"])
@@ -270,57 +271,55 @@ class TekmarHub:
 
                 except KeyError as e:
                     _LOGGER.debug(f"Ignored unknown key: {e}")
-                    pass
 
-        else:
-            new_gateway = TekmarGateway(f"{self._id}", f"{self._host}", self)
-            new_gateway.init_device()
-            self.tha_gateway = [
-                new_gateway,
-            ]
+        new_gateway = TekmarGateway(f"{self._id}", f"{self._host}", self)
+        new_gateway.init_device()
+        self.tha_gateway = [
+            new_gateway,
+        ]
 
-            for address in self._tha_inventory:
-                if address in self.tha_ignore_addr:
-                    _LOGGER.debug(f"Ignored address {address} while creating devices.")
-                    continue
+        for address in self._tha_inventory:
+            if address in self.tha_ignore_addr:
+                _LOGGER.debug(f"Ignored address {address} while creating devices.")
+                continue
 
-                if (
-                    DEVICE_TYPES[self._tha_inventory[address]["type"]]
-                    == ThaType.THERMOSTAT
-                ):
-                    new_thermostat = TekmarThermostat(
-                        address, self._tha_inventory[address], self
-                    )
-                    await new_thermostat.init_device()
-                    self.tha_devices.append(new_thermostat)
+            if (
+                DEVICE_TYPES[self._tha_inventory[address]["type"]]
+                == ThaType.THERMOSTAT
+            ):
+                new_thermostat = TekmarThermostat(
+                    address, self._tha_inventory[address], self
+                )
+                await new_thermostat.init_device()
+                self.tha_devices.append(new_thermostat)
 
-                elif (
-                    DEVICE_TYPES[self._tha_inventory[address]["type"]]
-                    == ThaType.SETPOINT
-                ):
-                    new_setpoint = TekmarSetpoint(
-                        address, self._tha_inventory[address], self
-                    )
-                    new_setpoint.init_device()
-                    self.tha_devices.append(new_setpoint)
+            elif (
+                DEVICE_TYPES[self._tha_inventory[address]["type"]]
+                == ThaType.SETPOINT
+            ):
+                new_setpoint = TekmarSetpoint(
+                    address, self._tha_inventory[address], self
+                )
+                new_setpoint.init_device()
+                self.tha_devices.append(new_setpoint)
 
-                elif (
-                    DEVICE_TYPES[self._tha_inventory[address]["type"]]
-                    == ThaType.SNOWMELT
-                ):
-                    new_snowmelt = TekmarSnowmelt(
-                        address, self._tha_inventory[address], self
-                    )
-                    new_snowmelt.init_device()
-                    self.tha_devices.append(new_snowmelt)
+            elif (
+                DEVICE_TYPES[self._tha_inventory[address]["type"]]
+                == ThaType.SNOWMELT
+            ):
+                new_snowmelt = TekmarSnowmelt(
+                    address, self._tha_inventory[address], self
+                )
+                new_snowmelt.init_device()
+                self.tha_devices.append(new_snowmelt)
 
-                else:
-                    _LOGGER.warning(f"Unknown device at address {address}")
+            else:
+                _LOGGER.warning(f"Unknown device at address {address}")
 
-            if not self.online:
-                ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
+        if not self.online:
+            ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
 
-            self.online = True
+        self.online = True
 
     async def run(self) -> None:
         self._inRun = True
@@ -451,10 +450,10 @@ class TekmarHub:
                                 )
                         except KeyError as e:
                             _LOGGER.warning(
-                                (
+                                
                                     f"Device address {e} not in inventory. "
                                     "Reloading integration..."
-                                )
+                                
                             )
                             await self._hass.config_entries.async_reload(self._entry_id)
 
@@ -480,10 +479,10 @@ class TekmarHub:
                                     await device.set_setback_state(p.body["setback"])
                         except KeyError as e:
                             _LOGGER.warning(
-                                (
+                                
                                     f"Device address {e} not in inventory. "
                                     "Reloading integration..."
-                                )
+                                
                             )
                             await self._hass.config_entries.async_reload(self._entry_id)
 
@@ -526,10 +525,10 @@ class TekmarHub:
 
                     elif tha_method in ["TakingAddress"]:
                         _LOGGER.warning(
-                            (
+                            
                                 f"Device at address {p.body['old_address']} moved to "
                                 f"{p.body['new_address']}. Reloading integration..."
-                            )
+                            
                         )
                         await self._hass.config_entries.async_reload(self._entry_id)
 
@@ -540,10 +539,7 @@ class TekmarHub:
                             f"{self._tha_inventory[b['address']]['attributes'].attrs}"
                         )
 
-                    elif tha_method in ["NullMethod"]:
-                        pass
-
-                    elif tha_method in ["DateTime"]:
+                    elif tha_method in ["NullMethod"] or tha_method in ["DateTime"]:
                         pass
 
                     else:
@@ -551,7 +547,6 @@ class TekmarHub:
 
                 except KeyError as e:
                     _LOGGER.debug(f"Ignored unknown key: {e}")
-                    pass
 
     async def timekeeper(self, interval: int = 86400) -> None:
         while self._inRun is True:
@@ -1196,7 +1191,7 @@ class TekmarThermostat:
         return True
 
     @property
-    def device_info(self) -> Optional[Dict[str, Any]]:
+    def device_info(self) -> dict[str, Any] | None:
         return self._device_info
 
 
@@ -1349,7 +1344,7 @@ class TekmarSetpoint:
         return True
 
     @property
-    def device_info(self) -> Optional[Dict[str, Any]]:
+    def device_info(self) -> dict[str, Any] | None:
         return self._device_info
 
 
@@ -1420,7 +1415,7 @@ class TekmarSnowmelt:
         return True
 
     @property
-    def device_info(self) -> Optional[Dict[str, Any]]:
+    def device_info(self) -> dict[str, Any] | None:
         return self._device_info
 
 
@@ -1544,15 +1539,15 @@ class TekmarGateway:
         return self._tha_network_error
 
     @property
-    def setpoint_groups(self) -> Dict[int, Any]:
+    def setpoint_groups(self) -> dict[int, Any]:
         return self._tha_setpoint_groups
 
     @property
-    def device_info(self) -> Optional[Dict[str, Any]]:
+    def device_info(self) -> dict[str, Any] | None:
         return self._device_info
 
 
-class StoredData(object):
+class StoredData:
     """Abstraction over Home Assistant Store."""
 
     def __init__(self, hass: HomeAssistant, entry_id: str) -> None:

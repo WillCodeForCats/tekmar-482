@@ -24,7 +24,6 @@ class Bitmask(Field):
     readability reasons when creating Bitfield objects.
     """
 
-    pass
 
 
 # ******************************************************************************

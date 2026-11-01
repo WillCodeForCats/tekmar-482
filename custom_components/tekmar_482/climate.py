@@ -11,9 +11,10 @@ from homeassistant.components.climate.const import (
     PRESET_AWAY,
     PRESET_HOME,
     PRESET_SLEEP,
+    HVACAction,
+    HVACMode,
 )
 from homeassistant.components.climate.const import ClimateEntityFeature as Feature
-from homeassistant.components.climate.const import HVACAction, HVACMode
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
@@ -156,10 +157,7 @@ class ThaClimateThermostat(ThaClimateBase):
 
     @property
     def current_temperature(self):
-        if self._tekmar_tha.current_temperature == ThaValue.NA_16:
-            return None
-
-        elif self._tekmar_tha.current_temperature is None:
+        if self._tekmar_tha.current_temperature == ThaValue.NA_16 or self._tekmar_tha.current_temperature is None:
             return None
 
         else:

@@ -43,9 +43,7 @@ class CheckConfigurationRepairFlow(RepairsFlow):
 
             if not host_valid(user_input[CONF_HOST]):
                 errors[CONF_HOST] = "invalid_host"
-            elif user_input[CONF_PORT] < 1:
-                errors[CONF_PORT] = "invalid_tcp_port"
-            elif user_input[CONF_PORT] > 65535:
+            elif user_input[CONF_PORT] < 1 or user_input[CONF_PORT] > 65535:
                 errors[CONF_PORT] = "invalid_tcp_port"
             else:
                 self.hass.config_entries.async_update_entry(

@@ -74,9 +74,7 @@ class TekmarGatewayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors[CONF_HOST] = "invalid_host"
             elif user_input[CONF_HOST] in tekmar_482_entries(self.hass):
                 errors[CONF_HOST] = "already_configured"
-            elif user_input[CONF_PORT] < 1:
-                errors[CONF_PORT] = "invalid_tcp_port"
-            elif user_input[CONF_PORT] > 65535:
+            elif user_input[CONF_PORT] < 1 or user_input[CONF_PORT] > 65535:
                 errors[CONF_PORT] = "invalid_tcp_port"
             else:
                 await self.async_set_unique_id(user_input[CONF_NAME])
