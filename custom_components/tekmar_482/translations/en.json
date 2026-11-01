@@ -8,6 +8,13 @@
           "host": "Packet Server Address",
           "port": "Packet Server Port"
         }
+      },
+      "reconfigure": {
+        "title": "Reconfigure Tekmar Gateway 482",
+        "data": {
+          "host": "Packet Server Address",
+          "port": "Packet Server Port"
+        }
       }
     },
     "error": {
@@ -16,7 +23,8 @@
       "invalid_tcp_port": "Valid port range is 1 to 65535."
     },
     "abort": {
-      "already_configured": "Gateway is already configured!"
+      "already_configured": "Gateway is already configured!",
+      "reconfigure_successful": "Gateway configuration updated."
     }
   },
   "options": {
