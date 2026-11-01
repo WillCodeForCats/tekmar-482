@@ -56,6 +56,7 @@ class Packet:
         return lst
 
     # --------------------------------------------------------------------------
+    @staticmethod
     def from_str(s):
         """Convert a packet in string form into a packet object.
 
@@ -75,5 +76,3 @@ class Packet:
             return Packet(pkt_type[0], data)
         except ValueError:
             return Packet()
-
-    from_str = staticmethod(from_str)

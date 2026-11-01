@@ -256,6 +256,7 @@ class TrpcPacket:
                 self.header[v] = kwargs[v]
 
     # *************************************************************************
+    @staticmethod
     def from_rx_packet(pck_str):
         """Create a TrpcPacket from a packet string.
 
@@ -278,8 +279,6 @@ class TrpcPacket:
             trpc.body, trpc.extra = Record.create(empty_field_list, d)
 
         return trpc
-
-    from_rx_packet = staticmethod(from_rx_packet)
 
     # *************************************************************************
     def to_tpck(self):
