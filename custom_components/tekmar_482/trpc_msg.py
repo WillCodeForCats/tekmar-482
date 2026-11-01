@@ -299,21 +299,21 @@ class TrpcPacket:
         try:
             service_name = name_from_serviceID[self.header["serviceID"]]
         except KeyError:
-            service_name = "0x%04X" % self.header["serviceID"]
+            service_name = f"0x{self.header['serviceID']:04X}"
 
         service_name = service_name.ljust(16)
 
         try:
             method_name = name_from_methodID[self.header["methodID"]]
         except KeyError:
-            method_name = "0x%04X" % self.header["methodID"]
+            method_name = f"0x{self.header['methodID']:04X}"
 
         method_name = method_name.ljust(18)
 
-        hs = "%s %s" % (service_name, method_name)
+        hs = f"{service_name} {method_name}"
 
         d, _ = self.body.pack()
         d.extend(self.extra)
         if len(d) == 0:
             return hs
-        return "".join([hs, " <", "".join(["%02X" % x for x in d]), ">"])
+        return "".join([hs, " <", "".join([f"{x:02X}" for x in d]), ">"])

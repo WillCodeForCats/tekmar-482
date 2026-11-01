@@ -34,7 +34,7 @@ class Packet:
 
         See the module docs for the format.
         """
-        lst = ["%02X" % b for b in self.joined()]
+        lst = [f"{b:02X}" for b in self.joined()]
         lst.append("\n")
         return "".join(lst)
 
