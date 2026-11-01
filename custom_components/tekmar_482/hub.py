@@ -380,182 +380,55 @@ class TekmarHub:
                     b = p.body
                     tha_method = name_from_methodID[h["methodID"]]
 
-                    _LOGGER.debug("Run %s", p)
+    async def _async_handle_run_packet(self, p: TrpcPacket) -> None:
+        """Process a packet received while running."""
+        b = p.body
+        tha_method = name_from_methodID[p.header["methodID"]]
 
-                    if b["address"] in self.tha_ignore_addr:
-                        _LOGGER.debug(
-                            "Ignored %s from address %s", tha_method, b["address"]
-                        )
-                        continue
+        _LOGGER.debug("Run %s", p)
 
-                    if tha_method == "ReportingState":
-                        for gateway in self.tha_gateway:
-                            await gateway.set_reporting_state(b["state"])
+        if b["address"] in self.tha_ignore_addr:
+            _LOGGER.debug("Ignored %s from address %s", tha_method, b["address"])
+            return
 
-                    elif tha_method == "NetworkError":
-                        for gateway in self.tha_gateway:
-                            await gateway.set_network_error(b["error"])
+        if tha_method in _GATEWAY_UPDATES:
+            setter, fields = _GATEWAY_UPDATES[tha_method]
+            for gateway in self.tha_gateway:
+                await getattr(gateway, setter)(*(b[f] for f in fields))
 
-                    elif tha_method == "OutdoorTemperature":
-                        for gateway in self.tha_gateway:
-                            await gateway.set_outdoor_temperature(p.body["temp"])
+        elif tha_method in _DEVICE_UPDATES:
+            setter, fields = _DEVICE_UPDATES[tha_method]
+            for device in self.tha_devices:
+                if device.device_id == b["address"]:
+                    await getattr(device, setter)(*(b[f] for f in fields))
 
-                    elif tha_method == "CurrentTemperature":
-                        for device in self.tha_devices:
-                            if device.device_id == b["address"]:
-                                await device.set_current_temperature(p.body["temp"])
+        elif tha_method == "ActiveDemand":
+            await self._async_handle_active_demand(b)
 
-                    elif tha_method == "CurrentFloorTemperature":
-                        for device in self.tha_devices:
-                            if device.device_id == b["address"]:
-                                await device.set_current_floor_temperature(
-                                    p.body["temp"]
-                                )
+        elif tha_method == "SetbackState":
+            await self._async_handle_setback_state(b)
 
-                    elif tha_method == "HeatSetpoint":
-                        for device in self.tha_devices:
-                            if device.device_id == b["address"]:
-                                # await device.set_setback_state(p.body['setback'])
-                                await device.set_heat_setpoint(
-                                    p.body["setpoint"], p.body["setback"]
-                                )
+        elif tha_method == "TakingAddress":
+            _LOGGER.warning(
+                "Device at address %s moved to %s. Reloading integration...",
+                b["old_address"],
+                b["new_address"],
+            )
+            await self._hass.config_entries.async_reload(self._entry_id)
 
-                    elif tha_method == "CoolSetpoint":
-                        for device in self.tha_devices:
-                            if device.device_id == b["address"]:
-                                # await device.set_setback_state(p.body['setback'])
-                                await device.set_cool_setpoint(
-                                    p.body["setpoint"], p.body["setback"]
-                                )
+        elif tha_method == "DeviceAttributes":
+            _LOGGER.debug(
+                "Ignoring attributes from %s in run: received %s setup with %s",
+                b["address"],
+                int(b["attributes"]),
+                self._tha_inventory[b["address"]]["attributes"].attrs,
+            )
 
-                    elif tha_method == "SlabSetpoint":
-                        for device in self.tha_devices:
-                            if device.device_id == b["address"]:
-                                # await device.set_setback_state(p.body['setback'])
-                                await device.set_slab_setpoint(
-                                    p.body["setpoint"], p.body["setback"]
-                                )
+        elif tha_method in ("NullMethod", "DateTime"):
+            pass
 
-                    elif tha_method == "FanPercent":
-                        for device in self.tha_devices:
-                            if device.device_id == b["address"]:
-                                await device.set_fan_percent(
-                                    p.body["percent"], p.body["setback"]
-                                )
-
-                    elif tha_method == "RelativeHumidity":
-                        for device in self.tha_devices:
-                            if device.device_id == b["address"]:
-                                await device.set_relative_humidity(p.body["percent"])
-
-                    elif tha_method == "ActiveDemand":
-                        try:
-                            if (
-                                DEVICE_TYPES[self._tha_inventory[b["address"]]["type"]]
-                                == ThaType.THERMOSTAT
-                            ):
-                                self._tx_queue.append(
-                                    TrpcPacket(
-                                        service="Request",
-                                        method="ModeSetting",
-                                        address=b["address"],
-                                    )
-                                )
-                        except KeyError as e:
-                            _LOGGER.warning(
-                                "Device address %s not in inventory. Reloading integration...",
-                                e,
-                            )
-                            await self._hass.config_entries.async_reload(self._entry_id)
-
-                        for device in self.tha_devices:
-                            if device.device_id == b["address"]:
-                                await device.set_active_demand(p.body["demand"])
-
-                    elif tha_method == "SetbackState":
-                        try:
-                            if self._tha_inventory[b["address"]][
-                                "attributes"
-                            ].FanPercent:
-                                self._tx_queue.append(
-                                    TrpcPacket(
-                                        service="Request",
-                                        method="FanPercent",
-                                        setback=ThaSetback.CURRENT,
-                                        address=b["address"],
-                                    )
-                                )
-                            for device in self.tha_devices:
-                                if device.device_id == b["address"]:
-                                    await device.set_setback_state(p.body["setback"])
-                        except KeyError as e:
-                            _LOGGER.warning(
-                                "Device address %s not in inventory. Reloading integration...",
-                                e,
-                            )
-                            await self._hass.config_entries.async_reload(self._entry_id)
-
-                    elif tha_method == "SetbackEvents":
-                        for device in self.tha_devices:
-                            if device.device_id == b["address"]:
-                                await device.set_setback_events(p.body["events"])
-
-                    elif tha_method == "ModeSetting":
-                        for device in self.tha_devices:
-                            if device.device_id == b["address"]:
-                                await device.set_mode_setting(p.body["mode"])
-
-                    elif tha_method == "HumiditySetMin":
-                        for device in self.tha_devices:
-                            if device.device_id == b["address"]:
-                                await device.set_humidity_setpoint_min(
-                                    p.body["percent"]
-                                )
-
-                    elif tha_method == "HumiditySetMax":
-                        for device in self.tha_devices:
-                            if device.device_id == b["address"]:
-                                await device.set_humidity_setpoint_max(
-                                    p.body["percent"]
-                                )
-
-                    elif tha_method == "SetpointGroupEnable":
-                        for gateway in self.tha_gateway:
-                            await gateway.set_setpoint_group(
-                                p.body["groupid"], p.body["enable"]
-                            )
-
-                    elif tha_method == "SetpointDevice":
-                        for device in self.tha_devices:
-                            if device.device_id == b["address"]:
-                                await device.set_setpoint_target(
-                                    p.body["temp"], p.body["setback"]
-                                )
-
-                    elif tha_method == "TakingAddress":
-                        _LOGGER.warning(
-                            "Device at address %s moved to %s. Reloading integration...",
-                            p.body["old_address"],
-                            p.body["new_address"],
-                        )
-                        await self._hass.config_entries.async_reload(self._entry_id)
-
-                    elif tha_method == "DeviceAttributes":
-                        _LOGGER.debug(
-                            "Ignoring attributes from %s in run: received %s setup with %s",
-                            b["address"],
-                            int(b["attributes"]),
-                            self._tha_inventory[b["address"]]["attributes"].attrs,
-                        )
-
-                    elif tha_method in ("NullMethod", "DateTime"):
-                        pass
-
-                    else:
-                        _LOGGER.warning("Unhandled method: %s", tha_method)
-
-                except KeyError as e:
-                    _LOGGER.debug("Ignored unknown key: %s", e)
+        else:
+            _LOGGER.warning("Unhandled method: %s", tha_method)
 
     async def _async_handle_active_demand(self, b: Record) -> None:
         """Store active demand and request the mode setting for thermostats."""
