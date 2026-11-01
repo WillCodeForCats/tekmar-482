@@ -31,15 +31,16 @@ class TrpcSocket:
                 self.addr, self.port
             )
 
-            self._is_open = True
-            return True
-
         except OSError as e:
             self._sock_reader = None
             self._sock_writer = None
             self._is_open = False
             self._error = e
             return False
+
+        else:
+            self._is_open = True
+            return True
 
     # **************************************************************************
     async def close(self) -> None:
