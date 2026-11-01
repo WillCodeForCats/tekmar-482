@@ -376,9 +376,9 @@ class TekmarHub:
                 read_cycle = 0
 
                 try:
-                    h = p.header
-                    b = p.body
-                    tha_method = name_from_methodID[h["methodID"]]
+                    await self._async_handle_run_packet(p)
+                except KeyError as e:
+                    _LOGGER.debug("Ignored unknown key: %s", e)
 
     async def _async_handle_run_packet(self, p: TrpcPacket) -> None:
         """Process a packet received while running."""
