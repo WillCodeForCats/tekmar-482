@@ -32,6 +32,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
+    """Set up gateway, thermostat, and setpoint sensors."""
     hub = hass.data[DOMAIN][config_entry.entry_id]
 
     entities = []
