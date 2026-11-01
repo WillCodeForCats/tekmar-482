@@ -157,8 +157,11 @@ class ThaClimateThermostat(ThaClimateBase):
                 self._tekmar_tha.humidity_setpoint_min != ThaValue.NA_8
                 or self._tekmar_tha.humidity_setpoint_max != ThaValue.NA_8
             ) and not (
-                self._tekmar_tha.humidity_setpoint_min != ThaValue.NA_8
-                and self._tekmar_tha.humidity_setpoint_max != ThaValue.NA_8
+                ThaValue.NA_8
+                not in (
+                    self._tekmar_tha.humidity_setpoint_min,
+                    self._tekmar_tha.humidity_setpoint_max,
+                )
             ):
                 supported_features = supported_features | Feature.TARGET_HUMIDITY
 

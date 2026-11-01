@@ -241,11 +241,7 @@ class CurrentTemperature(ThaSensorBase):
     @property
     def available(self) -> bool:
         """Return True if current temperature is known and online."""
-        if (
-            self._tekmar_tha.current_temperature == ThaValue.NA_16
-            or self._tekmar_tha.current_temperature == ThaValue.OFF
-            or self._tekmar_tha.current_temperature is None
-        ):
+        if self._tekmar_tha.current_temperature in (ThaValue.NA_16, ThaValue.OFF, None):
             return False
 
         return super().available
@@ -289,10 +285,10 @@ class CurrentFloorTemperature(ThaSensorBase):
     @property
     def available(self) -> bool:
         """Return True if floor temperature is known and online."""
-        if (
-            self._tekmar_tha.current_floor_temperature == ThaValue.NA_16
-            or self._tekmar_tha.current_floor_temperature == ThaValue.OFF
-            or self._tekmar_tha.current_floor_temperature is None
+        if self._tekmar_tha.current_floor_temperature in (
+            ThaValue.NA_16,
+            ThaValue.OFF,
+            None,
         ):
             return False
 
@@ -424,11 +420,7 @@ class SetpointTarget(ThaSensorBase):
     @property
     def available(self) -> bool:
         """Return True if the setpoint target is known and online."""
-        if (
-            self._tekmar_tha.setpoint_target == ThaValue.NA_16
-            or self._tekmar_tha.setpoint_target == ThaValue.OFF
-            or self._tekmar_tha.setpoint_target is None
-        ):
+        if self._tekmar_tha.setpoint_target in (ThaValue.NA_16, ThaValue.OFF, None):
             return False
 
         return super().available

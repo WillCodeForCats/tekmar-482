@@ -108,10 +108,9 @@ class ThaHumiditySetMax(ThaNumberBase):
     @property
     def entity_registry_enabled_default(self) -> bool:
         """Enable by default only if both humidity setpoints are supported."""
-        if (
-            self._tekmar_tha.humidity_setpoint_max is not None
-            and self._tekmar_tha.humidity_setpoint_min != ThaValue.NA_8
-            and self._tekmar_tha.humidity_setpoint_max != ThaValue.NA_8
+        if self._tekmar_tha.humidity_setpoint_max is not None and ThaValue.NA_8 not in (
+            self._tekmar_tha.humidity_setpoint_min,
+            self._tekmar_tha.humidity_setpoint_max,
         ):
             return True
         return False
@@ -159,10 +158,9 @@ class ThaHumiditySetMin(ThaNumberBase):
     @property
     def entity_registry_enabled_default(self) -> bool:
         """Enable by default only if both humidity setpoints are supported."""
-        if (
-            self._tekmar_tha.humidity_setpoint_min is not None
-            and self._tekmar_tha.humidity_setpoint_min != ThaValue.NA_8
-            and self._tekmar_tha.humidity_setpoint_max != ThaValue.NA_8
+        if self._tekmar_tha.humidity_setpoint_min is not None and ThaValue.NA_8 not in (
+            self._tekmar_tha.humidity_setpoint_min,
+            self._tekmar_tha.humidity_setpoint_max,
         ):
             return True
         return False
