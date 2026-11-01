@@ -154,126 +154,7 @@ class TekmarHub:
 
             if p is not None:
                 try:
-                    h = p.header
-                    b = p.body
-                    tha_method = name_from_methodID[h["methodID"]]
-
-                    _LOGGER.debug("Setup %s", p)
-
-                    if tha_method == "FirmwareRevision":
-                        self._tha_fw_ver = b["revision"]
-
-                    elif tha_method == "ProtocolVersion":
-                        self._tha_pr_ver = b["version"]
-
-                    elif tha_method == "SetbackEnable":
-                        self._tha_setback_enable = b["enable"]
-
-                    elif tha_method == "ReportingState":
-                        self._tha_reporting_state = b["state"]
-
-                        if self._tha_reporting_state == 1:
-                            self._inSetup = False
-
-                    elif tha_method == "DeviceInventory":
-                        if b["address"] > 0:
-                            _LOGGER.debug("Setting up address %s", b["address"])
-
-                            self._tha_inventory[b["address"]] = {
-                                "entity": "",
-                                "type": "",
-                                "version": "",
-                                "events": "",
-                                "attributes": DeviceAttributes(),
-                            }
-
-                            self._tx_queue.append(
-                                TrpcPacket(
-                                    service="Request",
-                                    method="DeviceType",
-                                    address=b["address"],
-                                )
-                            )
-                            self._tx_queue.append(
-                                TrpcPacket(
-                                    service="Request",
-                                    method="DeviceVersion",
-                                    address=b["address"],
-                                )
-                            )
-                            self._tx_queue.append(
-                                TrpcPacket(
-                                    service="Request",
-                                    method="DeviceAttributes",
-                                    address=b["address"],
-                                )
-                            )
-                            self._tx_queue.append(
-                                TrpcPacket(
-                                    service="Request",
-                                    method="SetbackEvents",
-                                    address=b["address"],
-                                )
-                            )
-                        else:
-                            # inventory complete
-                            self._tx_queue.append(
-                                TrpcPacket(
-                                    service="Update",
-                                    method="ReportingState",
-                                    state=ThaValue.ON,
-                                )
-                            )
-
-                    elif tha_method == "DeviceType":
-                        try:
-                            self._tha_inventory[b["address"]]["type"] = b["type"]
-                            self._tha_inventory[b["address"]]["entity"] = (
-                                "{3} {0} {1} {2}".format(
-                                    DEVICE_TYPES[
-                                        self._tha_inventory[b["address"]]["type"]
-                                    ].capitalize(),
-                                    DEVICE_FEATURES[
-                                        self._tha_inventory[b["address"]]["type"]
-                                    ]["model"],
-                                    b["address"],
-                                    self._name.capitalize(),
-                                )
-                            )
-                            _LOGGER.debug("Address %s type %s", b["address"], b["type"])
-
-                        except KeyError:
-                            _LOGGER.warning(
-                                "Unknown device type %s at address %s. This address will be ignored.",
-                                b["type"],
-                                b["address"],
-                            )
-
-                            self.tha_ignore_addr.append(b["address"])
-
-                    elif tha_method == "DeviceAttributes":
-                        _LOGGER.debug(
-                            "Address %s attributes %s", b["address"], b["attributes"]
-                        )
-                        self._tha_inventory[b["address"]]["attributes"].attrs = int(
-                            b["attributes"]
-                        )
-
-                    elif tha_method == "DeviceVersion":
-                        _LOGGER.debug(
-                            "Address %s version %s", b["address"], b["j_number"]
-                        )
-                        self._tha_inventory[b["address"]]["version"] = b["j_number"]
-
-                    elif tha_method == "SetbackEvents":
-                        _LOGGER.debug(
-                            "Address %s setback events %s", b["address"], b["events"]
-                        )
-                        self._tha_inventory[b["address"]]["events"] = b["events"]
-
-                    else:
-                        _LOGGER.warning("Ignored method %s during setup.", tha_method)
-
+                    self._handle_setup_packet(p)
                 except KeyError as e:
                     _LOGGER.debug("Ignored unknown key: %s", e)
 
@@ -316,6 +197,116 @@ class TekmarHub:
             ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
 
         self.online = True
+
+    def _handle_setup_packet(self, p: TrpcPacket) -> None:
+        """Process a packet received during setup."""
+        h = p.header
+        b = p.body
+        tha_method = name_from_methodID[h["methodID"]]
+
+        _LOGGER.debug("Setup %s", p)
+
+        if tha_method == "FirmwareRevision":
+            self._tha_fw_ver = b["revision"]
+
+        elif tha_method == "ProtocolVersion":
+            self._tha_pr_ver = b["version"]
+
+        elif tha_method == "SetbackEnable":
+            self._tha_setback_enable = b["enable"]
+
+        elif tha_method == "ReportingState":
+            self._tha_reporting_state = b["state"]
+
+            if self._tha_reporting_state == 1:
+                self._inSetup = False
+
+        elif tha_method == "DeviceInventory":
+            if b["address"] > 0:
+                _LOGGER.debug("Setting up address %s", b["address"])
+
+                self._tha_inventory[b["address"]] = {
+                    "entity": "",
+                    "type": "",
+                    "version": "",
+                    "events": "",
+                    "attributes": DeviceAttributes(),
+                }
+
+                self._tx_queue.append(
+                    TrpcPacket(
+                        service="Request",
+                        method="DeviceType",
+                        address=b["address"],
+                    )
+                )
+                self._tx_queue.append(
+                    TrpcPacket(
+                        service="Request",
+                        method="DeviceVersion",
+                        address=b["address"],
+                    )
+                )
+                self._tx_queue.append(
+                    TrpcPacket(
+                        service="Request",
+                        method="DeviceAttributes",
+                        address=b["address"],
+                    )
+                )
+                self._tx_queue.append(
+                    TrpcPacket(
+                        service="Request",
+                        method="SetbackEvents",
+                        address=b["address"],
+                    )
+                )
+            else:
+                # inventory complete
+                self._tx_queue.append(
+                    TrpcPacket(
+                        service="Update",
+                        method="ReportingState",
+                        state=ThaValue.ON,
+                    )
+                )
+
+        elif tha_method == "DeviceType":
+            try:
+                self._tha_inventory[b["address"]]["type"] = b["type"]
+                self._tha_inventory[b["address"]]["entity"] = "{3} {0} {1} {2}".format(
+                    DEVICE_TYPES[
+                        self._tha_inventory[b["address"]]["type"]
+                    ].capitalize(),
+                    DEVICE_FEATURES[self._tha_inventory[b["address"]]["type"]]["model"],
+                    b["address"],
+                    self._name.capitalize(),
+                )
+                _LOGGER.debug("Address %s type %s", b["address"], b["type"])
+
+            except KeyError:
+                _LOGGER.warning(
+                    "Unknown device type %s at address %s. This address will be ignored.",
+                    b["type"],
+                    b["address"],
+                )
+
+                self.tha_ignore_addr.append(b["address"])
+
+        elif tha_method == "DeviceAttributes":
+            _LOGGER.debug("Address %s attributes %s", b["address"], b["attributes"])
+            self._tha_inventory[b["address"]]["attributes"].attrs = int(b["attributes"])
+
+        elif tha_method == "DeviceVersion":
+            _LOGGER.debug("Address %s version %s", b["address"], b["j_number"])
+            self._tha_inventory[b["address"]]["version"] = b["j_number"]
+
+        elif tha_method == "SetbackEvents":
+            _LOGGER.debug("Address %s setback events %s", b["address"], b["events"])
+            self._tha_inventory[b["address"]]["events"] = b["events"]
+
+        else:
+            _LOGGER.warning("Ignored method %s during setup.", tha_method)
 
     async def run(self) -> None:
         """Process the transmit queue and incoming packets until shutdown."""
