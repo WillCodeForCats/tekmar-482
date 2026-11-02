@@ -40,11 +40,11 @@ async def async_setup_entry(
     """Setup entry."""
     hub = hass.data[DOMAIN][config_entry.entry_id]
 
-    entities = []
-
-    for device in hub.tha_devices:
-        if DEVICE_TYPES[device.tha_device["type"]] == ThaType.THERMOSTAT:
-            entities.append(ThaClimateThermostat(device, config_entry))
+    entities = [
+        ThaClimateThermostat(device, config_entry)
+        for device in hub.tha_devices
+        if DEVICE_TYPES[device.tha_device["type"]] == ThaType.THERMOSTAT
+    ]
 
     if entities:
         async_add_entities(entities)
