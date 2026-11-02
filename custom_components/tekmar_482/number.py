@@ -54,11 +54,7 @@ class ThaNumberBase(NumberEntity):
         """Initialize the number entity."""
         self._tekmar_tha = tekmar_tha
         self._config_entry = config_entry
-
-    @property
-    def device_info(self):
-        """Return the device info."""
-        return self._tekmar_tha.device_info
+        self._attr_device_info = tekmar_tha.device_info
 
     @property
     def available(self) -> bool:
@@ -207,10 +203,7 @@ class ThaHeatSetpoint(ThaNumberBase):
     @property
     def entity_registry_enabled_default(self) -> bool:
         """Return the entity registry enabled default."""
-        if self._tekmar_tha.setback_enable is False:
-            return True
-
-        return super().available
+        return self._tekmar_tha.setback_enable is False
 
     @property
     def available(self) -> bool:
@@ -221,7 +214,7 @@ class ThaHeatSetpoint(ThaNumberBase):
         ):
             return False
 
-        return True
+        return super().available
 
     @property
     def native_value(self):

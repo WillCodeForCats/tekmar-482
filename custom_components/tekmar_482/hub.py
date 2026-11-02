@@ -28,9 +28,9 @@ from .const import (
     ThaType,
     ThaValue,
 )
-from .fields import Record
-from .trpc_msg import TrpcPacket, name_from_methodID
-from .trpc_sock import TrpcSocket
+from .trpc.fields import Record
+from .trpc.msg import TrpcPacket, name_from_methodID
+from .trpc.sock import TrpcSocket
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -107,6 +107,36 @@ class TekmarHub:
         self._inReconnect = False
 
         self._tx_queue = []
+        self._tasks: list[asyncio.Task] = []
+        self._reload_scheduled = False
+
+    def add_task(self, task: asyncio.Task) -> None:
+        """Track a background task so shutdown() can cancel it."""
+        self._tasks.append(task)
+        task.add_done_callback(self._log_task_exception)
+
+    @staticmethod
+    def _log_task_exception(task: asyncio.Task) -> None:
+        """Log a background task that ended with an exception.
+
+        shutdown() gathers with return_exceptions=True, which would otherwise
+        hide a task that crashed while the entry was running.
+        """
+        if task.cancelled():
+            return
+        if (exc := task.exception()) is not None:
+            _LOGGER.error("Background task %s failed", task.get_name(), exc_info=exc)
+
+    def _schedule_reload(self) -> None:
+        """Reload the entry in its own task, once.
+
+        Called from inside the run task. Unloading cancels and awaits the
+        run task, so awaiting the reload here would make it await itself.
+        """
+        if self._reload_scheduled:
+            return
+        self._reload_scheduled = True
+        self._hass.config_entries.async_schedule_reload(self._entry_id)
 
     async def async_init_tha(self) -> None:
         """Connect to the gateway, read its inventory, and create devices."""
@@ -415,7 +445,7 @@ class TekmarHub:
                 b["old_address"],
                 b["new_address"],
             )
-            await self._hass.config_entries.async_reload(self._entry_id)
+            self._schedule_reload()
 
         elif tha_method == "DeviceAttributes":
             _LOGGER.debug(
@@ -450,7 +480,7 @@ class TekmarHub:
                 "Device address %s not in inventory. Reloading integration...",
                 e,
             )
-            await self._hass.config_entries.async_reload(self._entry_id)
+            self._schedule_reload()
 
         for device in self.tha_devices:
             if device.device_id == b["address"]:
@@ -476,7 +506,7 @@ class TekmarHub:
                 "Device address %s not in inventory. Reloading integration...",
                 e,
             )
-            await self._hass.config_entries.async_reload(self._entry_id)
+            self._schedule_reload()
 
     async def timekeeper(self, interval: int = 86400) -> None:
         """Periodically send the current date and time."""
@@ -511,13 +541,23 @@ class TekmarHub:
         self._tx_queue = []
         self._inRun = False
 
-        if await self._sock.open():
-            await self._sock.write(
-                TrpcPacket(
-                    service="Update", method="ReportingState", state=ThaValue.OFF
+        for task in self._tasks:
+            task.cancel()
+        await asyncio.gather(*self._tasks, return_exceptions=True)
+        self._tasks.clear()
+
+        # Reuse the open connection; only reconnect if it has dropped.
+        if self._sock.is_open or await self._sock.open():
+            try:
+                await self._sock.write(
+                    TrpcPacket(
+                        service="Update", method="ReportingState", state=ThaValue.OFF
+                    )
                 )
-            )
-            await self._sock.close()
+            except OSError as e:
+                _LOGGER.debug("Could not turn off reporting on shutdown: %s", e)
+
+        await self._sock.close()
 
     @property
     def hub_id(self) -> str:
