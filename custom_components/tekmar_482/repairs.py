@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typing import cast
 
-import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
 from homeassistant import data_entry_flow
 from homeassistant.components.repairs import RepairsFlow
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
+import homeassistant.helpers.config_validation as cv
+import voluptuous as vol
 
 from .helpers import host_valid
 
@@ -43,9 +43,7 @@ class CheckConfigurationRepairFlow(RepairsFlow):
 
             if not host_valid(user_input[CONF_HOST]):
                 errors[CONF_HOST] = "invalid_host"
-            elif user_input[CONF_PORT] < 1:
-                errors[CONF_PORT] = "invalid_tcp_port"
-            elif user_input[CONF_PORT] > 65535:
+            elif user_input[CONF_PORT] < 1 or user_input[CONF_PORT] > 65535:
                 errors[CONF_PORT] = "invalid_tcp_port"
             else:
                 self.hass.config_entries.async_update_entry(
