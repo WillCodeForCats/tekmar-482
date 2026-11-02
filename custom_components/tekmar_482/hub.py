@@ -29,6 +29,9 @@ from .trpc_sock import TrpcSocket
 
 _LOGGER = logging.getLogger(__name__)
 
+# Seconds allowed for the gateway to report its inventory during setup.
+SETUP_TIMEOUT = 120
+
 
 class TekmarHub:
     """Tekmar hub for communicating with the gateway addon."""
@@ -74,6 +77,11 @@ class TekmarHub:
         self._inReconnect = False
 
         self._tx_queue = []
+
+    async def async_abort_setup(self) -> None:
+        """Release the socket after a failed setup."""
+        self._inSetup = False
+        await self._sock.close()
 
     async def async_init_tha(self) -> None:
         self._inSetup = True
@@ -129,7 +137,15 @@ class TekmarHub:
             TrpcPacket(service="Request", method="DeviceInventory", address=0x0)
         )
 
+        deadline = asyncio.get_running_loop().time() + SETUP_TIMEOUT
+
         while self._inSetup is True:
+            if asyncio.get_running_loop().time() > deadline:
+                raise ConfigEntryNotReady(
+                    f"Gateway '{self._host}' did not finish reporting in "
+                    f"{SETUP_TIMEOUT} seconds"
+                )
+
             if len(self._tx_queue) != 0:
                 try:
                     writePacket = self._tx_queue.pop(0)
@@ -138,14 +154,14 @@ class TekmarHub:
                     await asyncio.sleep(0.1)  # writing too fast causes errors
                 except Exception as e:
                     _LOGGER.error(f"Write error: {e}")
-                    raise ConfigEntryNotReady("Write error while in setup.")
+                    raise ConfigEntryNotReady("Write error while in setup.") from e
 
             try:
                 p = await self._sock.read()
 
             except Exception as e:
                 _LOGGER.error(f"Read error: {e}")
-                raise ConfigEntryNotReady("Read error while in setup.")
+                raise ConfigEntryNotReady("Read error while in setup.") from e
 
             if p is not None:
                 try:
