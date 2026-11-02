@@ -108,10 +108,22 @@ class TekmarHub:
 
         self._tx_queue = []
         self._tasks: list[asyncio.Task] = []
+        self._reload_scheduled = False
 
     def add_task(self, task: asyncio.Task) -> None:
         """Track a background task so shutdown() can cancel it."""
         self._tasks.append(task)
+
+    def _schedule_reload(self) -> None:
+        """Reload the entry in its own task, once.
+
+        Called from inside the run task. Unloading cancels and awaits the
+        run task, so awaiting the reload here would make it await itself.
+        """
+        if self._reload_scheduled:
+            return
+        self._reload_scheduled = True
+        self._hass.config_entries.async_schedule_reload(self._entry_id)
 
     async def async_init_tha(self) -> None:
         """Connect to the gateway, read its inventory, and create devices."""
@@ -420,7 +432,7 @@ class TekmarHub:
                 b["old_address"],
                 b["new_address"],
             )
-            await self._hass.config_entries.async_reload(self._entry_id)
+            self._schedule_reload()
 
         elif tha_method == "DeviceAttributes":
             _LOGGER.debug(
@@ -455,7 +467,7 @@ class TekmarHub:
                 "Device address %s not in inventory. Reloading integration...",
                 e,
             )
-            await self._hass.config_entries.async_reload(self._entry_id)
+            self._schedule_reload()
 
         for device in self.tha_devices:
             if device.device_id == b["address"]:
@@ -481,7 +493,7 @@ class TekmarHub:
                 "Device address %s not in inventory. Reloading integration...",
                 e,
             )
-            await self._hass.config_entries.async_reload(self._entry_id)
+            self._schedule_reload()
 
     async def timekeeper(self, interval: int = 86400) -> None:
         """Periodically send the current date and time."""

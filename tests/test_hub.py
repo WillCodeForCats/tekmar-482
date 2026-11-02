@@ -101,7 +101,7 @@ def mock_sleep():
 @pytest.fixture
 def mock_reload(hass):
     """Mock reloading the config entry."""
-    with patch.object(hass.config_entries, "async_reload", AsyncMock()) as m:
+    with patch.object(hass.config_entries, "async_schedule_reload", MagicMock()) as m:
         yield m
 
 
@@ -220,7 +220,7 @@ async def test_active_demand_from_unknown_address_reloads(hub, mock_reload):
 
     sock = await run_with(hub, report("ActiveDemand", address=1001, demand=1))
 
-    mock_reload.assert_awaited_once_with("entry_1")
+    mock_reload.assert_called_once_with("entry_1")
     device.set_active_demand.assert_awaited_once_with(1)
     assert sock.written == []
 
@@ -266,8 +266,20 @@ async def test_setback_state_from_unknown_address_reloads(hub, mock_reload):
 
     await run_with(hub, report("SetbackState", address=1001, setback=2))
 
-    mock_reload.assert_awaited_once_with("entry_1")
+    mock_reload.assert_called_once_with("entry_1")
     device.set_setback_state.assert_not_awaited()
+
+
+@pytest.mark.usefixtures("mock_sleep")
+async def test_unknown_addresses_schedule_one_reload(hub, mock_reload):
+    """Test repeated packets from unknown addresses schedule a single reload."""
+    await run_with(
+        hub,
+        report("SetbackState", address=1001, setback=2),
+        report("ActiveDemand", address=1002, demand=1),
+    )
+
+    mock_reload.assert_called_once_with("entry_1")
 
 
 # Run loop: other methods -----------------------------------------------------
@@ -278,7 +290,7 @@ async def test_taking_address_reloads(hub, mock_reload):
     """Test a device moving to a new address reloads the entry."""
     await run_with(hub, report("TakingAddress", old_address=1001, new_address=1005))
 
-    mock_reload.assert_awaited_once_with("entry_1")
+    mock_reload.assert_called_once_with("entry_1")
 
 
 @pytest.mark.usefixtures("mock_sleep")
