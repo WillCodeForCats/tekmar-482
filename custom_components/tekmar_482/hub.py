@@ -27,9 +27,9 @@ from .const import (
     ThaType,
     ThaValue,
 )
-from .fields import Record
-from .trpc_msg import TrpcPacket, name_from_methodID
-from .trpc_sock import TrpcSocket
+from .trpc.fields import Record
+from .trpc.msg import TrpcPacket, name_from_methodID
+from .trpc.sock import TrpcSocket
 
 _LOGGER = logging.getLogger(__name__)
 
