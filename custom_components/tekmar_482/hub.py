@@ -9,7 +9,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.storage import Store
-from homeassistant.util import dt
+from homeassistant.util import dt as dt_util
 
 from .const import (
     ATTR_MANUFACTURER,
@@ -478,7 +478,7 @@ class TekmarHub:
         """Periodically send the current date and time."""
         while self._inRun is True:
             if not self._inReconnect:
-                datetime = dt.now()
+                datetime = dt_util.now()
                 await self.async_queue_message(
                     TrpcPacket(
                         service="Update",
