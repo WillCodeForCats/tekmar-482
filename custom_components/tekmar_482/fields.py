@@ -392,10 +392,7 @@ class Record:
     # --------------------------------------------------------------------------
     def __setitem__(self, key, value):
         """Allow dictionary-type write access to the record data."""
-        try:
-            self.values[key] = value
-        except KeyError:
-            pass
+        self.values[key] = value
 
     # --------------------------------------------------------------------------
     def __getitem__(self, key):
