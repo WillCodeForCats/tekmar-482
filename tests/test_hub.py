@@ -44,27 +44,31 @@ class FakeSocket:
     When the scripted reads run out, the hub's run loop is stopped.
     """
 
-    def __init__(self, hub, reads=(), is_open=True, open_result=True):
-        """Initialize the fake socket."""
+    def __init__(self, hub, reads=(), is_open=True, open_results=()):
+        """Initialize the fake socket.
+
+        open_results scripts what each open() call returns; once used up,
+        open() succeeds.
+        """
         self.hub = hub
         self.reads = list(reads)
         self.is_open = is_open
-        self.open_result = open_result
+        self.open_results = list(open_results)
+        self.opened = 0
         self.written = []
         self.closed = 0
         self.error = "connection refused"
 
     async def open(self):
         """Pretend to connect."""
-        self.is_open = self.open_result
-        return self.open_result
+        self.opened += 1
+        self.is_open = self.open_results.pop(0) if self.open_results else True
+        return self.is_open
 
     async def close(self):
-        """Pretend to close, stopping the run loop if it can't reconnect."""
+        """Pretend to close."""
         self.closed += 1
         self.is_open = False
-        if not self.open_result:
-            self.hub._inRun = False
 
     async def write(self, packet):
         """Record a written packet."""
@@ -358,13 +362,15 @@ async def test_reconnect_turns_reporting_on(hub):
     assert sock.written[0].body["state"] == 1
 
 
-@pytest.mark.usefixtures("mock_sleep")
-async def test_failed_reconnect_closes_and_retries(hub):
-    """Test a failed reconnect is handled like a socket error."""
-    sock = await run_with(hub, is_open=False, open_result=False)
+async def test_failed_reconnect_closes_and_retries(hub, mock_sleep):
+    """Test a failed reconnect closes, waits, and tries to connect again."""
+    sock = await run_with(hub, is_open=False, open_results=[False, True])
 
+    assert sock.opened == 2
     assert sock.closed == 1
-    assert sock.written == []
+    mock_sleep.assert_any_await(5)
+    # Once reconnected, reporting is turned back on.
+    assert [method_of(p) for p in sock.written] == ["ReportingState"]
 
 
 @pytest.mark.usefixtures("mock_sleep")
@@ -455,7 +461,7 @@ async def test_setup_builds_gateway_and_devices(hass, hub):
 
 async def test_setup_connection_failure_raises_issue(hass, hub):
     """Test a failed connection raises a repair issue and retries setup."""
-    hub._sock = FakeSocket(hub, open_result=False)
+    hub._sock = FakeSocket(hub, open_results=[False])
 
     with pytest.raises(ConfigEntryNotReady):
         await hub.async_init_tha()
