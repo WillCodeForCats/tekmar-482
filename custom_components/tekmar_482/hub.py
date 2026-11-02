@@ -10,6 +10,7 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
+from homeassistant.util.hass_dict import HassKey
 
 from .const import (
     ATTR_MANUFACTURER,
@@ -32,6 +33,9 @@ from .trpc_msg import TrpcPacket, name_from_methodID
 from .trpc_sock import TrpcSocket
 
 _LOGGER = logging.getLogger(__name__)
+
+# One lock for every load-modify-save of the shared settings file
+_STORAGE_LOCK: HassKey[asyncio.Lock] = HassKey(f"{DOMAIN}_storage_lock")
 
 # Updates from the gateway
 _GATEWAY_UPDATES = {
@@ -1600,11 +1604,17 @@ class StoredData:
 
     async def put_setting(self, key: str, value: Any) -> None:
         """Save a setting for this config entry."""
-        data = await self.store.async_load() or {}
-        data.setdefault(self._entry_id, {})[key] = value
+        async with storage_lock(self._hass):
+            data = await self.store.async_load() or {}
+            data.setdefault(self._entry_id, {})[key] = value
 
-        self._data = data
-        await self.store.async_save(data)
+            self._data = data
+            await self.store.async_save(data)
+
+
+def storage_lock(hass: HomeAssistant) -> asyncio.Lock:
+    """Return the lock shared by everything that saves the settings file."""
+    return hass.data.setdefault(_STORAGE_LOCK, asyncio.Lock())
 
 
 class TekmarStore(Store):
