@@ -2,3 +2,4 @@
 .DS_Store
 tekmar-482.bbprojectd
 *.pyc
+.venv-test
