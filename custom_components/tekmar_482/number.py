@@ -48,7 +48,7 @@ async def async_setup_entry(
 class ThaNumberBase(NumberEntity):
     """Base class for Tekmar number entities."""
 
-    should_poll = False
+    _attr_should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the number entity."""
@@ -87,10 +87,10 @@ class ThaNumberBase(NumberEntity):
 class ThaHumiditySetMax(ThaNumberBase):
     """Maximum humidity setpoint for a Tekmar thermostat."""
 
-    native_unit_of_measurement = PERCENTAGE
-    icon = "mdi:water-percent"
-    native_min_value = 20
-    native_max_value = 80
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_icon = "mdi:water-percent"
+    _attr_native_min_value = 20
+    _attr_native_max_value = 80
 
     @property
     def unique_id(self) -> str:
@@ -137,10 +137,10 @@ class ThaHumiditySetMax(ThaNumberBase):
 class ThaHumiditySetMin(ThaNumberBase):
     """Minimum humidity setpoint for a Tekmar thermostat."""
 
-    native_unit_of_measurement = PERCENTAGE
-    icon = "mdi:water-percent"
-    native_min_value = 20
-    native_max_value = 80
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_icon = "mdi:water-percent"
+    _attr_native_min_value = 20
+    _attr_native_max_value = 80
 
     @property
     def unique_id(self) -> str:
@@ -187,9 +187,9 @@ class ThaHumiditySetMin(ThaNumberBase):
 class ThaHeatSetpoint(ThaNumberBase):
     """Heating setpoint for a Tekmar thermostat."""
 
-    device_class = NumberDeviceClass.TEMPERATURE
-    native_unit_of_measurement = UnitOfTemperature.CELSIUS
-    icon = "mdi:thermostat"
+    _attr_device_class = NumberDeviceClass.TEMPERATURE
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    _attr_icon = "mdi:thermostat"
 
     @property
     def unique_id(self) -> str:
@@ -370,9 +370,9 @@ class ThaHeatSetpointAway(ThaHeatSetpoint):
 class ThaCoolSetpoint(ThaNumberBase):
     """Cooling setpoint for a Tekmar thermostat."""
 
-    device_class = NumberDeviceClass.TEMPERATURE
-    native_unit_of_measurement = UnitOfTemperature.CELSIUS
-    icon = "mdi:thermostat"
+    _attr_device_class = NumberDeviceClass.TEMPERATURE
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    _attr_icon = "mdi:thermostat"
 
     @property
     def unique_id(self) -> str:
@@ -555,9 +555,9 @@ class ThaCoolSetpointAway(ThaCoolSetpoint):
 class ThaSlabSetpoint(ThaNumberBase):
     """Slab (floor) setpoint for a Tekmar thermostat."""
 
-    device_class = NumberDeviceClass.TEMPERATURE
-    native_unit_of_measurement = UnitOfTemperature.CELSIUS
-    icon = "mdi:thermostat"
+    _attr_device_class = NumberDeviceClass.TEMPERATURE
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    _attr_icon = "mdi:thermostat"
 
     @property
     def unique_id(self) -> str:
