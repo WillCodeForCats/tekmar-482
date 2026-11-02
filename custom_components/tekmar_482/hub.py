@@ -113,6 +113,19 @@ class TekmarHub:
     def add_task(self, task: asyncio.Task) -> None:
         """Track a background task so shutdown() can cancel it."""
         self._tasks.append(task)
+        task.add_done_callback(self._log_task_exception)
+
+    @staticmethod
+    def _log_task_exception(task: asyncio.Task) -> None:
+        """Log a background task that ended with an exception.
+
+        shutdown() gathers with return_exceptions=True, which would otherwise
+        hide a task that crashed while the entry was running.
+        """
+        if task.cancelled():
+            return
+        if (exc := task.exception()) is not None:
+            _LOGGER.error("Background task %s failed", task.get_name(), exc_info=exc)
 
     def _schedule_reload(self) -> None:
         """Reload the entry in its own task, once.
