@@ -69,9 +69,7 @@ class Packet:
             return Packet()
         try:
             pkt_type, data = Packet.format.unpack(
-                list(
-                    [int(x, 16) for x in [s[idx : idx + 2] for idx in range(0, ln, 2)]]
-                )
+                [int(s[idx : idx + 2], 16) for idx in range(0, ln, 2)]
             )
             return Packet(pkt_type[0], data)
         except ValueError:
