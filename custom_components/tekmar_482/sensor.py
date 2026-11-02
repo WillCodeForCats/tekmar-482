@@ -69,7 +69,6 @@ async def async_setup_entry(
 class ThaSensorBase(SensorEntity):
     """Base class for Tekmar sensor entities."""
 
-    suggested_display_precision = None
     should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
@@ -113,6 +112,7 @@ class OutdoorTemprature(ThaSensorBase):
     state_class = SensorStateClass.MEASUREMENT
     native_unit_of_measurement = UnitOfTemperature.CELSIUS
     suggested_display_precision = 1
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
 
     @property
     def unique_id(self) -> str:
