@@ -203,10 +203,7 @@ class ThaHeatSetpoint(ThaNumberBase):
     @property
     def entity_registry_enabled_default(self) -> bool:
         """Return the entity registry enabled default."""
-        if self._tekmar_tha.setback_enable is False:
-            return True
-
-        return super().available
+        return self._tekmar_tha.setback_enable is False
 
     @property
     def available(self) -> bool:
@@ -217,7 +214,7 @@ class ThaHeatSetpoint(ThaNumberBase):
         ):
             return False
 
-        return True
+        return super().available
 
     @property
     def native_value(self):
