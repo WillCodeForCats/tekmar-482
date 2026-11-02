@@ -35,7 +35,7 @@ async def async_setup_entry(
 class ThaBinarySensorBase(BinarySensorEntity):
     """Base class for Tekmar binary sensor entities."""
 
-    should_poll = False
+    _attr_should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
@@ -74,8 +74,8 @@ class ThaBinarySensorBase(BinarySensorEntity):
 class ReportingState(ThaBinarySensorBase):
     """Boolean status for gateway reporting state."""
 
-    entity_category = EntityCategory.DIAGNOSTIC
-    device_class = BinarySensorDeviceClass.RUNNING
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_device_class = BinarySensorDeviceClass.RUNNING
 
     @property
     def unique_id(self) -> str:
@@ -96,8 +96,8 @@ class ReportingState(ThaBinarySensorBase):
 class SetbackEnable(ThaBinarySensorBase):
     """Boolean status for gateway setback mode."""
 
-    entity_category = EntityCategory.DIAGNOSTIC
-    device_class = BinarySensorDeviceClass.RUNNING
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_device_class = BinarySensorDeviceClass.RUNNING
 
     @property
     def unique_id(self) -> str:

@@ -33,7 +33,7 @@ async def async_setup_entry(
 class ThaSelectBase(SelectEntity):
     """Base class for Tekmar select entities."""
 
-    should_poll = False
+    _attr_should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
@@ -72,8 +72,8 @@ class ThaSelectBase(SelectEntity):
 class ThaFanSelect(ThaSelectBase):
     """Fan cycle selector for a Tekmar thermostat."""
 
-    unit_of_measurement = PERCENTAGE
-    icon = "mdi:fan"
+    _attr_unit_of_measurement = PERCENTAGE
+    _attr_icon = "mdi:fan"
 
     @property
     def unique_id(self) -> str:

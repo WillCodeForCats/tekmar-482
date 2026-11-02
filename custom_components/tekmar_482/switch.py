@@ -50,7 +50,7 @@ async def async_setup_entry(
 class ThaSwitchBase(SwitchEntity):
     """Base class for Tekmar switch entities."""
 
-    should_poll = False
+    _attr_should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the switch."""
@@ -89,7 +89,7 @@ class ThaSwitchBase(SwitchEntity):
 class ThaSetpointGroup(ThaSwitchBase):
     """A switch to enable or disable a gateway setpoint group."""
 
-    icon = "mdi:select-group"
+    _attr_icon = "mdi:select-group"
 
     def __init__(self, tekmar_tha, config_entry, group: int):
         """Initialize the setpoint group."""
@@ -154,8 +154,8 @@ class EmergencyHeat(ThaSwitchBase):
     This switch will show if the thermostat is in emergency/aux mode (and set it).
     """
 
-    entity_category = EntityCategory.CONFIG
-    icon = "mdi:hvac"
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_icon = "mdi:hvac"
 
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the emergency heat."""
@@ -197,8 +197,8 @@ class EmergencyHeat(ThaSwitchBase):
 class ConfigVentMode(ThaSwitchBase):
     """Config option for thermostat vent mode (can't be read via network)."""
 
-    entity_category = EntityCategory.CONFIG
-    icon = "mdi:fan-plus"
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_icon = "mdi:fan-plus"
 
     @property
     def unique_id(self) -> str:
