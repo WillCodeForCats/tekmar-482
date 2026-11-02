@@ -17,6 +17,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
+    """Setup entry."""
     hub = hass.data[DOMAIN][config_entry.entry_id]
 
     entities = []
@@ -50,29 +51,36 @@ class ThaNumberBase(NumberEntity):
     should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
+        """Initialize the number entity."""
         self._tekmar_tha = tekmar_tha
         self._config_entry = config_entry
 
     @property
     def device_info(self):
+        """Return the device info."""
         return self._tekmar_tha.device_info
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         return self._tekmar_tha.online and self._tekmar_tha.hub.online
 
     @property
     def config_entry_id(self):
+        """Return the config entry id."""
         return self._config_entry.entry_id
 
     @property
     def config_entry_name(self):
+        """Return the config entry name."""
         return self._config_entry.data["name"]
 
     async def async_added_to_hass(self):
+        """Added to hass."""
         self._tekmar_tha.register_callback(self.async_write_ha_state)
 
     async def async_will_remove_from_hass(self):
+        """Will remove from hass."""
         self._tekmar_tha.remove_callback(self.async_write_ha_state)
 
 
@@ -86,6 +94,7 @@ class ThaHumiditySetMax(ThaNumberBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return (
             f"{self.config_entry_id}-{self._tekmar_tha.model}-"
             f"{self._tekmar_tha.device_id}-humidity-max-setpoint"
@@ -93,21 +102,22 @@ class ThaHumiditySetMax(ThaNumberBase):
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return f"{self._tekmar_tha.tha_full_device_name} Humidity Maximum Setpoint"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
-        if (
-            self._tekmar_tha.humidity_setpoint_max is not None
-            and self._tekmar_tha.humidity_setpoint_min != ThaValue.NA_8
-            and self._tekmar_tha.humidity_setpoint_max != ThaValue.NA_8
+        """Return the entity registry enabled default."""
+        if self._tekmar_tha.humidity_setpoint_max is not None and ThaValue.NA_8 not in (
+            self._tekmar_tha.humidity_setpoint_min,
+            self._tekmar_tha.humidity_setpoint_max,
         ):
             return True
-        else:
-            return False
+        return False
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         if self._tekmar_tha.humidity_setpoint_max == ThaValue.NA_8:
             return False
 
@@ -115,9 +125,11 @@ class ThaHumiditySetMax(ThaNumberBase):
 
     @property
     def native_value(self):
+        """Return the native value."""
         return self._tekmar_tha.humidity_setpoint_max
 
     async def async_set_native_value(self, value: float) -> None:
+        """Set native value."""
         value = int(value)
         await self._tekmar_tha.set_humidity_setpoint_max_txqueue(value)
 
@@ -132,6 +144,7 @@ class ThaHumiditySetMin(ThaNumberBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return (
             f"{self.config_entry_id}-{self._tekmar_tha.model}-"
             f"{self._tekmar_tha.device_id}-humidity-min-setpoint"
@@ -139,21 +152,22 @@ class ThaHumiditySetMin(ThaNumberBase):
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return f"{self._tekmar_tha.tha_full_device_name} Humidity Minimum Setpoint"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
-        if (
-            self._tekmar_tha.humidity_setpoint_min is not None
-            and self._tekmar_tha.humidity_setpoint_min != ThaValue.NA_8
-            and self._tekmar_tha.humidity_setpoint_max != ThaValue.NA_8
+        """Return the entity registry enabled default."""
+        if self._tekmar_tha.humidity_setpoint_min is not None and ThaValue.NA_8 not in (
+            self._tekmar_tha.humidity_setpoint_min,
+            self._tekmar_tha.humidity_setpoint_max,
         ):
             return True
-        else:
-            return False
+        return False
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         if self._tekmar_tha.humidity_setpoint_min == ThaValue.NA_8:
             return False
 
@@ -161,9 +175,11 @@ class ThaHumiditySetMin(ThaNumberBase):
 
     @property
     def native_value(self):
+        """Return the native value."""
         return self._tekmar_tha.humidity_setpoint_min
 
     async def async_set_native_value(self, value: float) -> None:
+        """Set native value."""
         value = int(value)
         await self._tekmar_tha.set_humidity_setpoint_min_txqueue(value)
 
@@ -177,6 +193,7 @@ class ThaHeatSetpoint(ThaNumberBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return (
             f"{self.config_entry_id}-{self._tekmar_tha.model}-"
             f"{self._tekmar_tha.device_id}-heat-setpoint"
@@ -184,10 +201,12 @@ class ThaHeatSetpoint(ThaNumberBase):
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
+        """Return the entity registry enabled default."""
         if self._tekmar_tha.setback_enable is False:
             return True
 
@@ -195,17 +214,18 @@ class ThaHeatSetpoint(ThaNumberBase):
 
     @property
     def available(self) -> bool:
-        if self._tekmar_tha.heat_setpoint == ThaValue.NA_8:
+        """Return the available."""
+        if (
+            self._tekmar_tha.heat_setpoint == ThaValue.NA_8
+            or self._tekmar_tha.tha_device["attributes"].ZoneHeating == 0
+        ):
             return False
 
-        elif self._tekmar_tha.tha_device["attributes"].ZoneHeating == 0:
-            return False
-
-        else:
-            return True
+        return True
 
     @property
     def native_value(self):
+        """Return the native value."""
         try:
             return degEtoC(self._tekmar_tha.heat_setpoint)
         except TypeError:
@@ -213,13 +233,16 @@ class ThaHeatSetpoint(ThaNumberBase):
 
     @property
     def native_min_value(self):
+        """Return the native min value."""
         return self._tekmar_tha.config_heat_setpoint_min
 
     @property
     def native_max_value(self):
+        """Return the native max value."""
         return self._tekmar_tha.config_heat_setpoint_max
 
     async def async_set_native_value(self, value: float) -> None:
+        """Set native value."""
         heat_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint)
 
@@ -229,6 +252,7 @@ class ThaHeatSetpointDay(ThaHeatSetpoint):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return (
             f"{self.config_entry_id}-{self._tekmar_tha.model}-"
             f"{self._tekmar_tha.device_id}-heat-setpoint-day"
@@ -236,10 +260,12 @@ class ThaHeatSetpointDay(ThaHeatSetpoint):
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint Day"
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         if (
             self._tekmar_tha.heat_setpoint_day == ThaValue.NA_8
             or self._tekmar_tha.tha_device["attributes"].ZoneHeating == 0
@@ -250,12 +276,14 @@ class ThaHeatSetpointDay(ThaHeatSetpoint):
 
     @property
     def native_value(self):
+        """Return the native value."""
         try:
             return degEtoC(self._tekmar_tha.heat_setpoint_day)
         except TypeError:
             return None
 
     async def async_set_native_value(self, value: float) -> None:
+        """Set native value."""
         heat_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint, 0x00)
 
@@ -265,6 +293,7 @@ class ThaHeatSetpointNight(ThaHeatSetpoint):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return (
             f"{self.config_entry_id}-{self._tekmar_tha.model}-"
             f"{self._tekmar_tha.device_id}-heat-setpoint-night"
@@ -272,10 +301,12 @@ class ThaHeatSetpointNight(ThaHeatSetpoint):
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint Night"
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         if (
             self._tekmar_tha.heat_setpoint_day == ThaValue.NA_8
             or self._tekmar_tha.tha_device["attributes"].ZoneHeating == 0
@@ -286,12 +317,14 @@ class ThaHeatSetpointNight(ThaHeatSetpoint):
 
     @property
     def native_value(self):
+        """Return the native value."""
         try:
             return degEtoC(self._tekmar_tha.heat_setpoint_night)
         except TypeError:
             return None
 
     async def async_set_native_value(self, value: float) -> None:
+        """Set native value."""
         heat_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint, 0x03)
 
@@ -301,6 +334,7 @@ class ThaHeatSetpointAway(ThaHeatSetpoint):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return (
             f"{self.config_entry_id}-{self._tekmar_tha.model}-"
             f"{self._tekmar_tha.device_id}-heat-setpoint-away"
@@ -308,10 +342,12 @@ class ThaHeatSetpointAway(ThaHeatSetpoint):
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint Away"
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         if (
             self._tekmar_tha.heat_setpoint_day == ThaValue.NA_8
             or self._tekmar_tha.tha_device["attributes"].ZoneHeating == 0
@@ -322,12 +358,14 @@ class ThaHeatSetpointAway(ThaHeatSetpoint):
 
     @property
     def native_value(self):
+        """Return the native value."""
         try:
             return degEtoC(self._tekmar_tha.heat_setpoint_away)
         except TypeError:
             return None
 
     async def async_set_native_value(self, value: float) -> None:
+        """Set native value."""
         heat_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_heat_setpoint_txqueue(heat_setpoint, 0x06)
 
@@ -341,6 +379,7 @@ class ThaCoolSetpoint(ThaNumberBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return (
             f"{self.config_entry_id}-{self._tekmar_tha.model}-"
             f"{self._tekmar_tha.device_id}-cool-setpoint"
@@ -348,17 +387,19 @@ class ThaCoolSetpoint(ThaNumberBase):
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
+        """Return the entity registry enabled default."""
         if self._tekmar_tha.setback_enable is False:
             return True
-        else:
-            return False
+        return False
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         if (
             self._tekmar_tha.cool_setpoint == ThaValue.NA_8
             or self._tekmar_tha.tha_device["attributes"].ZoneCooling == 0
@@ -369,6 +410,7 @@ class ThaCoolSetpoint(ThaNumberBase):
 
     @property
     def native_value(self):
+        """Return the native value."""
         try:
             return degEtoC(self._tekmar_tha.cool_setpoint)
         except TypeError:
@@ -376,13 +418,16 @@ class ThaCoolSetpoint(ThaNumberBase):
 
     @property
     def native_min_value(self):
+        """Return the native min value."""
         return self._tekmar_tha.config_cool_setpoint_min
 
     @property
     def native_max_value(self):
+        """Return the native max value."""
         return self._tekmar_tha.config_cool_setpoint_max
 
     async def async_set_native_value(self, value: float) -> None:
+        """Set native value."""
         cool_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint)
 
@@ -392,6 +437,7 @@ class ThaCoolSetpointDay(ThaCoolSetpoint):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return (
             f"{self.config_entry_id}-{self._tekmar_tha.model}-"
             f"{self._tekmar_tha.device_id}-cool-setpoint-day"
@@ -399,10 +445,12 @@ class ThaCoolSetpointDay(ThaCoolSetpoint):
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint Day"
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         if (
             self._tekmar_tha.cool_setpoint_day == ThaValue.NA_8
             or self._tekmar_tha.tha_device["attributes"].ZoneCooling == 0
@@ -413,12 +461,14 @@ class ThaCoolSetpointDay(ThaCoolSetpoint):
 
     @property
     def native_value(self):
+        """Return the native value."""
         try:
             return degEtoC(self._tekmar_tha.cool_setpoint_day)
         except TypeError:
             return None
 
     async def async_set_native_value(self, value: float) -> None:
+        """Set native value."""
         cool_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint, 0x00)
 
@@ -428,6 +478,7 @@ class ThaCoolSetpointNight(ThaCoolSetpoint):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return (
             f"{self.config_entry_id}-{self._tekmar_tha.model}-"
             f"{self._tekmar_tha.device_id}-cool-setpoint-night"
@@ -435,10 +486,12 @@ class ThaCoolSetpointNight(ThaCoolSetpoint):
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint Night"
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         if (
             self._tekmar_tha.cool_setpoint_day == ThaValue.NA_8
             or self._tekmar_tha.tha_device["attributes"].ZoneCooling == 0
@@ -449,12 +502,14 @@ class ThaCoolSetpointNight(ThaCoolSetpoint):
 
     @property
     def native_value(self):
+        """Return the native value."""
         try:
             return degEtoC(self._tekmar_tha.cool_setpoint_night)
         except TypeError:
             return None
 
     async def async_set_native_value(self, value: float) -> None:
+        """Set native value."""
         cool_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint, 0x03)
 
@@ -464,6 +519,7 @@ class ThaCoolSetpointAway(ThaCoolSetpoint):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return (
             f"{self.config_entry_id}-{self._tekmar_tha.model}-"
             f"{self._tekmar_tha.device_id}-cool-setpoint-away"
@@ -471,10 +527,12 @@ class ThaCoolSetpointAway(ThaCoolSetpoint):
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint Away"
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         if (
             self._tekmar_tha.cool_setpoint_day == ThaValue.NA_8
             or self._tekmar_tha.tha_device["attributes"].ZoneCooling == 0
@@ -485,23 +543,28 @@ class ThaCoolSetpointAway(ThaCoolSetpoint):
 
     @property
     def native_value(self):
+        """Return the native value."""
         try:
             return degEtoC(self._tekmar_tha.cool_setpoint_away)
         except TypeError:
             return None
 
     async def async_set_native_value(self, value: float) -> None:
+        """Set native value."""
         cool_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint, 0x06)
 
 
 class ThaSlabSetpoint(ThaNumberBase):
+    """Slab (floor) setpoint for a Tekmar thermostat."""
+
     device_class = NumberDeviceClass.TEMPERATURE
     native_unit_of_measurement = UnitOfTemperature.CELSIUS
     icon = "mdi:thermostat"
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return (
             f"{self.config_entry_id}-{self._tekmar_tha.model}-"
             f"{self._tekmar_tha.device_id}-slab-setpoint"
@@ -509,18 +572,22 @@ class ThaSlabSetpoint(ThaNumberBase):
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return f"{self._tekmar_tha.tha_full_device_name} Floor Setpoint"
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         return self._tekmar_tha.slab_setpoint != ThaValue.NA_8 and super().available
 
     @property
     def entity_registry_enabled_default(self) -> bool:
+        """Return the entity registry enabled default."""
         return self._tekmar_tha.tha_device["attributes"].SlabSetpoint
 
     @property
     def native_value(self):
+        """Return the native value."""
         try:
             return degEtoC(self._tekmar_tha.slab_setpoint)
         except TypeError:
@@ -528,12 +595,15 @@ class ThaSlabSetpoint(ThaNumberBase):
 
     @property
     def native_min_value(self):
+        """Return the native min value."""
         return self._tekmar_tha.config_slab_setpoint_min
 
     @property
     def native_max_value(self):
+        """Return the native max value."""
         return self._tekmar_tha.config_slab_setpoint_max
 
     async def async_set_native_value(self, value: float) -> None:
+        """Set native value."""
         slab_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_slab_setpoint_txqueue(slab_setpoint)

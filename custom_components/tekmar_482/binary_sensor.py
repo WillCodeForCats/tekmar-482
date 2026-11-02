@@ -19,6 +19,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
+    """Setup entry."""
     hub = hass.data[DOMAIN][config_entry.entry_id]
 
     entities = []
@@ -43,24 +44,30 @@ class ThaBinarySensorBase(BinarySensorEntity):
 
     @property
     def device_info(self):
+        """Return the device info."""
         return self._tekmar_tha.device_info
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         return self._tekmar_tha.online and self._tekmar_tha.hub.online
 
     @property
     def config_entry_id(self):
+        """Return the config entry id."""
         return self._config_entry.entry_id
 
     @property
     def config_entry_name(self):
+        """Return the config entry name."""
         return self._config_entry.data["name"]
 
     async def async_added_to_hass(self):
+        """Added to hass."""
         self._tekmar_tha.register_callback(self.async_write_ha_state)
 
     async def async_will_remove_from_hass(self):
+        """Will remove from hass."""
         self._tekmar_tha.remove_callback(self.async_write_ha_state)
 
 
@@ -72,14 +79,17 @@ class ReportingState(ThaBinarySensorBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return f"{self.config_entry_id}-gateway-reporting-state"
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return f"{self.config_entry_name.capitalize()} Gateway Reporting State"
 
     @property
     def is_on(self):
+        """Return True if on."""
         return self._tekmar_tha.reporting_state == ThaValue.ON
 
 
@@ -91,14 +101,17 @@ class SetbackEnable(ThaBinarySensorBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return f"{self.config_entry_id}-gateway-setback-enable"
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return f"{self.config_entry_name.capitalize()} Gateway Setback Enable"
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         if (
             self._tekmar_tha.setback_enable is None
             or self._tekmar_tha.setback_enable == ThaValue.NA_8
@@ -109,4 +122,5 @@ class SetbackEnable(ThaBinarySensorBase):
 
     @property
     def is_on(self):
+        """Return True if on."""
         return self._tekmar_tha.setback_enable == ThaValue.ON
