@@ -22,7 +22,7 @@ from custom_components.tekmar_482.hub import (
     TekmarSetpoint,
     TekmarThermostat,
 )
-from custom_components.tekmar_482.trpc_msg import TrpcPacket, name_from_methodID
+from custom_components.tekmar_482.trpc.msg import TrpcPacket, name_from_methodID
 
 THERMOSTAT_TYPE = 102301  # model 527
 UNKNOWN_TYPE = 999999
