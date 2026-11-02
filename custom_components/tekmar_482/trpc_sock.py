@@ -1,3 +1,5 @@
+"""Async socket for exchanging tRPC packets with the packet server."""
+
 import asyncio
 
 from .trpc_msg import TrpcPacket
@@ -5,8 +7,11 @@ from .trpc_msg import TrpcPacket
 
 # ******************************************************************************
 class TrpcSocket:
+    """Async TCP connection to the gateway packet server."""
+
     # **************************************************************************
     def __init__(self, addr=None, port=None):
+        """Store the address and port; call open() to connect."""
         self._sock_reader = None
         self._sock_writer = None
         self._is_open = False
@@ -26,15 +31,16 @@ class TrpcSocket:
                 self.addr, self.port
             )
 
-            self._is_open = True
-            return True
-
-        except Exception as e:
+        except OSError as e:
             self._sock_reader = None
             self._sock_writer = None
             self._is_open = False
             self._error = e
             return False
+
+        else:
+            self._is_open = True
+            return True
 
     # **************************************************************************
     async def close(self) -> None:
@@ -44,7 +50,7 @@ class TrpcSocket:
                 self._sock_writer.close()
                 await self._sock_writer.wait_closed()
 
-            except Exception:
+            except OSError:
                 pass
 
             self._sock_writer = None
@@ -54,10 +60,10 @@ class TrpcSocket:
 
     # **************************************************************************
     async def read(self):
-        """Read a packet from the socket.  If no packet is avaialble,
-        None is returned.
+        """Read a packet from the socket.
 
-        Otherwise a tHA object is returned.
+        If no packet is available, None is returned.  Otherwise a tHA object
+        is returned.
         """
         if self._sock_reader is not None:
             try:
@@ -81,8 +87,10 @@ class TrpcSocket:
 
     @property
     def is_open(self) -> bool:
+        """Return True if the socket is connected."""
         return self._is_open
 
     @property
     def error(self) -> str | None:
+        """Return the last error raised while opening the socket."""
         return self._error

@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typing import Any
 
-import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry, OptionsFlow
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
+import homeassistant.helpers.config_validation as cv
+import voluptuous as vol
 
 from .const import (
     CONF_SETBACK_ENABLE,
@@ -26,10 +26,10 @@ from .helpers import host_valid
 @callback
 def tekmar_482_entries(hass: HomeAssistant):
     """Return the hosts already configured."""
-    return set(
+    return {
         entry.data[CONF_HOST].lower()
         for entry in hass.config_entries.async_entries(DOMAIN)
-    )
+    }
 
 
 def generate_config_schema(step_id: str, user_input: dict[str, Any]) -> vol.Schema:
@@ -74,9 +74,7 @@ class TekmarGatewayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors[CONF_HOST] = "invalid_host"
             elif user_input[CONF_HOST] in tekmar_482_entries(self.hass):
                 errors[CONF_HOST] = "already_configured"
-            elif user_input[CONF_PORT] < 1:
-                errors[CONF_PORT] = "invalid_tcp_port"
-            elif user_input[CONF_PORT] > 65535:
+            elif user_input[CONF_PORT] < 1 or user_input[CONF_PORT] > 65535:
                 errors[CONF_PORT] = "invalid_tcp_port"
             else:
                 await self.async_set_unique_id(user_input[CONF_NAME])
@@ -155,18 +153,15 @@ class TekmarGatewayOptionsFlowHandler(OptionsFlow):
 
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
-        else:
-            if self.config_entry.options.get(CONF_SETBACK_ENABLE) is None:
-                user_input = {
-                    CONF_SETBACK_ENABLE: DEFAULT_SETBACK_ENABLE,
-                }
+        if self.config_entry.options.get(CONF_SETBACK_ENABLE) is None:
+            user_input = {
+                CONF_SETBACK_ENABLE: DEFAULT_SETBACK_ENABLE,
+            }
 
-            else:
-                user_input = {
-                    CONF_SETBACK_ENABLE: self.config_entry.options.get(
-                        CONF_SETBACK_ENABLE
-                    ),
-                }
+        else:
+            user_input = {
+                CONF_SETBACK_ENABLE: self.config_entry.options.get(CONF_SETBACK_ENABLE),
+            }
 
         return self.async_show_form(
             step_id="init",

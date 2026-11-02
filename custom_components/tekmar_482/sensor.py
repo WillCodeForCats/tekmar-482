@@ -32,6 +32,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
+    """Setup entry."""
     hub = hass.data[DOMAIN][config_entry.entry_id]
 
     entities = []
@@ -50,11 +51,11 @@ async def async_setup_entry(
             ] and hub.tha_pr_ver in [2, 3]:
                 entities.append(RelativeHumidity(device, config_entry))
 
-            if hub.tha_pr_ver in [3]:
+            if hub.tha_pr_ver == 3:
                 entities.append(CurrentFloorTemperature(device, config_entry))
 
         if DEVICE_TYPES[device.tha_device["type"]] == ThaType.SETPOINT:
-            if hub.tha_pr_ver in [3]:
+            if hub.tha_pr_ver == 3:
                 entities.append(CurrentFloorTemperature(device, config_entry))
             entities.append(CurrentTemperature(device, config_entry))
             entities.append(SetbackState(device, config_entry))
@@ -78,24 +79,30 @@ class ThaSensorBase(SensorEntity):
 
     @property
     def device_info(self):
+        """Return the device info."""
         return self._tekmar_tha.device_info
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         return self._tekmar_tha.online and self._tekmar_tha.hub.online
 
     @property
     def config_entry_id(self):
+        """Return the config entry id."""
         return self._config_entry.entry_id
 
     @property
     def config_entry_name(self):
+        """Return the config entry name."""
         return self._config_entry.data["name"]
 
     async def async_added_to_hass(self):
+        """Added to hass."""
         self._tekmar_tha.register_callback(self.async_write_ha_state)
 
     async def async_will_remove_from_hass(self):
+        """Will remove from hass."""
         self._tekmar_tha.remove_callback(self.async_write_ha_state)
 
 
@@ -109,14 +116,17 @@ class OutdoorTemprature(ThaSensorBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return f"{self.config_entry_id}-outdoor-temperature"
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return f"{self.config_entry_name.capitalize()} Outdoor Temperature"
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         if (
             self._tekmar_tha.outdoor_temprature == ThaValue.NA_16
             or self._tekmar_tha.outdoor_temprature is None
@@ -127,6 +137,7 @@ class OutdoorTemprature(ThaSensorBase):
 
     @property
     def native_value(self):
+        """Return the native value."""
         try:
             return degHtoC(self._tekmar_tha.outdoor_temprature)  # degH need degC
 
@@ -142,18 +153,22 @@ class NetworkError(ThaSensorBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return f"{self.config_entry_id}-network-error"
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return f"{self.config_entry_name.capitalize()} Network Error"
 
     @property
     def native_value(self):
+        """Return the native value."""
         return hex(self._tekmar_tha.network_error)
 
     @property
     def extra_state_attributes(self):
+        """Return the extra state attributes."""
         err_high, err_low = regBytes(self._tekmar_tha.network_error)
         try:
             if err_low != 0x00:
@@ -188,18 +203,15 @@ class NetworkError(ThaSensorBase):
                         return {
                             "description": f"{TN_ERRORS[err_low]} {sen_err} {ag_id}"
                         }
-                    else:
-                        return {"description": f"{TN_ERRORS[err_low]} {sen_err}"}
+                    return {"description": f"{TN_ERRORS[err_low]} {sen_err}"}
 
-                elif err_low in [0x04]:
+                if err_low == 0x04:
                     device_id = err_high & 0x1F
                     return {"description": f"{TN_ERRORS[err_low]}: device {device_id}"}
 
-                else:
-                    return {"description": f"{TN_ERRORS[err_low]}"}
-
-            else:
                 return {"description": f"{TN_ERRORS[err_low]}"}
+
+            return {"description": f"{TN_ERRORS[err_low]}"}
 
         except KeyError:
             return {"description": "Unknown Error"}
@@ -215,6 +227,7 @@ class CurrentTemperature(ThaSensorBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return (
             f"{self.config_entry_id}-{self._tekmar_tha.model}"
             f"-{self._tekmar_tha.device_id}-current-temperature"
@@ -222,21 +235,20 @@ class CurrentTemperature(ThaSensorBase):
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return f"{self._tekmar_tha.tha_full_device_name} Current Temperature"
 
     @property
     def available(self) -> bool:
-        if (
-            self._tekmar_tha.current_temperature == ThaValue.NA_16
-            or self._tekmar_tha.current_temperature == ThaValue.OFF
-            or self._tekmar_tha.current_temperature is None
-        ):
+        """Return the available."""
+        if self._tekmar_tha.current_temperature in (ThaValue.NA_16, ThaValue.OFF, None):
             return False
 
         return super().available
 
     @property
     def native_value(self):
+        """Return the native value."""
         try:
             return degHtoC(self._tekmar_tha.current_temperature)
 
@@ -254,6 +266,7 @@ class CurrentFloorTemperature(ThaSensorBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return (
             f"{self.config_entry_id}-{self._tekmar_tha.model}-"
             f"{self._tekmar_tha.device_id}-current-floor-temperature"
@@ -261,18 +274,21 @@ class CurrentFloorTemperature(ThaSensorBase):
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return f"{self._tekmar_tha.tha_full_device_name} Current Floor Temperature"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
+        """Return the entity registry enabled default."""
         return self._tekmar_tha.tha_device["attributes"].SlabSetpoint
 
     @property
     def available(self) -> bool:
-        if (
-            self._tekmar_tha.current_floor_temperature == ThaValue.NA_16
-            or self._tekmar_tha.current_floor_temperature == ThaValue.OFF
-            or self._tekmar_tha.current_floor_temperature is None
+        """Return the available."""
+        if self._tekmar_tha.current_floor_temperature in (
+            ThaValue.NA_16,
+            ThaValue.OFF,
+            None,
         ):
             return False
 
@@ -280,6 +296,7 @@ class CurrentFloorTemperature(ThaSensorBase):
 
     @property
     def native_value(self):
+        """Return the native value."""
         try:
             return degHtoC(self._tekmar_tha.current_floor_temperature)
 
@@ -297,6 +314,7 @@ class RelativeHumidity(ThaSensorBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return (
             f"{self.config_entry_id}-{self._tekmar_tha.model}-"
             f"{self._tekmar_tha.device_id}-relative-humidity"
@@ -304,10 +322,12 @@ class RelativeHumidity(ThaSensorBase):
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return f"{self._tekmar_tha.tha_full_device_name} Relative Humidity"
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         if (
             self._tekmar_tha.relative_humidity == ThaValue.NA_8
             or self._tekmar_tha.relative_humidity is None
@@ -318,6 +338,7 @@ class RelativeHumidity(ThaSensorBase):
 
     @property
     def native_value(self):
+        """Return the native value."""
         return self._tekmar_tha.relative_humidity
 
 
@@ -328,6 +349,7 @@ class SetbackState(ThaSensorBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return (
             f"{self.config_entry_id}-{self._tekmar_tha.model}-"
             f"{self._tekmar_tha.device_id}-setback-state"
@@ -335,17 +357,19 @@ class SetbackState(ThaSensorBase):
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return f"{self._tekmar_tha.tha_full_device_name} Setback State"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
+        """Return the entity registry enabled default."""
         if self._tekmar_tha.setback_enable is True:
             return True
-        else:
-            return False
+        return False
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         if (
             self._tekmar_tha.setback_state == ThaValue.NA_8
             or self._tekmar_tha.setback_enable == 0x00
@@ -356,6 +380,7 @@ class SetbackState(ThaSensorBase):
 
     @property
     def native_value(self):
+        """Return the native value."""
         try:
             return SETBACK_STATE[self._tekmar_tha.setback_state]
 
@@ -364,6 +389,7 @@ class SetbackState(ThaSensorBase):
 
     @property
     def extra_state_attributes(self):
+        """Return the extra state attributes."""
         try:
             return {"description": SETBACK_DESCRIPTION[self._tekmar_tha.setback_state]}
         except KeyError:
@@ -380,6 +406,7 @@ class SetpointTarget(ThaSensorBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return (
             f"{self.config_entry_id}-{self._tekmar_tha.model}-"
             f"{self._tekmar_tha.device_id}-setpoint-target"
@@ -387,21 +414,20 @@ class SetpointTarget(ThaSensorBase):
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return f"{self._tekmar_tha.tha_full_device_name} Setpoint Target"
 
     @property
     def available(self) -> bool:
-        if (
-            self._tekmar_tha.setpoint_target == ThaValue.NA_16
-            or self._tekmar_tha.setpoint_target == ThaValue.OFF
-            or self._tekmar_tha.setpoint_target is None
-        ):
+        """Return the available."""
+        if self._tekmar_tha.setpoint_target in (ThaValue.NA_16, ThaValue.OFF, None):
             return False
 
         return super().available
 
     @property
     def native_value(self):
+        """Return the native value."""
         try:
             return degHtoC(self._tekmar_tha.setpoint_target)
 
@@ -416,6 +442,7 @@ class SetpointDemand(ThaSensorBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return (
             f"{self.config_entry_id}-{self._tekmar_tha.model}-"
             f"{self._tekmar_tha.device_id}-active-demand"
@@ -423,10 +450,12 @@ class SetpointDemand(ThaSensorBase):
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return f"{self._tekmar_tha.tha_full_device_name} Active Demand"
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         if self._tekmar_tha.active_demand == ThaValue.NA_8:
             return False
 
@@ -434,6 +463,7 @@ class SetpointDemand(ThaSensorBase):
 
     @property
     def native_value(self):
+        """Return the native value."""
         try:
             return ThaActiveDemand(self._tekmar_tha.active_demand).name
 
