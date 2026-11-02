@@ -26,10 +26,10 @@ from .helpers import host_valid
 @callback
 def tekmar_482_entries(hass: HomeAssistant):
     """Return the hosts already configured."""
-    return set(
+    return {
         entry.data[CONF_HOST].lower()
         for entry in hass.config_entries.async_entries(DOMAIN)
-    )
+    }
 
 
 def generate_config_schema(step_id: str, user_input: dict[str, Any]) -> vol.Schema:
