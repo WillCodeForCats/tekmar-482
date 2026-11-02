@@ -67,6 +67,14 @@ async def test_unknown_issue_falls_back_to_confirm_flow(hass):
     assert isinstance(flow, ConfirmRepairFlow)
 
 
+@pytest.mark.parametrize("data", [None, {}])
+async def test_missing_issue_data_falls_back_to_confirm_flow(hass, data):
+    """Test an issue without data or entry_id returns a no-op confirm flow."""
+    flow = await async_create_fix_flow(hass, "check_configuration", data)
+
+    assert isinstance(flow, ConfirmRepairFlow)
+
+
 async def test_confirm_step_shows_current_host_and_port(hass):
     """Test the confirm form is pre-filled with the entry's host and port."""
     entry = _make_entry(hass, host="192.168.1.50", port=3000)
