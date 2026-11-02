@@ -61,7 +61,7 @@ def test_packet_round_trips_through_wire_format():
     wire = str(sent.to_tpck())
     received = TrpcPacket.from_rx_packet(wire.rstrip("\n"))
 
-    assert wire.startswith(f"{TYPE_TRPC:02X}")
+    assert wire == "060237010000EA033412\n"
     assert received.header.values == sent.header.values
     assert received.body.values == {"address": 1002, "temp": 0x1234}
     assert received.extra == []
