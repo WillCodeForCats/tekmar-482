@@ -410,7 +410,7 @@ class ThaClimateThermostat(ThaClimateBase):
 
     async def async_turn_off(self):
         """Turn the entity off."""
-        await self.async_set_hvac_mode(self, HVACMode.OFF)
+        await self.async_set_hvac_mode(HVACMode.OFF)
 
     async def async_set_fan_mode(self, fan_mode):
         """Set fan mode."""
