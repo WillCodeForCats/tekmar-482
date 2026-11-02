@@ -39,11 +39,7 @@ class ThaSelectBase(SelectEntity):
         """Initialize the sensor."""
         self._tekmar_tha = tekmar_tha
         self._config_entry = config_entry
-
-    @property
-    def device_info(self):
-        """Return the device info."""
-        return self._tekmar_tha.device_info
+        self._attr_device_info = tekmar_tha.device_info
 
     @property
     def available(self) -> bool:
