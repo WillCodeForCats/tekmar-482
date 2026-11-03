@@ -69,6 +69,7 @@ async def async_setup_entry(
 class ThaSensorBase(SensorEntity):
     """Base class for Tekmar sensor entities."""
 
+    _attr_has_entity_name = True
     _attr_should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
@@ -117,7 +118,7 @@ class OutdoorTemprature(ThaSensorBase):
     @property
     def name(self) -> str:
         """Return the name."""
-        return f"{self.config_entry_name.capitalize()} Outdoor Temperature"
+        return "Outdoor Temperature"
 
     @property
     def available(self) -> bool:
@@ -154,7 +155,7 @@ class NetworkError(ThaSensorBase):
     @property
     def name(self) -> str:
         """Return the name."""
-        return f"{self.config_entry_name.capitalize()} Network Error"
+        return "Network Error"
 
     @property
     def native_value(self):
@@ -231,7 +232,7 @@ class CurrentTemperature(ThaSensorBase):
     @property
     def name(self) -> str:
         """Return the name."""
-        return f"{self._tekmar_tha.tha_full_device_name} Current Temperature"
+        return "Current Temperature"
 
     @property
     def available(self) -> bool:
@@ -270,7 +271,7 @@ class CurrentFloorTemperature(ThaSensorBase):
     @property
     def name(self) -> str:
         """Return the name."""
-        return f"{self._tekmar_tha.tha_full_device_name} Current Floor Temperature"
+        return "Current Floor Temperature"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -318,7 +319,7 @@ class RelativeHumidity(ThaSensorBase):
     @property
     def name(self) -> str:
         """Return the name."""
-        return f"{self._tekmar_tha.tha_full_device_name} Relative Humidity"
+        return "Relative Humidity"
 
     @property
     def available(self) -> bool:
@@ -353,7 +354,7 @@ class SetbackState(ThaSensorBase):
     @property
     def name(self) -> str:
         """Return the name."""
-        return f"{self._tekmar_tha.tha_full_device_name} Setback State"
+        return "Setback State"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -410,7 +411,7 @@ class SetpointTarget(ThaSensorBase):
     @property
     def name(self) -> str:
         """Return the name."""
-        return f"{self._tekmar_tha.tha_full_device_name} Setpoint Target"
+        return "Setpoint Target"
 
     @property
     def available(self) -> bool:
@@ -446,7 +447,7 @@ class SetpointDemand(ThaSensorBase):
     @property
     def name(self) -> str:
         """Return the name."""
-        return f"{self._tekmar_tha.tha_full_device_name} Active Demand"
+        return "Active Demand"
 
     @property
     def available(self) -> bool:
