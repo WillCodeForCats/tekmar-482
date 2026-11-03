@@ -53,18 +53,13 @@ async def async_setup_entry(
 class ThaClimateBase(ClimateEntity):
     """Base class for Tekmar climate entities."""
 
-    should_poll = False
-    _enable_turn_on_off_backwards_compatibility = False
+    _attr_should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the climate entity."""
         self._tekmar_tha = tekmar_tha
         self._config_entry = config_entry
-
-    @property
-    def device_info(self):
-        """Return the device info."""
-        return self._tekmar_tha.device_info
+        self._attr_device_info = tekmar_tha.device_info
 
     @property
     def available(self) -> bool:
@@ -93,9 +88,9 @@ class ThaClimateBase(ClimateEntity):
 class ThaClimateThermostat(ThaClimateBase):
     """A Tekmar thermostat entity."""
 
-    temperature_unit = UnitOfTemperature.CELSIUS
-    max_humidity = 80
-    min_humidity = 20
+    _attr_temperature_unit = UnitOfTemperature.CELSIUS
+    _attr_max_humidity = 80
+    _attr_min_humidity = 20
 
     @property
     def unique_id(self) -> str:
@@ -410,7 +405,7 @@ class ThaClimateThermostat(ThaClimateBase):
 
     async def async_turn_off(self):
         """Turn the entity off."""
-        await self.async_set_hvac_mode(self, HVACMode.OFF)
+        await self.async_set_hvac_mode(HVACMode.OFF)
 
     async def async_set_fan_mode(self, fan_mode):
         """Set fan mode."""

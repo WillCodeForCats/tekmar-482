@@ -69,18 +69,13 @@ async def async_setup_entry(
 class ThaSensorBase(SensorEntity):
     """Base class for Tekmar sensor entities."""
 
-    suggested_display_precision = None
-    should_poll = False
+    _attr_should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
         self._tekmar_tha = tekmar_tha
         self._config_entry = config_entry
-
-    @property
-    def device_info(self):
-        """Return the device info."""
-        return self._tekmar_tha.device_info
+        self._attr_device_info = tekmar_tha.device_info
 
     @property
     def available(self) -> bool:
@@ -109,10 +104,10 @@ class ThaSensorBase(SensorEntity):
 class OutdoorTemprature(ThaSensorBase):
     """Outdoor temperature sensor."""
 
-    device_class = SensorDeviceClass.TEMPERATURE
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfTemperature.CELSIUS
-    suggested_display_precision = 1
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    _attr_suggested_display_precision = 1
 
     @property
     def unique_id(self) -> str:
@@ -148,8 +143,8 @@ class OutdoorTemprature(ThaSensorBase):
 class NetworkError(ThaSensorBase):
     """TN4 network error sensor."""
 
-    entity_category = EntityCategory.DIAGNOSTIC
-    icon = "mdi:alert-outline"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_icon = "mdi:alert-outline"
 
     @property
     def unique_id(self) -> str:
@@ -220,10 +215,10 @@ class NetworkError(ThaSensorBase):
 class CurrentTemperature(ThaSensorBase):
     """Current temperature sensor for a Tekmar thermostat."""
 
-    device_class = SensorDeviceClass.TEMPERATURE
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfTemperature.CELSIUS
-    suggested_display_precision = 1
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    _attr_suggested_display_precision = 1
 
     @property
     def unique_id(self) -> str:
@@ -259,10 +254,10 @@ class CurrentTemperature(ThaSensorBase):
 class CurrentFloorTemperature(ThaSensorBase):
     """Current floor temperature sensor for a Tekmar thermostat."""
 
-    device_class = SensorDeviceClass.TEMPERATURE
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfTemperature.CELSIUS
-    suggested_display_precision = 1
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    _attr_suggested_display_precision = 1
 
     @property
     def unique_id(self) -> str:
@@ -307,10 +302,10 @@ class CurrentFloorTemperature(ThaSensorBase):
 class RelativeHumidity(ThaSensorBase):
     """Current humidity sensor for a Tekmar thermostat."""
 
-    device_class = SensorDeviceClass.HUMIDITY
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = PERCENTAGE
-    suggested_display_precision = 0
+    _attr_device_class = SensorDeviceClass.HUMIDITY
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_suggested_display_precision = 0
 
     @property
     def unique_id(self) -> str:
@@ -345,7 +340,7 @@ class RelativeHumidity(ThaSensorBase):
 class SetbackState(ThaSensorBase):
     """Current setback state for a Tekmar thermostat."""
 
-    icon = "mdi:format-list-bulleted"
+    _attr_icon = "mdi:format-list-bulleted"
 
     @property
     def unique_id(self) -> str:
@@ -399,10 +394,10 @@ class SetbackState(ThaSensorBase):
 class SetpointTarget(ThaSensorBase):
     """Current setpoint sensor for a Tekmar setpoint control."""
 
-    device_class = SensorDeviceClass.TEMPERATURE
-    state_class = SensorStateClass.MEASUREMENT
-    native_unit_of_measurement = UnitOfTemperature.CELSIUS
-    suggested_display_precision = 1
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    _attr_suggested_display_precision = 1
 
     @property
     def unique_id(self) -> str:
@@ -438,7 +433,7 @@ class SetpointTarget(ThaSensorBase):
 class SetpointDemand(ThaSensorBase):
     """Current setpoint demand for a Tekmar setpoint control."""
 
-    icon = "mdi:format-list-bulleted"
+    _attr_icon = "mdi:format-list-bulleted"
 
     @property
     def unique_id(self) -> str:
