@@ -380,7 +380,7 @@ class SetbackState(ThaSensorBase):
         try:
             return SETBACK_STATE[self._tekmar_tha.setback_state]
 
-        except KeyError:
+        except (KeyError, ValueError):
             return None
 
     @property
@@ -388,7 +388,7 @@ class SetbackState(ThaSensorBase):
         """Return the extra state attributes."""
         try:
             return {"description": SETBACK_DESCRIPTION[self._tekmar_tha.setback_state]}
-        except KeyError:
+        except (KeyError, ValueError):
             return None
 
 
@@ -452,7 +452,10 @@ class SetpointDemand(ThaSensorBase):
     @property
     def available(self) -> bool:
         """Return the available."""
-        if self._tekmar_tha.active_demand == ThaValue.NA_8:
+        if (
+            self._tekmar_tha.active_demand == ThaValue.NA_8
+            or self._tekmar_tha.active_demand is None
+        ):
             return False
 
         return super().available
@@ -463,5 +466,5 @@ class SetpointDemand(ThaSensorBase):
         try:
             return ThaActiveDemand(self._tekmar_tha.active_demand).name
 
-        except KeyError:
+        except (KeyError, ValueError):
             return None
