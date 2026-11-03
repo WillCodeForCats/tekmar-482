@@ -33,6 +33,7 @@ async def async_setup_entry(
 class ThaSelectBase(SelectEntity):
     """Base class for Tekmar select entities."""
 
+    _attr_has_entity_name = True
     _attr_should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
@@ -82,7 +83,7 @@ class ThaFanSelect(ThaSelectBase):
     @property
     def name(self) -> str:
         """Return the name."""
-        return f"{self._tekmar_tha.tha_full_device_name} Fan Percent"
+        return "Fan Percent"
 
     @property
     def available(self) -> bool:
