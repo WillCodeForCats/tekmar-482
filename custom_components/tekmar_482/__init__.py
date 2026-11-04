@@ -1,5 +1,6 @@
 """The Tekmar 482 Gateway Integration."""
 
+import asyncio
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -32,7 +33,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.options.get(CONF_SETBACK_ENABLE),
     )
 
-    await tekmar_gateway.async_init_tha()
+    try:
+        await tekmar_gateway.async_init_tha()
+    except (Exception, asyncio.CancelledError):
+        await tekmar_gateway.async_abort_setup()
+        raise
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = tekmar_gateway
 
