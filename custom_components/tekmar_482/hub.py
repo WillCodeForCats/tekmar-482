@@ -394,6 +394,14 @@ class TekmarHub:
                 read_cycle += 1
                 p = await self._sock.read()
 
+                if read_cycle == 100:
+                    self.queue_message(
+                        TrpcPacket(
+                            service="Request",
+                            method="NullMethod",
+                        )
+                    )
+
                 if read_cycle > 130:
                     raise ConnectionError(f"No reports from {self._host}")
 
