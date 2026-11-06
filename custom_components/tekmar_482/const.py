@@ -428,6 +428,11 @@ class _DeviceAttributes(ctypes.LittleEndianStructure):
         ("ZoneCooling", c_uint, 1),
         ("SlabSetpoint", c_uint, 1),
         ("FanPercent", c_uint, 1),
+        ("RelativeHumidity", c_uint, 1),
+        ("HumiditySetMax", c_uint, 1),
+        ("HumiditySetMin", c_uint, 1),
+        ("SetpointDevice", c_uint, 1),
+        ("RoomAndSlab", c_uint, 1),
     ]
 
 
