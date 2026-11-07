@@ -50,6 +50,7 @@ async def async_setup_entry(
 class ThaSwitchBase(SwitchEntity):
     """Base class for Tekmar switch entities."""
 
+    _attr_has_entity_name = True
     _attr_should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
@@ -103,10 +104,7 @@ class ThaSetpointGroup(ThaSwitchBase):
     @property
     def name(self) -> str:
         """Return the name."""
-        return (
-            f"{self.config_entry_name.capitalize()} Gateway Setpoint Group "
-            f"{int(self._setpoint_group):02d}"
-        )
+        return f"Setpoint Group {int(self._setpoint_group):02d}"
 
     @property
     def available(self) -> bool:
@@ -173,7 +171,7 @@ class EmergencyHeat(ThaSwitchBase):
     @property
     def name(self) -> str:
         """Return the name."""
-        return f"{self._tekmar_tha.tha_full_device_name} Emergency Heat"
+        return "Emergency Heat"
 
     @property
     def is_on(self):
@@ -207,7 +205,7 @@ class ConfigVentMode(ThaSwitchBase):
     @property
     def name(self) -> str:
         """Return the name."""
-        return f"{self._tekmar_tha.tha_full_device_name} Enable Vent Mode"
+        return "Enable Vent Mode"
 
     @property
     def is_on(self):
