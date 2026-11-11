@@ -1,6 +1,8 @@
 {
   "name": "Tekmar Gateway 482",
   "content_in_root": false,
+  "zip_release": true,
+  "filename": "tekmar_482.zip",
   "homeassistant": "2025.12.0",
   "render_readme": false
 }
