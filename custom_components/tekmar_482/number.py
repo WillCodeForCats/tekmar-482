@@ -31,6 +31,9 @@ async def async_setup_entry(
                 entities.append(ThaCoolSetpointDay(device, config_entry))
                 entities.append(ThaCoolSetpointNight(device, config_entry))
                 entities.append(ThaCoolSetpointAway(device, config_entry))
+                entities.append(ThaSlabSetpointDay(device, config_entry))
+                entities.append(ThaSlabSetpointNight(device, config_entry))
+                entities.append(ThaSlabSetpointAway(device, config_entry))
 
             else:
                 entities.append(ThaHeatSetpoint(device, config_entry))
@@ -572,12 +575,25 @@ class ThaSlabSetpoint(ThaNumberBase):
     @property
     def available(self) -> bool:
         """Return the available."""
-        return self._tekmar_tha.slab_setpoint != ThaValue.NA_8 and super().available
+        if (
+            self._tekmar_tha.slab_setpoint == ThaValue.NA_8
+            or self._tekmar_tha.slab_setpoint is None
+            or (
+                self._tekmar_tha.tha_device["attributes"].SlabSetpoint == 0
+                and self._tekmar_tha.tha_device["attributes"].RoomAndSlab == 0
+            )
+        ):
+            return False
+
+        return super().available
 
     @property
     def entity_registry_enabled_default(self) -> bool:
         """Return the entity registry enabled default."""
-        return self._tekmar_tha.tha_device["attributes"].SlabSetpoint
+        return bool(
+            self._tekmar_tha.tha_device["attributes"].SlabSetpoint
+            or self._tekmar_tha.tha_device["attributes"].RoomAndSlab
+        )
 
     @property
     def native_value(self):
@@ -601,3 +617,138 @@ class ThaSlabSetpoint(ThaNumberBase):
         """Set native value."""
         slab_setpoint = int(round(degCtoE(value), 0))
         await self._tekmar_tha.set_slab_setpoint_txqueue(slab_setpoint)
+
+
+class ThaSlabSetpointDay(ThaSlabSetpoint):
+    """Floor setpoint for a Tekmar thermostat (day setback)."""
+
+    @property
+    def unique_id(self) -> str:
+        """Return the unique id."""
+        return (
+            f"{self.config_entry_id}-{self._tekmar_tha.model}-"
+            f"{self._tekmar_tha.device_id}-slab-setpoint-day"
+        )
+
+    @property
+    def name(self) -> str:
+        """Return the name."""
+        return f"{self._tekmar_tha.tha_full_device_name} Floor Setpoint Day"
+
+    @property
+    def available(self) -> bool:
+        """Return the available."""
+        if (
+            self._tekmar_tha.slab_setpoint_day == ThaValue.NA_8
+            or self._tekmar_tha.slab_setpoint_day is None
+            or (
+                self._tekmar_tha.tha_device["attributes"].SlabSetpoint == 0
+                and self._tekmar_tha.tha_device["attributes"].RoomAndSlab == 0
+            )
+        ):
+            return False
+
+        return super().available
+
+    @property
+    def native_value(self):
+        """Return the native value."""
+        try:
+            return degEtoC(self._tekmar_tha.slab_setpoint_day)
+        except TypeError:
+            return None
+
+    async def async_set_native_value(self, value: float) -> None:
+        """Set native value."""
+        slab_setpoint = int(round(degCtoE(value), 0))
+        await self._tekmar_tha.set_slab_setpoint_txqueue(slab_setpoint, 0x00)
+
+
+class ThaSlabSetpointNight(ThaSlabSetpoint):
+    """Floor setpoint for a Tekmar thermostat (night setback)."""
+
+    @property
+    def unique_id(self) -> str:
+        """Return the unique id."""
+        return (
+            f"{self.config_entry_id}-{self._tekmar_tha.model}-"
+            f"{self._tekmar_tha.device_id}-slab-setpoint-night"
+        )
+
+    @property
+    def name(self) -> str:
+        """Return the name."""
+        return f"{self._tekmar_tha.tha_full_device_name} Floor Setpoint Night"
+
+    @property
+    def available(self) -> bool:
+        """Return the available."""
+        if (
+            self._tekmar_tha.slab_setpoint_day == ThaValue.NA_8
+            or self._tekmar_tha.slab_setpoint_night is None
+            or (
+                self._tekmar_tha.tha_device["attributes"].SlabSetpoint == 0
+                and self._tekmar_tha.tha_device["attributes"].RoomAndSlab == 0
+            )
+        ):
+            return False
+
+        return super().available
+
+    @property
+    def native_value(self):
+        """Return the native value."""
+        try:
+            return degEtoC(self._tekmar_tha.slab_setpoint_night)
+        except TypeError:
+            return None
+
+    async def async_set_native_value(self, value: float) -> None:
+        """Set native value."""
+        slab_setpoint = int(round(degCtoE(value), 0))
+        await self._tekmar_tha.set_slab_setpoint_txqueue(slab_setpoint, 0x03)
+
+
+class ThaSlabSetpointAway(ThaSlabSetpoint):
+    """Floor setpoint for a Tekmar thermostat (away setback)."""
+
+    @property
+    def unique_id(self) -> str:
+        """Return the unique id."""
+        return (
+            f"{self.config_entry_id}-{self._tekmar_tha.model}-"
+            f"{self._tekmar_tha.device_id}-slab-setpoint-away"
+        )
+
+    @property
+    def name(self) -> str:
+        """Return the name."""
+        return f"{self._tekmar_tha.tha_full_device_name} Floor Setpoint Away"
+
+    @property
+    def available(self) -> bool:
+        """Return the available."""
+        if (
+            self._tekmar_tha.slab_setpoint_day == ThaValue.NA_8
+            or self._tekmar_tha.slab_setpoint_away is None
+            or (
+                self._tekmar_tha.tha_device["attributes"].SlabSetpoint == 0
+                and self._tekmar_tha.tha_device["attributes"].RoomAndSlab == 0
+            )
+        ):
+            return False
+
+        return super().available
+
+    @property
+    def native_value(self):
+        """Return the native value."""
+        try:
+            return degEtoC(self._tekmar_tha.slab_setpoint_away)
+        except TypeError:
+            return None
+
+    async def async_set_native_value(self, value: float) -> None:
+        """Set native value."""
+        slab_setpoint = int(round(degCtoE(value), 0))
+        await self._tekmar_tha.set_slab_setpoint_txqueue(slab_setpoint, 0x06)
