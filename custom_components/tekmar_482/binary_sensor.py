@@ -35,6 +35,7 @@ async def async_setup_entry(
 class ThaBinarySensorBase(BinarySensorEntity):
     """Base class for Tekmar binary sensor entities."""
 
+    _attr_has_entity_name = True
     _attr_should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
@@ -81,7 +82,7 @@ class ReportingState(ThaBinarySensorBase):
     @property
     def name(self) -> str:
         """Return the name."""
-        return f"{self.config_entry_name.capitalize()} Gateway Reporting State"
+        return "Reporting State"
 
     @property
     def is_on(self):
@@ -103,7 +104,7 @@ class SetbackEnable(ThaBinarySensorBase):
     @property
     def name(self) -> str:
         """Return the name."""
-        return f"{self.config_entry_name.capitalize()} Gateway Setback Enable"
+        return "Setback Enable"
 
     @property
     def available(self) -> bool:

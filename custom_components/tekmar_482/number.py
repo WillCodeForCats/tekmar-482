@@ -48,6 +48,7 @@ async def async_setup_entry(
 class ThaNumberBase(NumberEntity):
     """Base class for Tekmar number entities."""
 
+    _attr_has_entity_name = True
     _attr_should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
@@ -99,7 +100,7 @@ class ThaHumiditySetMax(ThaNumberBase):
     @property
     def name(self) -> str:
         """Return the name."""
-        return f"{self._tekmar_tha.tha_full_device_name} Humidity Maximum Setpoint"
+        return "Humidity Maximum Setpoint"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -149,7 +150,7 @@ class ThaHumiditySetMin(ThaNumberBase):
     @property
     def name(self) -> str:
         """Return the name."""
-        return f"{self._tekmar_tha.tha_full_device_name} Humidity Minimum Setpoint"
+        return "Humidity Minimum Setpoint"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -198,7 +199,7 @@ class ThaHeatSetpoint(ThaNumberBase):
     @property
     def name(self) -> str:
         """Return the name."""
-        return f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint"
+        return "Heat Setpoint"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -254,7 +255,7 @@ class ThaHeatSetpointDay(ThaHeatSetpoint):
     @property
     def name(self) -> str:
         """Return the name."""
-        return f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint Day"
+        return "Heat Setpoint Day"
 
     @property
     def available(self) -> bool:
@@ -295,7 +296,7 @@ class ThaHeatSetpointNight(ThaHeatSetpoint):
     @property
     def name(self) -> str:
         """Return the name."""
-        return f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint Night"
+        return "Heat Setpoint Night"
 
     @property
     def available(self) -> bool:
@@ -336,7 +337,7 @@ class ThaHeatSetpointAway(ThaHeatSetpoint):
     @property
     def name(self) -> str:
         """Return the name."""
-        return f"{self._tekmar_tha.tha_full_device_name} Heat Setpoint Away"
+        return "Heat Setpoint Away"
 
     @property
     def available(self) -> bool:
@@ -381,7 +382,7 @@ class ThaCoolSetpoint(ThaNumberBase):
     @property
     def name(self) -> str:
         """Return the name."""
-        return f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint"
+        return "Cool Setpoint"
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -439,7 +440,7 @@ class ThaCoolSetpointDay(ThaCoolSetpoint):
     @property
     def name(self) -> str:
         """Return the name."""
-        return f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint Day"
+        return "Cool Setpoint Day"
 
     @property
     def available(self) -> bool:
@@ -480,7 +481,7 @@ class ThaCoolSetpointNight(ThaCoolSetpoint):
     @property
     def name(self) -> str:
         """Return the name."""
-        return f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint Night"
+        return "Cool Setpoint Night"
 
     @property
     def available(self) -> bool:
@@ -521,7 +522,7 @@ class ThaCoolSetpointAway(ThaCoolSetpoint):
     @property
     def name(self) -> str:
         """Return the name."""
-        return f"{self._tekmar_tha.tha_full_device_name} Cool Setpoint Away"
+        return "Cool Setpoint Away"
 
     @property
     def available(self) -> bool:
@@ -566,7 +567,7 @@ class ThaSlabSetpoint(ThaNumberBase):
     @property
     def name(self) -> str:
         """Return the name."""
-        return f"{self._tekmar_tha.tha_full_device_name} Floor Setpoint"
+        return "Floor Setpoint"
 
     @property
     def available(self) -> bool:
