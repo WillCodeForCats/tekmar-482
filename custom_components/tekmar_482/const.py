@@ -34,6 +34,9 @@ CONF_SETBACK_ENABLE = "setback_enable"
 STORAGE_VERSION_MAJOR = 1
 STORAGE_KEY = DOMAIN
 
+# Storage key for types the user picked in Repairs for unknown devices
+DEVICE_OVERRIDES_KEY = "device_overrides"
+
 # Seconds allowed for the gateway to report its inventory during setup.
 SETUP_TIMEOUT = 120
 
