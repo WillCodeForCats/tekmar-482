@@ -53,6 +53,7 @@ async def async_setup_entry(
 class ThaClimateBase(ClimateEntity):
     """Base class for Tekmar climate entities."""
 
+    _attr_has_entity_name = True
     _attr_should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
@@ -101,9 +102,9 @@ class ThaClimateThermostat(ThaClimateBase):
         )
 
     @property
-    def name(self) -> str:
+    def name(self) -> str | None:
         """Return the name."""
-        return f"{self._tekmar_tha.tha_full_device_name}"
+        return None
 
     @property
     def max_temp(self):
@@ -405,7 +406,7 @@ class ThaClimateThermostat(ThaClimateBase):
 
     async def async_turn_off(self):
         """Turn the entity off."""
-        await self.async_set_hvac_mode(self, HVACMode.OFF)
+        await self.async_set_hvac_mode(HVACMode.OFF)
 
     async def async_set_fan_mode(self, fan_mode):
         """Set fan mode."""

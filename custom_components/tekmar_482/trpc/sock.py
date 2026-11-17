@@ -2,7 +2,7 @@
 
 import asyncio
 
-from .trpc_msg import TrpcPacket
+from .msg import TrpcPacket
 
 
 # ******************************************************************************

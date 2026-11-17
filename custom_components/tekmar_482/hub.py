@@ -29,9 +29,9 @@ from .const import (
     ThaType,
     ThaValue,
 )
-from .fields import Record
-from .trpc_msg import TrpcPacket, name_from_methodID
-from .trpc_sock import TrpcSocket
+from .trpc.fields import Record
+from .trpc.msg import TrpcPacket, name_from_methodID
+from .trpc.sock import TrpcSocket
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -407,6 +407,14 @@ class TekmarHub:
 
                 read_cycle += 1
                 p = await self._sock.read()
+
+                if read_cycle == 100:
+                    self.queue_message(
+                        TrpcPacket(
+                            service="Request",
+                            method="NullMethod",
+                        )
+                    )
 
                 if read_cycle > 130:
                     raise ConnectionError(f"No reports from {self._host}")
