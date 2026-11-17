@@ -16,6 +16,7 @@ from .const import (
     ATTR_MANUFACTURER,
     DEFAULT_SETBACK_ENABLE,
     DEVICE_FEATURES,
+    DEVICE_OVERRIDES_KEY,
     DEVICE_TYPES,
     DOMAIN,
     SETBACK_FAN_MAP,
@@ -98,6 +99,12 @@ class TekmarHub:
         self.tha_devices = []
         self.tha_ignore_addr = []
 
+        # User identified types for unknown devices, keyed by str(address):
+        # {"reported": <type the gateway reported>, "type": <known type>}
+        self._device_overrides: dict[str, dict[str, int]] = {}
+        # Unknown devices waiting to be identified: {address: reported type}
+        self._unknown_devices: dict[int, int] = {}
+
         self._tha_fw_ver = None
         self._tha_pr_ver = None
         self._tha_reporting_state = None
@@ -149,6 +156,7 @@ class TekmarHub:
         self._inSetup = True
 
         await self.storage_put("storage", True)
+        self._device_overrides = await self.storage_get(DEVICE_OVERRIDES_KEY) or {}
 
         if await self._sock.open() is False:
             _LOGGER.error(self._sock.error)
@@ -271,6 +279,8 @@ class TekmarHub:
             else:
                 _LOGGER.warning("Unknown device at address %s", address)
 
+        self._update_unknown_device_issues()
+
         if not self.online:
             ir.async_delete_issue(self._hass, DOMAIN, "check_configuration")
 
@@ -306,6 +316,7 @@ class TekmarHub:
                 self._tha_inventory[b["address"]] = {
                     "entity": "",
                     "type": "",
+                    "reported_type": "",
                     "version": "",
                     "events": "",
                     "attributes": DeviceAttributes(),
@@ -350,23 +361,29 @@ class TekmarHub:
                 )
 
         elif tha_method == "DeviceType":
-            try:
-                self._tha_inventory[b["address"]]["type"] = b["type"]
-                type_name = DEVICE_TYPES[b["type"]].capitalize()
-                model = DEVICE_FEATURES[b["type"]]["model"]
-                self._tha_inventory[b["address"]]["entity"] = (
-                    f"{self._name.capitalize()} {type_name} {model} {b['address']}"
-                )
-                _LOGGER.debug("Address %s type %s", b["address"], b["type"])
+            address = b["address"]
+            reported = b["type"]
+            self._tha_inventory[address]["reported_type"] = reported
 
-            except KeyError:
+            if (device_type := self._resolve_device_type(address, reported)) is None:
                 _LOGGER.warning(
-                    "Unknown device type %s at address %s. This address will be ignored.",
-                    b["type"],
-                    b["address"],
+                    "Unknown device type %s at address %s. This address will be "
+                    "ignored until it is identified in Repairs.",
+                    reported,
+                    address,
                 )
+                self._unknown_devices[address] = reported
+                if address not in self.tha_ignore_addr:
+                    self.tha_ignore_addr.append(address)
+                return
 
-                self.tha_ignore_addr.append(b["address"])
+            self._tha_inventory[address]["type"] = device_type
+            type_name = DEVICE_TYPES[device_type].capitalize()
+            model = DEVICE_FEATURES[device_type]["model"]
+            self._tha_inventory[address]["entity"] = (
+                f"{self._name.capitalize()} {type_name} {model} {address}"
+            )
+            _LOGGER.debug("Address %s type %s", address, device_type)
 
         elif tha_method == "DeviceAttributes":
             _LOGGER.debug("Address %s attributes %s", b["address"], b["attributes"])
@@ -382,6 +399,107 @@ class TekmarHub:
 
         else:
             _LOGGER.warning("Ignored method %s during setup.", tha_method)
+
+    def _resolve_device_type(self, address: int, reported: int) -> int | None:
+        """Return the known device type to use for an address, or None.
+
+        A user identification only applies while the gateway keeps reporting
+        the same type for the address, so a device swapped in later is not
+        silently given the old device's identity.
+        """
+        if reported in DEVICE_FEATURES:
+            return reported
+
+        override = self._device_overrides.get(str(address))
+        if (
+            override is not None
+            and override.get("reported") == reported
+            and override.get("type") in DEVICE_FEATURES
+        ):
+            _LOGGER.info(
+                "Address %s reported unknown type %s, using type %s from Repairs",
+                address,
+                reported,
+                override["type"],
+            )
+            return override["type"]
+
+        return None
+
+    def _unknown_device_issue_id(self, address: int) -> str:
+        """Return the repair issue id for an unknown device."""
+        return f"unknown_device_{self._entry_id}_{address}"
+
+    def _create_unknown_device_issue(self, address: int, reported: int) -> None:
+        """Ask the user to identify an unknown device."""
+        ir.async_create_issue(
+            self._hass,
+            DOMAIN,
+            self._unknown_device_issue_id(address),
+            is_fixable=True,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key="unknown_device",
+            translation_placeholders={
+                "name": self._name,
+                "address": str(address),
+                "reported_type": str(reported),
+            },
+            data={
+                "entry_id": self._entry_id,
+                "address": address,
+                "reported_type": reported,
+            },
+        )
+
+    def _update_unknown_device_issues(self) -> None:
+        """Raise an issue for each unknown device and clear issues now resolved."""
+        prefix = f"unknown_device_{self._entry_id}_"
+        current = {self._unknown_device_issue_id(a) for a in self._unknown_devices}
+
+        for domain, issue_id in list(ir.async_get(self._hass).issues):
+            if domain == DOMAIN and issue_id.startswith(prefix):
+                if issue_id not in current:
+                    ir.async_delete_issue(self._hass, DOMAIN, issue_id)
+
+        for address, reported in self._unknown_devices.items():
+            self._create_unknown_device_issue(address, reported)
+
+    async def async_remove_device(self, address: Any) -> None:
+        """Forget a device the user deleted from the UI.
+
+        The device stays ignored until the next reload. If it was identified
+        through Repairs, that identification is dropped and the user is asked
+        to identify it again right away.
+        """
+        if address not in self._tha_inventory:
+            return
+
+        self.tha_devices = [d for d in self.tha_devices if d.device_id != address]
+        if address not in self.tha_ignore_addr:
+            self.tha_ignore_addr.append(address)
+
+        if self._device_overrides.pop(str(address), None) is not None:
+            await self._storage.update_setting(
+                DEVICE_OVERRIDES_KEY,
+                lambda overrides: {
+                    k: v for k, v in (overrides or {}).items() if k != str(address)
+                },
+            )
+
+        reported = self._tha_inventory[address].get("reported_type")
+        if isinstance(reported, int) and reported not in DEVICE_FEATURES:
+            self._unknown_devices[address] = reported
+            self._create_unknown_device_issue(address, reported)
+
+    @property
+    def device_overrides(self) -> dict[str, dict[str, int]]:
+        """Return the user identified types for unknown devices."""
+        return self._device_overrides
+
+    @property
+    def unknown_devices(self) -> dict[int, int]:
+        """Return unknown devices waiting to be identified."""
+        return self._unknown_devices
 
     async def run(self) -> None:
         """Process the transmit queue and incoming packets until shutdown."""
@@ -1682,12 +1800,31 @@ class StoredData:
 
     async def put_setting(self, key: str, value: Any) -> None:
         """Save a setting for this config entry."""
+        await self.update_setting(key, lambda _old: value)
+
+    async def update_setting(self, key: str, update: Callable[[Any], Any]) -> None:
+        """Replace a setting with update(current value), in one locked save."""
         async with storage_lock(self._hass):
             data = await self.store.async_load() or {}
-            data.setdefault(self._entry_id, {})[key] = value
+            settings = data.setdefault(self._entry_id, {})
+            settings[key] = update(settings.get(key))
 
             self._data = data
             await self.store.async_save(data)
+
+
+async def async_save_device_override(
+    hass: HomeAssistant, entry_id: str, address: int, reported: int, device_type: int
+) -> None:
+    """Save the type the user picked in Repairs for an unknown device."""
+
+    def add(overrides: dict[str, Any] | None) -> dict[str, Any]:
+        return {
+            **(overrides or {}),
+            str(address): {"reported": reported, "type": device_type},
+        }
+
+    await StoredData(hass, entry_id).update_setting(DEVICE_OVERRIDES_KEY, add)
 
 
 def storage_lock(hass: HomeAssistant) -> asyncio.Lock:

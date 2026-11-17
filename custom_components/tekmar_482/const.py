@@ -34,6 +34,9 @@ CONF_SETBACK_ENABLE = "setback_enable"
 STORAGE_VERSION_MAJOR = 1
 STORAGE_KEY = DOMAIN
 
+# Storage key for types the user picked in Repairs for unknown devices
+DEVICE_OVERRIDES_KEY = "device_overrides"
+
 # Seconds allowed for the gateway to report its inventory during setup.
 SETUP_TIMEOUT = 120
 
@@ -178,7 +181,6 @@ DEVICE_TYPES = {
     105801: ThaType.SNOWMELT,
     108401: ThaType.SNOWMELT,
     108402: ThaType.SNOWMELT,
-    10599181: ThaType.THERMOSTAT,  # alternate for 99301
 }
 
 DEVICE_FEATURES = {
@@ -275,16 +277,6 @@ DEVICE_FEATURES = {
     99301: {
         "model": "541",
         "type": DEVICE_TYPES[99301],
-        "heat": 1,
-        "cool": 0,
-        "fan": 0,
-        "humid": 0,
-        "snow": 0,
-        "emer": 0,
-    },
-    10599181: {  # alternate for 99301
-        "model": "541",
-        "type": DEVICE_TYPES[10599181],
         "heat": 1,
         "cool": 0,
         "fan": 0,

@@ -17,10 +17,12 @@ import pytest
 
 from custom_components.tekmar_482.const import DOMAIN, DeviceAttributes, ThaSetback
 from custom_components.tekmar_482.hub import (
+    StoredData,
     TekmarGateway,
     TekmarHub,
     TekmarSetpoint,
     TekmarThermostat,
+    async_save_device_override,
 )
 from custom_components.tekmar_482.trpc.msg import TrpcPacket, name_from_methodID
 
@@ -582,6 +584,136 @@ async def test_setup_unexpected_error_is_not_swallowed(hub):
 
     with pytest.raises(RuntimeError):
         await hub.async_init_tha()
+
+
+# Unknown devices identified through Repairs ----------------------------------
+
+UNKNOWN_ISSUE = "unknown_device_entry_1_1002"
+
+
+def unknown_issue(hass, issue_id=UNKNOWN_ISSUE):
+    """Return the unknown device repair issue, or None."""
+    return ir.async_get(hass).async_get_issue(DOMAIN, issue_id)
+
+
+@pytest.mark.usefixtures("mock_sleep")
+async def test_setup_raises_issue_for_unknown_device(hass, hub):
+    """Test an unknown device type asks the user to identify the device."""
+    hub._sock = FakeGateway(hub)
+
+    await hub.async_init_tha()
+
+    assert hub.tha_ignore_addr == [1002]
+    assert hub.unknown_devices == {1002: UNKNOWN_TYPE}
+    issue = unknown_issue(hass)
+    assert issue is not None
+    assert issue.is_fixable is True
+    assert issue.translation_key == "unknown_device"
+    assert issue.data == {
+        "entry_id": "entry_1",
+        "address": 1002,
+        "reported_type": UNKNOWN_TYPE,
+    }
+
+
+@pytest.mark.usefixtures("mock_sleep", "hass_storage")
+async def test_setup_uses_identified_type_for_unknown_device(hass, hub):
+    """Test a type picked in Repairs is used for the unknown device."""
+    await async_save_device_override(
+        hass, "entry_1", 1002, UNKNOWN_TYPE, THERMOSTAT_TYPE
+    )
+    hub._sock = FakeGateway(hub)
+
+    await hub.async_init_tha()
+
+    assert hub.tha_ignore_addr == []
+    assert hub.unknown_devices == {}
+    assert [d.device_id for d in hub.tha_devices] == [1001, 1002]
+    device = hub.tha_devices[1]
+    assert isinstance(device, TekmarThermostat)
+    assert device.model == "527"
+    assert device.tha_device["reported_type"] == UNKNOWN_TYPE
+    assert unknown_issue(hass) is None
+
+
+@pytest.mark.usefixtures("mock_sleep", "hass_storage")
+async def test_identified_type_is_not_used_when_reported_type_changes(hass, hub):
+    """Test a different device at the same address is asked about again."""
+    await async_save_device_override(hass, "entry_1", 1002, 888888, THERMOSTAT_TYPE)
+    hub._sock = FakeGateway(hub)
+
+    await hub.async_init_tha()
+
+    assert hub.tha_ignore_addr == [1002]
+    assert unknown_issue(hass).data["reported_type"] == UNKNOWN_TYPE
+
+
+@pytest.mark.usefixtures("mock_sleep")
+async def test_setup_clears_issue_for_device_no_longer_unknown(hass, hub):
+    """Test an issue is removed once its address no longer needs one."""
+    for issue_id in ("unknown_device_entry_1_1003", "unknown_device_entry_2_1003"):
+        ir.async_create_issue(
+            hass,
+            DOMAIN,
+            issue_id,
+            is_fixable=True,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key="unknown_device",
+        )
+    hub._sock = FakeGateway(hub)
+
+    await hub.async_init_tha()
+
+    assert unknown_issue(hass, "unknown_device_entry_1_1003") is None
+    # Another entry's issues are left alone.
+    assert unknown_issue(hass, "unknown_device_entry_2_1003") is not None
+    assert unknown_issue(hass) is not None
+
+
+@pytest.mark.usefixtures("mock_sleep", "hass_storage")
+async def test_removing_identified_device_asks_again(hass, hub):
+    """Test deleting an identified device forgets its type and re-raises the issue.
+
+    The issue is raised right away, without waiting for a reload.
+    """
+    await async_save_device_override(
+        hass, "entry_1", 1002, UNKNOWN_TYPE, THERMOSTAT_TYPE
+    )
+    hub._sock = FakeGateway(hub)
+    await hub.async_init_tha()
+
+    await hub.async_remove_device(1002)
+
+    assert [d.device_id for d in hub.tha_devices] == [1001]
+    assert hub.tha_ignore_addr == [1002]
+    assert hub.device_overrides == {}
+    assert await StoredData(hass, "entry_1").get_setting("device_overrides") == {}
+    assert unknown_issue(hass).data["reported_type"] == UNKNOWN_TYPE
+
+
+@pytest.mark.usefixtures("mock_sleep", "hass_storage")
+async def test_removing_known_device_ignores_it_without_issue(hass, hub):
+    """Test deleting a known device stops its updates and raises no issue."""
+    hub._sock = FakeGateway(hub)
+    await hub.async_init_tha()
+
+    await hub.async_remove_device(1001)
+
+    assert hub.tha_devices == []
+    assert hub.tha_ignore_addr == [1002, 1001]
+    assert unknown_issue(hass, "unknown_device_entry_1_1001") is None
+
+
+@pytest.mark.usefixtures("mock_sleep", "hass_storage")
+async def test_removing_gateway_device_does_nothing(hub):
+    """Test deleting the gateway device (not an address) changes nothing."""
+    hub._sock = FakeGateway(hub)
+    await hub.async_init_tha()
+
+    await hub.async_remove_device("tekmarnet")
+
+    assert [d.device_id for d in hub.tha_devices] == [1001]
+    assert hub.tha_ignore_addr == [1002]
 
 
 # Background tasks ------------------------------------------------------------

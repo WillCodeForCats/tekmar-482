@@ -81,6 +81,12 @@ async def async_remove_config_entry_device(
     hass: HomeAssistant, config_entry: ConfigEntry, device_entry: DeviceEntry
 ) -> bool:
     """Allow the user to delete a device from the UI."""
+    tekmar_hub = hass.data.get(DOMAIN, {}).get(config_entry.entry_id)
+
+    if tekmar_hub is not None:
+        for domain, identifier in device_entry.identifiers:
+            if domain == DOMAIN:
+                await tekmar_hub.async_remove_device(identifier)
 
     return True
 
