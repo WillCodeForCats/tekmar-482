@@ -530,6 +530,48 @@ async def test_setup_read_error_retries_setup(hub, error):
 
 
 @pytest.mark.usefixtures("mock_sleep")
+async def test_setup_timeout_retries_setup(hub):
+    """Test a gateway that never finishes reporting retries setup later."""
+    hub._sock = FakeSocket(hub)  # answers nothing
+
+    with (
+        patch("custom_components.tekmar_482.hub.SETUP_TIMEOUT", 0),
+        pytest.raises(
+            ConfigEntryNotReady,
+            match="Gateway '192.168.1.50' did not finish reporting in 0 seconds",
+        ),
+    ):
+        await hub.async_init_tha()
+
+    assert hub.online is False
+
+
+@pytest.mark.usefixtures("mock_sleep")
+async def test_setup_late_reporting_state_does_not_complete_setup(hub, monkeypatch):
+    """Test a ReportingState read after the setup deadline retries setup."""
+    loop = asyncio.get_running_loop()
+    sock = FakeGateway(hub)
+    original_read = sock.read
+
+    async def read():
+        packet = await original_read()
+        if packet is not None and method_of(packet) == "ReportingState":
+            # the read blocked until after the deadline
+            late = loop.time() + 3600
+            monkeypatch.setattr(loop, "time", lambda: late)
+        return packet
+
+    sock.read = read
+    hub._sock = sock
+
+    with pytest.raises(ConfigEntryNotReady, match="did not finish reporting"):
+        await hub.async_init_tha()
+
+    assert hub.tha_reporting_state is None
+    assert hub.online is False
+
+
+@pytest.mark.usefixtures("mock_sleep")
 async def test_setup_unexpected_error_is_not_swallowed(hub):
     """Test errors other than socket and packet errors are not hidden.
 
