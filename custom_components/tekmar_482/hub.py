@@ -404,6 +404,17 @@ class TekmarHub:
                         )
                     )
 
+                    # refresh setback state (handler also requests FanPercent)
+                    for device in self.tha_devices:
+                        if isinstance(device, (TekmarThermostat, TekmarSetpoint)):
+                            self.queue_message(
+                                TrpcPacket(
+                                    service="Request",
+                                    method="SetbackState",
+                                    address=device.device_id,
+                                )
+                            )
+
                 if len(self._tx_queue) != 0:
                     write_packet = self._tx_queue.pop(0)
                     _LOGGER.debug("Run %s", write_packet)
