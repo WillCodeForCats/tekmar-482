@@ -3,13 +3,10 @@
 import asyncio
 from typing import Any
 
-import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntry
-from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.storage import Store
 
 from . import hub
@@ -23,37 +20,6 @@ PLATFORMS: list[str] = [
     Platform.BINARY_SENSOR,
     Platform.NUMBER,
 ]
-
-
-REMAP_SCHEMA = vol.Schema(
-    {
-        vol.Required(cv.int): cv.int,
-    }
-)
-
-CONFIG_SCHEMA = vol.Schema(
-    {
-        DOMAIN: vol.Schema(
-            {
-                "remap": vol.All(
-                    cv.ensure_list,
-                    [
-                        vol.Any(REMAP_SCHEMA),
-                    ],
-                ),
-            },
-        )
-    },
-    extra=vol.ALLOW_EXTRA,
-)
-
-
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up Tekmar Gateway advanced YAML config."""
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN]["yaml"] = config.get(DOMAIN, {})
-
-    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -73,7 +39,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         await tekmar_gateway.async_abort_setup()
         raise
 
-    hass.data[DOMAIN][entry.entry_id] = tekmar_gateway
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = tekmar_gateway
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -115,6 +81,12 @@ async def async_remove_config_entry_device(
     hass: HomeAssistant, config_entry: ConfigEntry, device_entry: DeviceEntry
 ) -> bool:
     """Allow the user to delete a device from the UI."""
+    tekmar_hub = hass.data.get(DOMAIN, {}).get(config_entry.entry_id)
+
+    if tekmar_hub is not None:
+        for domain, identifier in device_entry.identifiers:
+            if domain == DOMAIN:
+                await tekmar_hub.async_remove_device(identifier)
 
     return True
 
