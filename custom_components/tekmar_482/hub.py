@@ -201,12 +201,15 @@ class TekmarHub:
 
         deadline = asyncio.get_running_loop().time() + SETUP_TIMEOUT
 
-        while self._inSetup is True:
+        def check_deadline() -> None:
             if asyncio.get_running_loop().time() > deadline:
                 raise ConfigEntryNotReady(
                     f"Gateway '{self._host}' did not finish reporting in "
                     f"{SETUP_TIMEOUT} seconds"
                 )
+
+        while self._inSetup is True:
+            check_deadline()
 
             if len(self._tx_queue) != 0:
                 try:
@@ -224,6 +227,8 @@ class TekmarHub:
             except (OSError, ValueError) as e:
                 _LOGGER.error("Read error: %s", e)
                 raise ConfigEntryNotReady("Read error while in setup.") from e
+
+            check_deadline()
 
             if p is not None:
                 try:
