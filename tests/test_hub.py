@@ -375,6 +375,23 @@ async def test_reconnect_turns_reporting_on(hub):
     assert sock.written[0].body["state"] == 1
 
 
+@pytest.mark.usefixtures("mock_sleep")
+async def test_reconnect_requests_setback_state(hub):
+    """Test reconnecting re-requests setback state for thermostats and setpoints."""
+    setpoint = AsyncMock(spec=TekmarSetpoint)
+    setpoint.device_id = 2002
+    hub.tha_devices = [thermostat(1001), setpoint, MagicMock(device_id=3003)]
+
+    sock = await run_with(hub, None, None, None, is_open=False)
+
+    assert [method_of(p) for p in sock.written] == [
+        "ReportingState",
+        "SetbackState",
+        "SetbackState",
+    ]
+    assert [p.body["address"] for p in sock.written[1:]] == [1001, 2002]
+
+
 async def test_failed_reconnect_closes_and_retries(hub, mock_sleep):
     """Test a failed reconnect closes, waits, and tries to connect again."""
     sock = await run_with(hub, is_open=False, open_results=[False, True])
@@ -510,6 +527,48 @@ async def test_setup_read_error_retries_setup(hub, error):
 
     with pytest.raises(ConfigEntryNotReady):
         await hub.async_init_tha()
+
+
+@pytest.mark.usefixtures("mock_sleep")
+async def test_setup_timeout_retries_setup(hub):
+    """Test a gateway that never finishes reporting retries setup later."""
+    hub._sock = FakeSocket(hub)  # answers nothing
+
+    with (
+        patch("custom_components.tekmar_482.hub.SETUP_TIMEOUT", 0),
+        pytest.raises(
+            ConfigEntryNotReady,
+            match="Gateway '192.168.1.50' did not finish reporting in 0 seconds",
+        ),
+    ):
+        await hub.async_init_tha()
+
+    assert hub.online is False
+
+
+@pytest.mark.usefixtures("mock_sleep")
+async def test_setup_late_reporting_state_does_not_complete_setup(hub, monkeypatch):
+    """Test a ReportingState read after the setup deadline retries setup."""
+    loop = asyncio.get_running_loop()
+    sock = FakeGateway(hub)
+    original_read = sock.read
+
+    async def read():
+        packet = await original_read()
+        if packet is not None and method_of(packet) == "ReportingState":
+            # the read blocked until after the deadline
+            late = loop.time() + 3600
+            monkeypatch.setattr(loop, "time", lambda: late)
+        return packet
+
+    sock.read = read
+    hub._sock = sock
+
+    with pytest.raises(ConfigEntryNotReady, match="did not finish reporting"):
+        await hub.async_init_tha()
+
+    assert hub.tha_reporting_state is None
+    assert hub.online is False
 
 
 @pytest.mark.usefixtures("mock_sleep")
