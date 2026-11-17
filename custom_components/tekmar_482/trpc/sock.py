@@ -1,17 +1,21 @@
+"""Async socket for exchanging tRPC packets with the packet server."""
+
 import asyncio
 
-from .trpc_msg import TrpcPacket
+from .msg import TrpcPacket
 
 
 # ******************************************************************************
 class TrpcSocket:
+    """Async TCP connection to the gateway packet server."""
+
     # **************************************************************************
     def __init__(self, addr=None, port=None):
+        """Store the address and port; call open() to connect."""
         self._sock_reader = None
         self._sock_writer = None
         self._is_open = False
         self._error = None
-        self._rx_queue = []
 
         self.addr = addr
         self.port = port
@@ -27,15 +31,16 @@ class TrpcSocket:
                 self.addr, self.port
             )
 
-            self._is_open = True
-            return True
-
-        except Exception as e:
+        except OSError as e:
             self._sock_reader = None
             self._sock_writer = None
             self._is_open = False
             self._error = e
             return False
+
+        else:
+            self._is_open = True
+            return True
 
     # **************************************************************************
     async def close(self) -> None:
@@ -45,7 +50,7 @@ class TrpcSocket:
                 self._sock_writer.close()
                 await self._sock_writer.wait_closed()
 
-            except Exception:
+            except OSError:
                 pass
 
             self._sock_writer = None
@@ -55,29 +60,23 @@ class TrpcSocket:
 
     # **************************************************************************
     async def read(self):
-        """Read a packet from the socket.  If no packet is avaialble,
-        None is returned.
+        """Read a packet from the socket.
 
-        Otherwise a tHA object is returned.
+        If no packet is available, None is returned.  Otherwise a tHA object
+        is returned.
         """
         if self._sock_reader is not None:
-            if len(self._rx_queue) != 0:
-                return self._rx_queue.pop(0)
+            try:
+                rx_data = await asyncio.wait_for(
+                    self._sock_reader.readline(), timeout=0.5
+                )
+                if rx_data:
+                    return TrpcPacket.from_rx_packet(rx_data.rstrip(b"\n"))
 
-            else:
-                try:
-                    rx_data = await asyncio.wait_for(
-                        self._sock_reader.read(1024), timeout=0.5
-                    )
-                    rx_data = rx_data.rsplit("\n".encode())
-                    for st in [r for r in rx_data if r]:
-                        self._rx_queue.append(TrpcPacket.from_rx_packet(st))
+            except asyncio.TimeoutError:
+                pass
 
-                except asyncio.TimeoutError:
-                    return None
-
-        else:
-            return None
+        return None
 
     # **************************************************************************
     async def write(self, trpc_packet) -> None:
@@ -88,8 +87,10 @@ class TrpcSocket:
 
     @property
     def is_open(self) -> bool:
+        """Return True if the socket is connected."""
         return self._is_open
 
     @property
     def error(self) -> str | None:
+        """Return the last error raised while opening the socket."""
         return self._error

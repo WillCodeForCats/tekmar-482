@@ -1,3 +1,5 @@
+"""Field definitions for packing and unpacking binary records."""
+
 LITTLE_ENDIAN = False
 BIG_ENDIAN = True
 
@@ -6,11 +8,13 @@ DEFAULT_BYTE_ORDER = LITTLE_ENDIAN
 
 # ******************************************************************************
 class FieldError(Exception):
-    pass
+    """Raised when a field definition is invalid."""
 
 
 # ******************************************************************************
 class Field:
+    """Base class for a named field of a fixed size."""
+
     # --------------------------------------------------------------------------
     def __init__(self, name, size):
         """A field has a name and a size.  The size is in bytes."""
@@ -20,49 +24,59 @@ class Field:
 
 # ******************************************************************************
 class Bitmask(Field):
-    """Naming utility.  This is the same as a field, but is implemented for
-    readability reasons when creating Bitfield objects.
-    """
+    """Naming utility.
 
-    pass
+    This is the same as a field, but is implemented for readability reasons
+    when creating Bitfield objects.
+    """
 
 
 # ******************************************************************************
 class Int8(Field):
+    """An unsigned 8-bit integer field."""
+
     # --------------------------------------------------------------------------
     def __init__(self, name):
+        """Create a named 1-byte field."""
         Field.__init__(self, name, 1)
 
     # --------------------------------------------------------------------------
-    def unpack(self, bytes):
-        b = bytes.pop(0)
-        return [b], bytes
+    def unpack(self, data):
+        """Unpack one byte; return the value and remaining bytes."""
+        b = data.pop(0)
+        return [b], data
 
     # --------------------------------------------------------------------------
     def pack(self, values):
+        """Pack one value into a byte; return it and remaining values."""
         val = values.pop(0)
         return [val & 0xFF], values
 
 
 # ******************************************************************************
 class Int16(Field):
+    """An unsigned 16-bit integer field."""
+
     # --------------------------------------------------------------------------
     def __init__(self, name, order=DEFAULT_BYTE_ORDER):
+        """Create a named 2-byte field with the given byte order."""
         Field.__init__(self, name, 2)
         self.order = order
 
     # --------------------------------------------------------------------------
-    def unpack(self, bytes):
-        b0 = bytes.pop(0)
-        b1 = bytes.pop(0)
+    def unpack(self, data):
+        """Unpack two bytes; return the value and remaining bytes."""
+        b0 = data.pop(0)
+        b1 = data.pop(0)
         if self.order == LITTLE_ENDIAN:
             val = b0 | (b1 << 8)
         else:
             val = b1 | (b0 << 8)
-        return [val], bytes
+        return [val], data
 
     # --------------------------------------------------------------------------
     def pack(self, values):
+        """Pack one value into two bytes; return them and remaining values."""
         val = values.pop(0)
         if self.order == LITTLE_ENDIAN:
             b = [val & 0xFF, (val >> 8) & 0xFF]
@@ -73,24 +87,29 @@ class Int16(Field):
 
 # ******************************************************************************
 class Int24(Field):
+    """An unsigned 24-bit integer field."""
+
     # --------------------------------------------------------------------------
     def __init__(self, name, order=DEFAULT_BYTE_ORDER):
+        """Create a named 3-byte field with the given byte order."""
         Field.__init__(self, name, 3)
         self.order = order
 
     # --------------------------------------------------------------------------
-    def unpack(self, bytes):
-        b0 = bytes.pop(0)
-        b1 = bytes.pop(0)
-        b2 = bytes.pop(0)
+    def unpack(self, data):
+        """Unpack three bytes; return the value and remaining bytes."""
+        b0 = data.pop(0)
+        b1 = data.pop(0)
+        b2 = data.pop(0)
         if self.order == LITTLE_ENDIAN:
             val = b0 | (b1 << 8) | (b2 << 16)
         else:
             val = b2 | (b1 << 8) | (b0 << 16)
-        return [val], bytes
+        return [val], data
 
     # --------------------------------------------------------------------------
     def pack(self, values):
+        """Pack one value into three bytes; return them and remaining values."""
         val = values.pop(0)
         if self.order == LITTLE_ENDIAN:
             b = [val & 0xFF, (val >> 8) & 0xFF, (val >> 16) & 0xFF]
@@ -101,25 +120,30 @@ class Int24(Field):
 
 # ******************************************************************************
 class Int32(Field):
+    """An unsigned 32-bit integer field."""
+
     # --------------------------------------------------------------------------
     def __init__(self, name, order=DEFAULT_BYTE_ORDER):
+        """Create a named 4-byte field with the given byte order."""
         Field.__init__(self, name, 4)
         self.order = order
 
     # --------------------------------------------------------------------------
-    def unpack(self, bytes):
-        b0 = bytes.pop(0)
-        b1 = bytes.pop(0)
-        b2 = bytes.pop(0)
-        b3 = bytes.pop(0)
+    def unpack(self, data):
+        """Unpack four bytes; return the value and remaining bytes."""
+        b0 = data.pop(0)
+        b1 = data.pop(0)
+        b2 = data.pop(0)
+        b3 = data.pop(0)
         if self.order == LITTLE_ENDIAN:
             val = b0 | (b1 << 8) | (b2 << 16) | (b3 << 24)
         else:
             val = b3 | (b2 << 8) | (b1 << 16) | (b0 << 24)
-        return [val], bytes
+        return [val], data
 
     # --------------------------------------------------------------------------
     def pack(self, values):
+        """Pack one value into four bytes; return them and remaining values."""
         val = values.pop(0)
         if self.order == LITTLE_ENDIAN:
             b = [val & 0xFF, (val >> 8) & 0xFF, (val >> 16) & 0xFF, (val >> 24) & 0xFF]
@@ -139,8 +163,10 @@ class FieldList(Field):
 
     # --------------------------------------------------------------------------
     def __init__(self, name, *lst):
-        """Name the list of fields and provide a list of field or FieldList
-        objects that specify the format of the data.
+        """Name the list of fields and provide the fields that define it.
+
+        lst is a sequence of Field or FieldList objects that specify the
+        format of the data.
         """
         self.name = name
         self.size = sum([f.size for f in lst])
@@ -148,8 +174,9 @@ class FieldList(Field):
 
     # --------------------------------------------------------------------------
     def names(self):
-        """Return a list of the field names.  The list is ordered according
-        to the data order.
+        """Return a list of the field names.
+
+        The list is ordered according to the data order.
         """
         name_list = []
         for f in self.fields:
@@ -160,26 +187,30 @@ class FieldList(Field):
         return name_list
 
     # --------------------------------------------------------------------------
-    def unpack(self, bytes):
-        """Similar to the unpack method for the Field object except a series
+    def unpack(self, data):
+        """Unpack a series of Fields and FieldLists.
+
+        Similar to the unpack method for the Field object except a series
         of Fields and FieldLists can be unpacked.
         """
         vals = []
         for f in self.fields:
-            v, bytes = f.unpack(bytes)
+            v, data = f.unpack(data)
             vals.extend(v)
-        return vals, bytes
+        return vals, data
 
     # --------------------------------------------------------------------------
     def pack(self, values):
-        """Similar to the pack method for the Field object except a series
+        """Pack a series of Fields and FieldLists.
+
+        Similar to the pack method for the Field object except a series
         of Fields and FieldLists can be packed.
         """
-        bytes = []
+        data = []
         for f in self.fields:
             b, values = f.pack(values)
-            bytes.extend(b)
-        return bytes, values
+            data.extend(b)
+        return data, values
 
 
 # ******************************************************************************
@@ -231,6 +262,7 @@ class Bitfield(FieldList):
 
     # --------------------------------------------------------------------------
     def __init__(self, name, order, *lst):
+        """Create a bitfield from bit-sized fields, packed in the given byte order."""
         self.name = name
         self.order = order
         self.fields = lst
@@ -248,21 +280,25 @@ class Bitfield(FieldList):
         self.size = self.helper.size
 
     # --------------------------------------------------------------------------
-    def unpack(self, bytes):
-        """Similar to the unpack method for the Field object except a series
+    def unpack(self, data):
+        """Unpack a series of bit-granular Fields and FieldLists.
+
+        Similar to the unpack method for the Field object except a series
         of bit-granular Fields and FieldLists can be unpacked.
         """
-        total, bytes = self.helper.unpack(bytes)
+        total, data = self.helper.unpack(data)
         total = total[0]
         vals = []
         for f in [f.size for f in self.fields]:
             vals.append(total & Bitfield.width_table[f])
             total >>= f
-        return vals, bytes
+        return vals, data
 
     # --------------------------------------------------------------------------
     def pack(self, values):
-        """Similar to the pack method for the Field object except a series
+        """Pack a series of bit-granular Fields and FieldLists.
+
+        Similar to the pack method for the Field object except a series
         of bit-granular Fields and FieldLists can be packed.
         """
         val = 0
@@ -285,11 +321,13 @@ class Record:
     """
 
     # --------------------------------------------------------------------------
-    def create(field_list, bytes=None):
-        """Create a record by specifying a field list.  Optionally provide a
-        sequence of bytes to unpack as record data.  If no bytes or if
-        insufficent bytes are provided, the data is padded with zeroes to
-        fill in the missing bytes.
+    @staticmethod
+    def create(field_list, data=None):
+        """Create a record by specifying a field list.
+
+        Optionally provide a sequence of bytes to unpack as record data.  If
+        no bytes or if insufficient bytes are provided, the data is padded
+        with zeroes to fill in the missing bytes.
 
         The created record is returned.
 
@@ -297,33 +335,35 @@ class Record:
         as opposed to the normal Record() method.
         """
         r = Record(field_list)
-        if bytes is None:
-            bytes = [0] * (field_list.size)
+        if data is None:
+            data = [0] * (field_list.size)
         else:
-            bytes.extend([0] * (field_list.size - len(bytes)))
-        vals, extra = r.unpack(bytes)
+            data.extend([0] * (field_list.size - len(data)))
+        _, extra = r.unpack(data)
         return r, extra
-
-    create = staticmethod(create)
 
     # --------------------------------------------------------------------------
     def __init__(self, field_list):
+        """Create an empty record; use Record.create() instead."""
         self.fields = field_list
 
     # --------------------------------------------------------------------------
-    def unpack(self, bytes):
-        """Unpack the sequence of bytes into the underlying dictionary and
-        keep track of any extra data.
+    def unpack(self, data):
+        """Unpack the sequence of bytes into the underlying dictionary.
+
+        Any extra data beyond the record is kept track of.
 
         Return the list of values and the extra data as a tuple.
         """
-        vals, extra = self.fields.unpack(bytes)
-        self.values = dict(list(zip(self.fields.names(), vals)))
+        vals, extra = self.fields.unpack(data)
+        self.values = dict(zip(self.fields.names(), vals, strict=True))
         return vals, extra
 
     # --------------------------------------------------------------------------
     def pack(self, **values):
-        """Pack whatever fields are provided in the keyword arguments (values)
+        """Pack the record, updating it with any provided field values.
+
+        Pack whatever fields are provided in the keyword arguments (values)
         along with whatever data is already present in the record and
         return the resulting sequence of bytes (and extra data) as a tuple.
         """
@@ -344,20 +384,15 @@ class Record:
 
     # --------------------------------------------------------------------------
     def set(self, **values):
-        """Set values for the fields that are specified in the provided
-        keyword arguments.
-        """
-        for v in values:
-            if v in self.values:
-                self.values[v] = values[v]
+        """Set values for the fields specified in the keyword arguments."""
+        for name, value in values.items():
+            if name in self.values:
+                self.values[name] = value
 
     # --------------------------------------------------------------------------
     def __setitem__(self, key, value):
         """Allow dictionary-type write access to the record data."""
-        try:
-            self.values[key] = value
-        except KeyError:
-            pass
+        self.values[key] = value
 
     # --------------------------------------------------------------------------
     def __getitem__(self, key):

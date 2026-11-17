@@ -16,6 +16,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
+    """Setup entry."""
     hub = hass.data[DOMAIN][config_entry.entry_id]
 
     entities = []
@@ -32,44 +33,48 @@ async def async_setup_entry(
 class ThaSelectBase(SelectEntity):
     """Base class for Tekmar select entities."""
 
-    should_poll = False
+    _attr_has_entity_name = True
+    _attr_should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
         """Initialize the sensor."""
         self._tekmar_tha = tekmar_tha
         self._config_entry = config_entry
-
-    @property
-    def device_info(self):
-        return self._tekmar_tha.device_info
+        self._attr_device_info = tekmar_tha.device_info
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         return self._tekmar_tha.online and self._tekmar_tha.hub.online
 
     @property
     def config_entry_id(self):
+        """Return the config entry id."""
         return self._config_entry.entry_id
 
     @property
     def config_entry_name(self):
+        """Return the config entry name."""
         return self._config_entry.data["name"]
 
     async def async_added_to_hass(self):
+        """Added to hass."""
         self._tekmar_tha.register_callback(self.async_write_ha_state)
 
     async def async_will_remove_from_hass(self):
+        """Will remove from hass."""
         self._tekmar_tha.remove_callback(self.async_write_ha_state)
 
 
 class ThaFanSelect(ThaSelectBase):
     """Fan cycle selector for a Tekmar thermostat."""
 
-    unit_of_measurement = PERCENTAGE
-    icon = "mdi:fan"
+    _attr_unit_of_measurement = PERCENTAGE
+    _attr_icon = "mdi:fan"
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return (
             f"{self.config_entry_id}-{self._tekmar_tha.model}-"
             f"{self._tekmar_tha.device_id}-fan-percent"
@@ -77,12 +82,15 @@ class ThaFanSelect(ThaSelectBase):
 
     @property
     def name(self) -> str:
-        return f"{self._tekmar_tha.tha_full_device_name} Fan Percent"
+        """Return the name."""
+        return "Fan Percent"
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         if (
             self._tekmar_tha.fan_percent == ThaValue.NA_8
+            or self._tekmar_tha.fan_percent is None
             or self._tekmar_tha.tha_device["attributes"].FanPercent == 0
         ):
             return False
@@ -91,19 +99,27 @@ class ThaFanSelect(ThaSelectBase):
 
     @property
     def options(self):
+        """Return the options."""
         if self._tekmar_tha.config_vent_mode is True:
             return ["0", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100"]
-        else:
-            return ["0", "100"]
+        return ["0", "100"]
 
     @property
     def current_option(self) -> str:
+        """Return the current option."""
+        if (
+            self._tekmar_tha.tha_device["type"] in [99203, 99202, 99201]
+            and self._tekmar_tha.fan_percent is not None
+        ):
+            return str(self._tekmar_tha.fan_percent * 10)
+
         return str(self._tekmar_tha.fan_percent)
 
     async def async_select_option(self, option: str) -> None:
+        """Select option."""
         if option in ["0", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100"]:
             if self._tekmar_tha.tha_device["type"] in [99203, 99202, 99201]:
-                value = int(option / 10)
+                value = int(option) // 10
                 await self._tekmar_tha.set_fan_percent_txqueue(value)
 
             else:

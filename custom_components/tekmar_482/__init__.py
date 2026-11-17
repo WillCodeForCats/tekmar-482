@@ -67,14 +67,27 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.options.get(CONF_SETBACK_ENABLE),
     )
 
-    await tekmar_gateway.async_init_tha()
+    try:
+        await tekmar_gateway.async_init_tha()
+    except (Exception, asyncio.CancelledError):
+        await tekmar_gateway.async_abort_setup()
+        raise
 
     hass.data[DOMAIN][entry.entry_id] = tekmar_gateway
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    asyncio.create_task(tekmar_gateway.run())
-    asyncio.create_task(tekmar_gateway.timekeeper())
+    # Tracked by the hub so shutdown() can cancel them on unload.
+    tekmar_gateway.add_task(
+        entry.async_create_background_task(
+            hass, tekmar_gateway.run(), f"{DOMAIN}_{entry.entry_id}_run"
+        )
+    )
+    tekmar_gateway.add_task(
+        entry.async_create_background_task(
+            hass, tekmar_gateway.timekeeper(), f"{DOMAIN}_{entry.entry_id}_timekeeper"
+        )
+    )
 
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
@@ -115,6 +128,8 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
         STORAGE_KEY,
     )
 
-    data = await store.async_load()
-    del data[entry.entry_id]
-    await store.async_save(data)
+    async with hub.storage_lock(hass):
+        data = await store.async_load()
+        if data is not None and entry.entry_id in data:
+            del data[entry.entry_id]
+            await store.async_save(data)

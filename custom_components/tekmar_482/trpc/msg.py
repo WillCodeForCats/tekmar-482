@@ -1,3 +1,5 @@
+"""tRPC message formats and the TrpcPacket class."""
+
 from .fields import FieldList, Int8, Int16, Int32, Record
 from .packet import TYPE_TRPC, Packet
 
@@ -35,22 +37,13 @@ service_formats = {
 # *****************************************************************************
 # Lookup service IDs from service names.
 #
-name_from_serviceID = dict(
-    list(
-        zip(
-            list(service_formats.keys()),
-            (f.name for f in list(service_formats.values())),
-        )
-    )
-)
+name_from_serviceID = {sid: f.name for sid, f in service_formats.items()}
 
 # *****************************************************************************
 # Lookup service names from service IDs.  This is the reverse of
 # name_from_serviceID.
 #
-serviceID_from_name = dict(
-    list(zip(list(name_from_serviceID.values()), list(name_from_serviceID.keys())))
-)
+serviceID_from_name = {name: sid for sid, name in name_from_serviceID.items()}
 
 method_formats = {
     # *********************************************************************
@@ -155,25 +148,19 @@ method_formats = {
 # *****************************************************************************
 # Lookup method IDs from method names.
 #
-name_from_methodID = dict(
-    list(
-        zip(
-            list(method_formats.keys()), (f.name for f in list(method_formats.values()))
-        )
-    )
-)
+name_from_methodID = {mid: f.name for mid, f in method_formats.items()}
 
 # *****************************************************************************
 # Lookup method names from method IDs.  This is the reverse of
 # name_from_methodID.
 #
-methodID_from_name = dict(
-    list(zip(list(name_from_methodID.values()), list(name_from_methodID.keys())))
-)
+methodID_from_name = {name: mid for mid, name in name_from_methodID.items()}
 
 
 # *****************************************************************************
 class TrpcPacket:
+    """A tRPC message: a header with service and method IDs, plus a body."""
+
     # *************************************************************************
     # Format of all tRPC packets (except the message body - that has to be
     # determined based on method ID.
@@ -182,11 +169,10 @@ class TrpcPacket:
 
     # *************************************************************************
     def __init__(self, **kwargs):
-        """Create a TrpcPacket from a set of keyword arguments.  Return
-        the created packet.
+        """Create a TrpcPacket from a set of keyword arguments.
 
         kwargs is expected to contain at least one of name or id in order
-        to identify the format of the message.  If neith6er are provided or
+        to identify the format of the message.  If neither are provided or
         if evaluating them can not find a valid formatter object, an
         empty packet is created.
 
@@ -201,7 +187,7 @@ class TrpcPacket:
         if "serviceID" in kwargs:
             # Get the format based on MethodID.  If the method lookup fails, use
             # an empty message.
-            format = service_formats.get(kwargs["serviceID"], empty_field_list)
+            body_format = service_formats.get(kwargs["serviceID"], empty_field_list)
 
         else:
             try:
@@ -211,18 +197,18 @@ class TrpcPacket:
                 # - Lookup the format for that service.
                 service_id = serviceID_from_name[kwargs["service"]]
                 kwargs["serviceID"] = service_id
-                format = service_formats[service_id]
+                body_format = service_formats[service_id]
 
             except KeyError:
                 # If any of the above lookups fails, the format is unknown
                 # and we'll use the empty field list.
-                format = empty_field_list
+                body_format = empty_field_list
 
         # Determine the format of the message body.
         if "methodID" in kwargs:
             # Get the format based on MethodID.  If the method lookup fails, use
             # an empty message.
-            format = method_formats.get(kwargs["methodID"], empty_field_list)
+            body_format = method_formats.get(kwargs["methodID"], empty_field_list)
 
         else:
             try:
@@ -232,54 +218,56 @@ class TrpcPacket:
                 # - Lookup the format for that method.
                 method_id = methodID_from_name[kwargs["method"]]
                 kwargs["methodID"] = method_id
-                format = method_formats[method_id]
+                body_format = method_formats[method_id]
 
             except KeyError:
                 # If any of the above lookups fails, the format is unknown
                 # and we'll use the empty field list.
-                format = empty_field_list
+                body_format = empty_field_list
 
         # Apply the formatting.
-        self.body, self.extra = Record.create(format)
+        self.body, self.extra = Record.create(body_format)
 
         # Fill any provided values that are relevant.  Note here that if any
         # field names in the header and data match, they will be assigned
         # to the data, AND NOT THE HEADER.
-        for v in kwargs:
-            if v in self.body:
-                self.body[v] = kwargs[v]
+        for name, value in kwargs.items():
+            if name in self.body:
+                self.body[name] = value
 
-            elif v in self.header:
-                self.header[v] = kwargs[v]
+            elif name in self.header:
+                self.header[name] = value
 
     # *************************************************************************
+    @staticmethod
     def from_rx_packet(pck_str):
-        """Create a TrpcPacket from a packet string (as it would be received
-        from a socket connection.
+        """Create a TrpcPacket from a packet string.
+
+        The string is in the form it would be received from a socket
+        connection.
         """
         p = Packet.from_str(pck_str)
         if p.type != TYPE_TRPC:
             return None
 
-        else:
-            trpc = TrpcPacket()
-            trpc.header, d = Record.create(TrpcPacket.format, p.data)
+        trpc = TrpcPacket()
+        trpc.header, d = Record.create(TrpcPacket.format, p.data)
 
-            try:
-                trpc.body, trpc.extra = Record.create(
-                    method_formats[trpc.header["methodID"]], d
-                )
+        try:
+            trpc.body, trpc.extra = Record.create(
+                method_formats[trpc.header["methodID"]], d
+            )
 
-            except KeyError:
-                trpc.body, trpc.extra = Record.create(empty_field_list, d)
+        except KeyError:
+            trpc.body, trpc.extra = Record.create(empty_field_list, d)
 
-            return trpc
-
-    from_rx_packet = staticmethod(from_rx_packet)
+        return trpc
 
     # *************************************************************************
     def to_tpck(self):
-        """Take the packet in all its glory and boil it down to a basic
+        """Convert this packet to a basic Packet object.
+
+        Take the packet in all its glory and boil it down to a basic
         Packet object.
 
         Return the converted packet.
@@ -297,22 +285,21 @@ class TrpcPacket:
         try:
             service_name = name_from_serviceID[self.header["serviceID"]]
         except KeyError:
-            service_name = "0x%04X" % self.header["serviceID"]
+            service_name = f"0x{self.header['serviceID']:04X}"
 
         service_name = service_name.ljust(16)
 
         try:
             method_name = name_from_methodID[self.header["methodID"]]
         except KeyError:
-            method_name = "0x%04X" % self.header["methodID"]
+            method_name = f"0x{self.header['methodID']:04X}"
 
         method_name = method_name.ljust(18)
 
-        hs = "%s %s" % (service_name, method_name)
+        hs = f"{service_name} {method_name}"
 
         d, _ = self.body.pack()
         d.extend(self.extra)
         if len(d) == 0:
             return hs
-        else:
-            return "".join([hs, " <", "".join(["%02X" % x for x in d]), ">"])
+        return "".join([hs, " <", "".join([f"{x:02X}" for x in d]), ">"])

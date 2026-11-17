@@ -16,6 +16,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
+    """Setup entry."""
     hub = hass.data[DOMAIN][config_entry.entry_id]
 
     entities = []
@@ -49,46 +50,52 @@ async def async_setup_entry(
 class ThaSwitchBase(SwitchEntity):
     """Base class for Tekmar switch entities."""
 
-    should_poll = False
+    _attr_has_entity_name = True
+    _attr_should_poll = False
 
     def __init__(self, tekmar_tha, config_entry):
+        """Initialize the switch."""
         self._tekmar_tha = tekmar_tha
         self._config_entry = config_entry
-
-    @property
-    def device_info(self):
-        return self._tekmar_tha.device_info
+        self._attr_device_info = tekmar_tha.device_info
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         return self._tekmar_tha.online and self._tekmar_tha.hub.online
 
     @property
     def config_entry_id(self):
+        """Return the config entry id."""
         return self._config_entry.entry_id
 
     @property
     def config_entry_name(self):
+        """Return the config entry name."""
         return self._config_entry.data["name"]
 
     async def async_added_to_hass(self):
+        """Added to hass."""
         self._tekmar_tha.register_callback(self.async_write_ha_state)
 
     async def async_will_remove_from_hass(self):
+        """Will remove from hass."""
         self._tekmar_tha.remove_callback(self.async_write_ha_state)
 
 
 class ThaSetpointGroup(ThaSwitchBase):
     """A switch to enable or disable a gateway setpoint group."""
 
-    icon = "mdi:select-group"
+    _attr_icon = "mdi:select-group"
 
     def __init__(self, tekmar_tha, config_entry, group: int):
+        """Initialize the setpoint group."""
         super().__init__(tekmar_tha, config_entry)
         self._setpoint_group = group
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return (
             f"{self.config_entry_id}-gateway-setpoint-group-"
             f"{int(self._setpoint_group):02d}"
@@ -96,13 +103,12 @@ class ThaSetpointGroup(ThaSwitchBase):
 
     @property
     def name(self) -> str:
-        return (
-            f"{self.config_entry_name.capitalize()} Gateway Setpoint Group "
-            f"{int(self._setpoint_group):02d}"
-        )
+        """Return the name."""
+        return f"Setpoint Group {int(self._setpoint_group):02d}"
 
     @property
     def available(self) -> bool:
+        """Return the available."""
         setpoint_groups = self._tekmar_tha.setpoint_groups
 
         if (
@@ -115,19 +121,21 @@ class ThaSetpointGroup(ThaSwitchBase):
 
     @property
     def is_on(self):
+        """Return True if on."""
         setpoint_groups = self._tekmar_tha.setpoint_groups
 
         if setpoint_groups[self._setpoint_group] == ThaValue.OFF:
             return False
-        elif setpoint_groups[self._setpoint_group] == ThaValue.ON:
+        if setpoint_groups[self._setpoint_group] == ThaValue.ON:
             return True
-        else:
-            raise NotImplementedError
+        raise NotImplementedError
 
     async def async_turn_on(self, **kwargs):
+        """Turn the entity on."""
         await self._tekmar_tha.set_setpoint_group_txqueue(self._setpoint_group, 0x01)
 
     async def async_turn_off(self, **kwargs):
+        """Turn the entity off."""
         await self._tekmar_tha.set_setpoint_group_txqueue(self._setpoint_group, 0x00)
 
 
@@ -140,10 +148,11 @@ class EmergencyHeat(ThaSwitchBase):
     This switch will show if the thermostat is in emergency/aux mode (and set it).
     """
 
-    entity_category = EntityCategory.CONFIG
-    icon = "mdi:hvac"
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_icon = "mdi:hvac"
 
     def __init__(self, tekmar_tha, config_entry):
+        """Initialize the emergency heat."""
         super().__init__(tekmar_tha, config_entry)
 
         # Default to Heat mode when coming out of Emergency. We can't know the true
@@ -153,6 +162,7 @@ class EmergencyHeat(ThaSwitchBase):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return (
             f"{self.config_entry_id}-{self._tekmar_tha.model}-"
             f"{self._tekmar_tha.device_id}-emergency-heat"
@@ -160,28 +170,33 @@ class EmergencyHeat(ThaSwitchBase):
 
     @property
     def name(self) -> str:
-        return f"{self._tekmar_tha.tha_full_device_name} Emergency Heat"
+        """Return the name."""
+        return "Emergency Heat"
 
     @property
     def is_on(self):
+        """Return True if on."""
         return self._tekmar_tha.mode_setting == 0x06
 
     async def async_turn_on(self, **kwargs):
+        """Turn the entity on."""
         self._last_mode_setting = self._tekmar_tha.mode_setting
         await self._tekmar_tha.set_mode_setting_txqueue(0x06)
 
     async def async_turn_off(self, **kwargs):
+        """Turn the entity off."""
         await self._tekmar_tha.set_mode_setting_txqueue(self._last_mode_setting)
 
 
 class ConfigVentMode(ThaSwitchBase):
     """Config option for thermostat vent mode (can't be read via network)."""
 
-    entity_category = EntityCategory.CONFIG
-    icon = "mdi:fan-plus"
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_icon = "mdi:fan-plus"
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id."""
         return (
             f"{self.config_entry_id}-{self._tekmar_tha.model}-"
             f"{self._tekmar_tha.device_id}-config-vent-mode"
@@ -189,14 +204,18 @@ class ConfigVentMode(ThaSwitchBase):
 
     @property
     def name(self) -> str:
-        return f"{self._tekmar_tha.tha_full_device_name} Enable Vent Mode"
+        """Return the name."""
+        return "Enable Vent Mode"
 
     @property
     def is_on(self):
+        """Return True if on."""
         return self._tekmar_tha.config_vent_mode
 
     async def async_turn_on(self, **kwargs):
+        """Turn the entity on."""
         await self._tekmar_tha.set_config_vent_mode(True)
 
     async def async_turn_off(self, **kwargs):
+        """Turn the entity off."""
         await self._tekmar_tha.set_config_vent_mode(False)

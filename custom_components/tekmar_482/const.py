@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import ctypes
+from enum import IntEnum
 import re
 import sys
-from enum import IntEnum
 
 if sys.version_info.minor >= 11:
     # Needs Python 3.11
@@ -18,7 +18,7 @@ else:
         from enum import Enum
 
         class StrEnum(str, Enum):
-            pass
+            """Fallback StrEnum for Python versions before 3.11."""
 
 
 c_uint = ctypes.c_uint
@@ -33,6 +33,9 @@ CONF_SETBACK_ENABLE = "setback_enable"
 
 STORAGE_VERSION_MAJOR = 1
 STORAGE_KEY = DOMAIN
+
+# Seconds allowed for the gateway to report its inventory during setup.
+SETUP_TIMEOUT = 120
 
 # from voluptuous/validators.py
 DOMAIN_REGEX = re.compile(
@@ -50,6 +53,8 @@ DOMAIN_REGEX = re.compile(
 
 
 class ThaSetback(IntEnum):
+    """Setback states for 4-event and 2-event schedules, plus away and current."""
+
     WAKE_4 = 0x00
     UNOCC_4 = 0x01
     OCC_4 = 0x02
@@ -61,6 +66,8 @@ class ThaSetback(IntEnum):
 
 
 class ThaValue(IntEnum):
+    """Common tRPC values, including the 'not available' sentinels."""
+
     ON = 0x01
     OFF = 0x00
     NA_8 = 0xFF
@@ -69,12 +76,16 @@ class ThaValue(IntEnum):
 
 
 class ThaType(StrEnum):
+    """Device types supported by the integration."""
+
     THERMOSTAT = "thermostat"
     SETPOINT = "setpoint"
     SNOWMELT = "snowmelt"
 
 
 class ThaDefault(IntEnum):
+    """Default setpoint limits in degrees Celsius."""
+
     HEAT_MIN = 7
     HEAT_MAX = 29
     COOL_MIN = 10
@@ -84,7 +95,7 @@ class ThaDefault(IntEnum):
 
 
 class ThaDeviceMode(IntEnum):
-    """The operational mode of the device"""
+    """The operational mode of the device."""
 
     OFF = 0x00
     HEAT = 0x01
@@ -96,7 +107,7 @@ class ThaDeviceMode(IntEnum):
 
 
 class ThaActiveDemand(IntEnum):
-    """The current operating demand of the device: heating, cooling, or none"""
+    """The current operating demand of the device: heating, cooling, or none."""
 
     IDLE = 0x00
     HEAT = 0x01
@@ -167,6 +178,7 @@ DEVICE_TYPES = {
     105801: ThaType.SNOWMELT,
     108401: ThaType.SNOWMELT,
     108402: ThaType.SNOWMELT,
+    10599181: ThaType.THERMOSTAT,  # alternate for 99301
 }
 
 DEVICE_FEATURES = {
@@ -263,6 +275,16 @@ DEVICE_FEATURES = {
     99301: {
         "model": "541",
         "type": DEVICE_TYPES[99301],
+        "heat": 1,
+        "cool": 0,
+        "fan": 0,
+        "humid": 0,
+        "snow": 0,
+        "emer": 0,
+    },
+    10599181: {  # alternate for 99301
+        "model": "541",
+        "type": DEVICE_TYPES[10599181],
         "heat": 1,
         "cool": 0,
         "fan": 0,
@@ -413,6 +435,8 @@ class _DeviceAttributes(ctypes.LittleEndianStructure):
 
 
 class DeviceAttributes(ctypes.Union):
+    """Device attribute flags, readable as bits or as the raw attrs value."""
+
     _anonymous_ = ("bit",)
     _fields_ = [("bit", _DeviceAttributes), ("attrs", c_uint)]
 
