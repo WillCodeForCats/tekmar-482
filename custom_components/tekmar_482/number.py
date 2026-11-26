@@ -568,20 +568,21 @@ class ThaSlabSetpoint(ThaNumberBase):
             f"{self._tekmar_tha.device_id}-slab-setpoint"
         )
 
-    @property
-    def available(self) -> bool:
-        """Return the available."""
-        if (
-            self._tekmar_tha.slab_setpoint == ThaValue.NA_8
-            or self._tekmar_tha.slab_setpoint is None
-            or (
-                self._tekmar_tha.tha_device["attributes"].SlabSetpoint == 0
-                and self._tekmar_tha.tha_device["attributes"].RoomAndSlab == 0
-            )
+    def _slab_available(self, setpoint) -> bool:
+        """Return True if the given slab setpoint is usable."""
+        if setpoint in (ThaValue.NA_8, None) or (
+            self._tekmar_tha.tha_device["attributes"].SlabSetpoint == 0
+            and self._tekmar_tha.tha_device["attributes"].RoomAndSlab == 0
         ):
             return False
 
+        # Skip ThaSlabSetpoint.available so the active setpoint isn't checked.
         return super().available
+
+    @property
+    def available(self) -> bool:
+        """Return the available."""
+        return self._slab_available(self._tekmar_tha.slab_setpoint)
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -631,17 +632,7 @@ class ThaSlabSetpointDay(ThaSlabSetpoint):
     @property
     def available(self) -> bool:
         """Return the available."""
-        if (
-            self._tekmar_tha.slab_setpoint_day == ThaValue.NA_8
-            or self._tekmar_tha.slab_setpoint_day is None
-            or (
-                self._tekmar_tha.tha_device["attributes"].SlabSetpoint == 0
-                and self._tekmar_tha.tha_device["attributes"].RoomAndSlab == 0
-            )
-        ):
-            return False
-
-        return super().available
+        return self._slab_available(self._tekmar_tha.slab_setpoint_day)
 
     @property
     def native_value(self):
@@ -673,17 +664,7 @@ class ThaSlabSetpointNight(ThaSlabSetpoint):
     @property
     def available(self) -> bool:
         """Return the available."""
-        if (
-            self._tekmar_tha.slab_setpoint_night == ThaValue.NA_8
-            or self._tekmar_tha.slab_setpoint_night is None
-            or (
-                self._tekmar_tha.tha_device["attributes"].SlabSetpoint == 0
-                and self._tekmar_tha.tha_device["attributes"].RoomAndSlab == 0
-            )
-        ):
-            return False
-
-        return super().available
+        return self._slab_available(self._tekmar_tha.slab_setpoint_night)
 
     @property
     def native_value(self):
@@ -715,17 +696,7 @@ class ThaSlabSetpointAway(ThaSlabSetpoint):
     @property
     def available(self) -> bool:
         """Return the available."""
-        if (
-            self._tekmar_tha.slab_setpoint_away == ThaValue.NA_8
-            or self._tekmar_tha.slab_setpoint_away is None
-            or (
-                self._tekmar_tha.tha_device["attributes"].SlabSetpoint == 0
-                and self._tekmar_tha.tha_device["attributes"].RoomAndSlab == 0
-            )
-        ):
-            return False
-
-        return super().available
+        return self._slab_available(self._tekmar_tha.slab_setpoint_away)
 
     @property
     def native_value(self):
