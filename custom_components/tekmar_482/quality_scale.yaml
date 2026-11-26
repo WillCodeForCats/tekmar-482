@@ -10,8 +10,8 @@ rules:
     status: done
     comment: Brand images are shipped locally in the brand directory.
   common-modules:
-    status: todo
-    comment: Base entity classes are duplicated per platform; no entity.py. No coordinator is used.
+    status: done
+    comment: ThaEntity is in entity.py. There is no coordinator.
   config-flow: done
   config-flow-test-coverage:
     status: todo
