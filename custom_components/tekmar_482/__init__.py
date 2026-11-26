@@ -83,10 +83,15 @@ async def async_remove_config_entry_device(
     """Allow the user to delete a device from the UI."""
     tekmar_hub = hass.data.get(DOMAIN, {}).get(config_entry.entry_id)
 
-    if tekmar_hub is not None:
-        for domain, identifier in device_entry.identifiers:
-            if domain == DOMAIN:
-                await tekmar_hub.async_remove_device(identifier)
+    for domain, identifier in device_entry.identifiers:
+        if domain != DOMAIN:
+            continue
+        if tekmar_hub is not None:
+            await tekmar_hub.async_remove_device(identifier)
+        else:
+            await hub.async_remove_device_override(
+                hass, config_entry.entry_id, identifier
+            )
 
     return True
 

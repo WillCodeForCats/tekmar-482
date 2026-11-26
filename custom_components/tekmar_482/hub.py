@@ -1827,6 +1827,20 @@ async def async_save_device_override(
     await StoredData(hass, entry_id).update_setting(DEVICE_OVERRIDES_KEY, add)
 
 
+async def async_remove_device_override(
+    hass: HomeAssistant, entry_id: str, address: Any
+) -> None:
+    """Drop the type the user picked in Repairs for a device, if any."""
+    key = str(address)
+    stored = StoredData(hass, entry_id)
+
+    if key in (await stored.get_setting(DEVICE_OVERRIDES_KEY) or {}):
+        await stored.update_setting(
+            DEVICE_OVERRIDES_KEY,
+            lambda overrides: {k: v for k, v in (overrides or {}).items() if k != key},
+        )
+
+
 def storage_lock(hass: HomeAssistant) -> asyncio.Lock:
     """Return the lock shared by everything that saves the settings file."""
     return hass.data.setdefault(_STORAGE_LOCK, asyncio.Lock())
