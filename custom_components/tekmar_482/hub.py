@@ -20,6 +20,7 @@ from .const import (
     DOMAIN,
     SETBACK_FAN_MAP,
     SETBACK_SETPOINT_MAP,
+    SETUP_TIMEOUT,
     STORAGE_KEY,
     STORAGE_VERSION_MAJOR,
     DeviceAttributes,
@@ -138,6 +139,11 @@ class TekmarHub:
         self._reload_scheduled = True
         self._hass.config_entries.async_schedule_reload(self._entry_id)
 
+    async def async_abort_setup(self) -> None:
+        """Release the socket after a failed setup."""
+        self._inSetup = False
+        await self._sock.close()
+
     async def async_init_tha(self) -> None:
         """Connect to the gateway, read its inventory, and create devices."""
         self._inSetup = True
@@ -193,7 +199,18 @@ class TekmarHub:
             TrpcPacket(service="Request", method="DeviceInventory", address=0x0)
         )
 
+        deadline = asyncio.get_running_loop().time() + SETUP_TIMEOUT
+
+        def check_deadline() -> None:
+            if asyncio.get_running_loop().time() > deadline:
+                raise ConfigEntryNotReady(
+                    f"Gateway '{self._host}' did not finish reporting in "
+                    f"{SETUP_TIMEOUT} seconds"
+                )
+
         while self._inSetup is True:
+            check_deadline()
+
             if len(self._tx_queue) != 0:
                 try:
                     write_packet = self._tx_queue.pop(0)
@@ -210,6 +227,8 @@ class TekmarHub:
             except (OSError, ValueError) as e:
                 _LOGGER.error("Read error: %s", e)
                 raise ConfigEntryNotReady("Read error while in setup.") from e
+
+            check_deadline()
 
             if p is not None:
                 try:
@@ -384,6 +403,17 @@ class TekmarHub:
                             state=ThaValue.ON,
                         )
                     )
+
+                    # refresh setback state (handler also requests FanPercent)
+                    for device in self.tha_devices:
+                        if isinstance(device, (TekmarThermostat, TekmarSetpoint)):
+                            self.queue_message(
+                                TrpcPacket(
+                                    service="Request",
+                                    method="SetbackState",
+                                    address=device.device_id,
+                                )
+                            )
 
                 if len(self._tx_queue) != 0:
                     write_packet = self._tx_queue.pop(0)

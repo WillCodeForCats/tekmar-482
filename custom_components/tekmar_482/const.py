@@ -34,6 +34,9 @@ CONF_SETBACK_ENABLE = "setback_enable"
 STORAGE_VERSION_MAJOR = 1
 STORAGE_KEY = DOMAIN
 
+# Seconds allowed for the gateway to report its inventory during setup.
+SETUP_TIMEOUT = 120
+
 # from voluptuous/validators.py
 DOMAIN_REGEX = re.compile(
     # start anchor, because fullmatch is not available in python 2.7
