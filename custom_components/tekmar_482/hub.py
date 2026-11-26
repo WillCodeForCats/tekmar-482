@@ -471,13 +471,6 @@ class TekmarHub:
         through Repairs, that identification is dropped and the user is asked
         to identify it again right away.
         """
-        if address not in self._tha_inventory:
-            return
-
-        self.tha_devices = [d for d in self.tha_devices if d.device_id != address]
-        if address not in self.tha_ignore_addr:
-            self.tha_ignore_addr.append(address)
-
         if self._device_overrides.pop(str(address), None) is not None:
             await self._storage.update_setting(
                 DEVICE_OVERRIDES_KEY,
@@ -485,6 +478,13 @@ class TekmarHub:
                     k: v for k, v in (overrides or {}).items() if k != str(address)
                 },
             )
+
+        if address not in self._tha_inventory:
+            return
+
+        self.tha_devices = [d for d in self.tha_devices if d.device_id != address]
+        if address not in self.tha_ignore_addr:
+            self.tha_ignore_addr.append(address)
 
         reported = self._tha_inventory[address].get("reported_type")
         if isinstance(reported, int) and reported not in DEVICE_FEATURES:
