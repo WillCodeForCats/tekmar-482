@@ -445,6 +445,11 @@ class DeviceAttributes(ctypes.Union):
     _anonymous_ = ("bit",)
     _fields_ = [("bit", _DeviceAttributes), ("attrs", c_uint)]
 
+    @property
+    def has_floor(self) -> bool:
+        """Return True if the device reports a floor (slab) sensor."""
+        return bool(self.SlabSetpoint or self.RoomAndSlab)
+
 
 TN_ERRORS = {
     0x00: "No Errors",
