@@ -86,6 +86,20 @@ class ThaClimateThermostat(ThaClimateBase):
         )
 
     @property
+    def _single_setpoint(self) -> str | None:
+        """Return which setpoint a single target temperature maps to."""
+        attributes = self._tekmar_tha.tha_device["attributes"]
+        if attributes.ZoneHeating == 1:
+            return "heat"
+        if attributes.ZoneCooling == 1:
+            if attributes.SlabSetpoint == 1 and self.hvac_mode == HVACMode.HEAT:
+                return "slab"
+            return "cool"
+        if attributes.SlabSetpoint == 1:
+            return "slab"
+        return None
+
+    @property
     def max_temp(self):
         """Return the max temp."""
         if self.hvac_mode == HVACMode.OFF:
@@ -303,13 +317,14 @@ class ThaClimateThermostat(ThaClimateBase):
     @property
     def target_temperature(self):
         """Return the target temperature."""
-        if self._tekmar_tha.tha_device["attributes"].ZoneHeating == 1:
+        setpoint = self._single_setpoint
+        if setpoint == "heat":
             this_device_setpoint = self._tekmar_tha.heat_setpoint
 
-        elif self._tekmar_tha.tha_device["attributes"].ZoneCooling == 1:
+        elif setpoint == "cool":
             this_device_setpoint = self._tekmar_tha.cool_setpoint
 
-        elif self._tekmar_tha.tha_device["attributes"].SlabSetpoint == 1:
+        elif setpoint == "slab":
             this_device_setpoint = self._tekmar_tha.slab_setpoint
 
         else:
@@ -363,13 +378,14 @@ class ThaClimateThermostat(ThaClimateBase):
         slab_setpoint = None
 
         if self.supported_features & Feature.TARGET_TEMPERATURE:
-            if self._tekmar_tha.tha_device["attributes"].ZoneHeating == 1:
+            setpoint = self._single_setpoint
+            if setpoint == "heat":
                 heat_setpoint = kwargs.get(ATTR_TEMPERATURE)
 
-            elif self._tekmar_tha.tha_device["attributes"].ZoneCooling == 1:
+            elif setpoint == "cool":
                 cool_setpoint = kwargs.get(ATTR_TEMPERATURE)
 
-            elif self._tekmar_tha.tha_device["attributes"].SlabSetpoint == 1:
+            elif setpoint == "slab":
                 slab_setpoint = kwargs.get(ATTR_TEMPERATURE)
 
         elif self.supported_features & Feature.TARGET_TEMPERATURE_RANGE:
