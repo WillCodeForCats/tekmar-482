@@ -271,3 +271,18 @@ async def test_deleting_device_of_unloaded_entry(hass):
     device = MagicMock(identifiers={(DOMAIN, 1002)})
 
     assert await async_remove_config_entry_device(hass, entry, device) is True
+
+
+@pytest.mark.usefixtures("hass_storage")
+async def test_deleting_device_of_unloaded_entry_drops_its_choice(hass):
+    """Test deleting a device while unloaded forgets only its identification."""
+    entry = _make_entry(hass)
+    await async_save_device_override(hass, entry.entry_id, 1002, UNKNOWN_TYPE, 99301)
+    await async_save_device_override(hass, entry.entry_id, 1003, 888888, 99301)
+    device = MagicMock(identifiers={(DOMAIN, 1002)})
+
+    assert await async_remove_config_entry_device(hass, entry, device) is True
+
+    assert set(
+        await StoredData(hass, entry.entry_id).get_setting("device_overrides")
+    ) == {"1003"}
