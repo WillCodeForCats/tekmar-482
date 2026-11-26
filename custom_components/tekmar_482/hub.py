@@ -939,10 +939,9 @@ class TekmarThermostat:
                 )
             )
 
-        if (
-            DEVICE_FEATURES[self.tha_device["type"]]["humid"]
-            or self.tha_device["attributes"].RelativeHumidity
-        ) and self.hub.tha_pr_ver in [
+        if DEVICE_FEATURES[self.tha_device["type"]][
+            "humid"
+        ] and self.hub.tha_pr_ver in [
             2,
             3,
         ]:
