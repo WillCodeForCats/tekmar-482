@@ -705,6 +705,22 @@ async def test_removing_known_device_ignores_it_without_issue(hass, hub):
 
 
 @pytest.mark.usefixtures("mock_sleep", "hass_storage")
+async def test_removing_absent_device_forgets_its_type(hass, hub):
+    """Test deleting a device the gateway no longer reports drops its type."""
+    await async_save_device_override(hass, "entry_1", 1005, 888888, THERMOSTAT_TYPE)
+    hub._sock = FakeGateway(hub)
+    await hub.async_init_tha()
+
+    await hub.async_remove_device(1005)
+
+    assert hub.device_overrides == {}
+    assert await StoredData(hass, "entry_1").get_setting("device_overrides") == {}
+    assert [d.device_id for d in hub.tha_devices] == [1001]
+    assert hub.tha_ignore_addr == [1002]
+    assert unknown_issue(hass, "unknown_device_entry_1_1005") is None
+
+
+@pytest.mark.usefixtures("mock_sleep", "hass_storage")
 async def test_removing_gateway_device_does_nothing(hub):
     """Test deleting the gateway device (not an address) changes nothing."""
     hub._sock = FakeGateway(hub)
