@@ -1,0 +1,150 @@
+rules:
+  # Bronze
+  action-setup:
+    status: exempt
+    comment: The integration does not register any actions.
+  appropriate-polling:
+    status: exempt
+    comment: Local push. The gateway reports changes; entities set should_poll to False.
+  brands:
+    status: done
+    comment: Brand images are shipped locally in the brand directory.
+  common-modules:
+    status: todo
+    comment: Base entity classes are duplicated per platform; no entity.py. No coordinator is used.
+  config-flow: done
+  config-flow-test-coverage:
+    status: todo
+    comment: There are no config flow tests.
+  dependency-transparency:
+    status: done
+    comment: >-
+      No external requirements. The tRPC/tpck protocol code is vendored in
+      trpc/ and would need to move to a PyPI library for core.
+  docs-actions:
+    status: exempt
+    comment: The integration does not register any actions.
+  docs-conditions:
+    status: exempt
+    comment: The integration does not provide any conditions.
+  docs-high-level-description: done
+  docs-installation-instructions:
+    status: todo
+    comment: >-
+      README lists HACS and manual install and the packet server app, but there
+      are no step-by-step setup instructions with prerequisites.
+  docs-removal-instructions:
+    status: todo
+    comment: Not documented.
+  docs-triggers:
+    status: exempt
+    comment: The integration does not provide any triggers.
+  entity-event-setup:
+    status: done
+    comment: Callbacks are registered in async_added_to_hass and removed in async_will_remove_from_hass.
+  entity-unique-id: done
+  has-entity-name: done
+  runtime-data:
+    status: todo
+    comment: The hub is stored in hass.data[DOMAIN] instead of ConfigEntry.runtime_data.
+  test-before-configure:
+    status: todo
+    comment: The config flow validates host and port format but does not connect to the packet server.
+  test-before-setup:
+    status: done
+    comment: async_init_tha raises ConfigEntryNotReady when the connection or inventory fails.
+  unique-config-entry: done
+
+  # Silver
+  action-exceptions:
+    status: todo
+    comment: >-
+      There are no custom actions, but entity actions raise NotImplementedError
+      or ValueError (climate, select, switch) instead of ServiceValidationError.
+  config-entry-unloading: done
+  docs-configuration-parameters:
+    status: done
+    comment: The setback option is documented on the wiki home page.
+  docs-installation-parameters:
+    status: todo
+    comment: The name, host, and port setup fields are not documented.
+  entity-unavailable:
+    status: todo
+    comment: hub.online is never set to False when the connection drops, so entities stay available.
+  integration-owner: done
+  log-when-unavailable:
+    status: todo
+    comment: The run loop logs a warning on every reconnect attempt and nothing when the connection recovers.
+  parallel-updates:
+    status: todo
+    comment: No platform sets PARALLEL_UPDATES.
+  reauthentication-flow:
+    status: exempt
+    comment: The packet server does not use authentication.
+  test-coverage:
+    status: todo
+    comment: Tests cover the trpc layer, hub, storage, and repairs, but not the config flow or entity platforms.
+
+  # Gold
+  devices: done
+  diagnostics: done
+  discovery:
+    status: exempt
+    comment: The gateway is reached through a packet server over TCP and cannot be discovered.
+  discovery-update-info:
+    status: exempt
+    comment: The gateway cannot be discovered.
+  docs-data-update:
+    status: done
+    comment: The wiki home page explains the one-minute gateway reports.
+  docs-examples:
+    status: todo
+    comment: There are no automation examples or blueprints.
+  docs-known-limitations:
+    status: done
+    comment: Documented on the wiki home and Limitations pages.
+  docs-supported-devices:
+    status: done
+    comment: Documented on the wiki Compatible Equipment page.
+  docs-supported-functions:
+    status: done
+    comment: Documented on the wiki home and Features pages.
+  docs-troubleshooting:
+    status: todo
+    comment: Not documented.
+  docs-use-cases:
+    status: done
+    comment: The wiki home page describes scheduling on the thermostats versus in Home Assistant.
+  dynamic-devices:
+    status: todo
+    comment: Devices are only created from the inventory at setup; new devices need a reload.
+  entity-category: done
+  entity-device-class:
+    status: todo
+    comment: The humidity setpoint number entities have no device class.
+  entity-disabled-by-default: done
+  entity-translations:
+    status: todo
+    comment: Entity names are hard-coded in English.
+  exception-translations:
+    status: todo
+    comment: ConfigEntryNotReady messages are not translated.
+  icon-translations:
+    status: todo
+    comment: Icons are set with _attr_icon; there is no icons.json.
+  reconfiguration-flow: done
+  repair-issues: done
+  stale-devices:
+    status: done
+    comment: async_remove_config_entry_device lets users remove devices.
+
+  # Platinum
+  async-dependency:
+    status: done
+    comment: The vendored trpc socket uses asyncio streams.
+  inject-websession:
+    status: exempt
+    comment: The integration does not use HTTP.
+  strict-typing:
+    status: todo
+    comment: Type annotations are incomplete and there is no strict mypy configuration.
