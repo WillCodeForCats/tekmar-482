@@ -558,6 +558,7 @@ class ThaSlabSetpoint(ThaNumberBase):
     _attr_device_class = NumberDeviceClass.TEMPERATURE
     _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
     _attr_icon = "mdi:thermostat"
+    _attr_name = "Floor Setpoint"
 
     @property
     def unique_id(self) -> str:
@@ -566,11 +567,6 @@ class ThaSlabSetpoint(ThaNumberBase):
             f"{self.config_entry_id}-{self._tekmar_tha.model}-"
             f"{self._tekmar_tha.device_id}-slab-setpoint"
         )
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return "Floor Setpoint"
 
     @property
     def available(self) -> bool:
@@ -622,6 +618,8 @@ class ThaSlabSetpoint(ThaNumberBase):
 class ThaSlabSetpointDay(ThaSlabSetpoint):
     """Floor setpoint for a Tekmar thermostat (day setback)."""
 
+    _attr_name = "Floor Setpoint Day"
+
     @property
     def unique_id(self) -> str:
         """Return the unique id."""
@@ -629,11 +627,6 @@ class ThaSlabSetpointDay(ThaSlabSetpoint):
             f"{self.config_entry_id}-{self._tekmar_tha.model}-"
             f"{self._tekmar_tha.device_id}-slab-setpoint-day"
         )
-
-    @property
-    def name(self) -> str:
-        """Return the name."""
-        return f"{self._tekmar_tha.tha_full_device_name} Floor Setpoint Day"
 
     @property
     def available(self) -> bool:
@@ -667,6 +660,8 @@ class ThaSlabSetpointDay(ThaSlabSetpoint):
 class ThaSlabSetpointNight(ThaSlabSetpoint):
     """Floor setpoint for a Tekmar thermostat (night setback)."""
 
+    _attr_name = "Floor Setpoint Night"
+
     @property
     def unique_id(self) -> str:
         """Return the unique id."""
@@ -676,15 +671,10 @@ class ThaSlabSetpointNight(ThaSlabSetpoint):
         )
 
     @property
-    def name(self) -> str:
-        """Return the name."""
-        return f"{self._tekmar_tha.tha_full_device_name} Floor Setpoint Night"
-
-    @property
     def available(self) -> bool:
         """Return the available."""
         if (
-            self._tekmar_tha.slab_setpoint_day == ThaValue.NA_8
+            self._tekmar_tha.slab_setpoint_night == ThaValue.NA_8
             or self._tekmar_tha.slab_setpoint_night is None
             or (
                 self._tekmar_tha.tha_device["attributes"].SlabSetpoint == 0
@@ -712,6 +702,8 @@ class ThaSlabSetpointNight(ThaSlabSetpoint):
 class ThaSlabSetpointAway(ThaSlabSetpoint):
     """Floor setpoint for a Tekmar thermostat (away setback)."""
 
+    _attr_name = "Floor Setpoint Away"
+
     @property
     def unique_id(self) -> str:
         """Return the unique id."""
@@ -721,15 +713,10 @@ class ThaSlabSetpointAway(ThaSlabSetpoint):
         )
 
     @property
-    def name(self) -> str:
-        """Return the name."""
-        return f"{self._tekmar_tha.tha_full_device_name} Floor Setpoint Away"
-
-    @property
     def available(self) -> bool:
         """Return the available."""
         if (
-            self._tekmar_tha.slab_setpoint_day == ThaValue.NA_8
+            self._tekmar_tha.slab_setpoint_away == ThaValue.NA_8
             or self._tekmar_tha.slab_setpoint_away is None
             or (
                 self._tekmar_tha.tha_device["attributes"].SlabSetpoint == 0
