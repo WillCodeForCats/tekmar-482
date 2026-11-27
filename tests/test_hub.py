@@ -311,8 +311,8 @@ async def test_quiet_methods_do_not_warn(hub, caplog):
 
 
 @pytest.mark.usefixtures("mock_sleep")
-async def test_attributes_while_running_are_ignored(hub, mock_reload):
-    """Test changed attributes after setup keep the setup values (issue #59).
+async def test_attributes_while_running_update_without_reload(hub, mock_reload):
+    """Test changed attributes after setup are stored without a reload (issue #59).
 
     The gateway can repeat attribute reports while running. Reloading on
     each one made the devices cycle through "unavailable".
@@ -322,7 +322,7 @@ async def test_attributes_while_running_are_ignored(hub, mock_reload):
     await run_with(hub, report("DeviceAttributes", address=1001, attributes=0b0001))
 
     mock_reload.assert_not_called()
-    assert hub._tha_inventory[1001]["attributes"].attrs == FAN_PERCENT_ATTR
+    assert hub._tha_inventory[1001]["attributes"].attrs == 0b0001
 
 
 @pytest.mark.usefixtures("mock_sleep")

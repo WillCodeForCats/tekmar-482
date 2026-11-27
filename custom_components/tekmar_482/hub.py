@@ -486,12 +486,28 @@ class TekmarHub:
             self._schedule_reload()
 
         elif tha_method == "DeviceAttributes":
-            _LOGGER.debug(
-                "Ignoring attributes from %s in run: received %s setup with %s",
-                b["address"],
-                int(b["attributes"]),
-                self._tha_inventory[b["address"]]["attributes"].attrs,
-            )
+            try:
+                old_attrs = self._tha_inventory[b["address"]]["attributes"].attrs
+                new_attrs = int(b["attributes"])
+                self._tha_inventory[b["address"]]["attributes"].attrs = new_attrs
+                _LOGGER.debug(
+                    "Updated attributes for %s in run: %s -> %s",
+                    b["address"],
+                    old_attrs,
+                    new_attrs,
+                )
+                if old_attrs != new_attrs:
+                    for device in self.tha_devices:
+                        if device.device_id == b["address"]:
+                            if isinstance(device, TekmarThermostat):
+                                device.request_attribute_state()
+                            await device.publish_updates()
+            except KeyError as e:
+                _LOGGER.warning(
+                    "Device address %s not in inventory. Reloading integration...",
+                    e,
+                )
+                self._schedule_reload()
 
         elif tha_method in ("NullMethod", "DateTime"):
             pass
@@ -773,6 +789,10 @@ class TekmarThermostat:
             )
         )
 
+        self.request_attribute_state()
+
+    def request_attribute_state(self) -> None:
+        """Request attribute-dependent device state."""
         if self.setback_enable is True:
             if self.tha_device["attributes"].ZoneCooling:
                 self.hub.queue_message(
