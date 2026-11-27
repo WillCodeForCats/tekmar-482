@@ -311,6 +311,21 @@ async def test_quiet_methods_do_not_warn(hub, caplog):
 
 
 @pytest.mark.usefixtures("mock_sleep")
+async def test_attributes_while_running_are_ignored(hub, mock_reload):
+    """Test changed attributes after setup keep the setup values (issue #59).
+
+    The gateway can repeat attribute reports while running. Reloading on
+    each one made the devices cycle through "unavailable".
+    """
+    add_inventory(hub, 1001, attributes=FAN_PERCENT_ATTR)
+
+    await run_with(hub, report("DeviceAttributes", address=1001, attributes=0b0001))
+
+    mock_reload.assert_not_called()
+    assert hub._tha_inventory[1001]["attributes"].attrs == FAN_PERCENT_ATTR
+
+
+@pytest.mark.usefixtures("mock_sleep")
 async def test_unhandled_method_warns(hub, caplog):
     """Test a known method with no run handler logs a warning."""
     await run_with(hub, report("FirmwareRevision", revision=1))
@@ -322,7 +337,11 @@ async def test_unhandled_method_warns(hub, caplog):
 
 @pytest.mark.usefixtures("mock_sleep")
 async def test_unknown_method_id_is_skipped(hub):
-    """Test a packet with an unknown method ID does not stop the loop."""
+    """Test a packet with an unknown method ID does not stop the loop (issue #23).
+
+    A corrupted packet with method ID 22273 used to crash the run loop with a
+    KeyError.
+    """
     device = thermostat(1001)
     hub.tha_devices = [device]
 
@@ -342,7 +361,7 @@ async def test_unknown_method_id_is_skipped(hub):
     "error", [OSError("reset"), ConnectionError("lost"), ValueError("bad packet")]
 )
 async def test_socket_error_reconnects(hub, mock_sleep, error):
-    """Test a socket error closes the connection, waits, and carries on."""
+    """Test a socket error closes the connection, waits, and carries on (issue #4)."""
     device = thermostat(1001)
     hub.tha_devices = [device]
 
@@ -367,7 +386,7 @@ async def test_unexpected_error_is_not_swallowed(hub):
 
 @pytest.mark.usefixtures("mock_sleep")
 async def test_reconnect_turns_reporting_on(hub):
-    """Test reconnecting opens the socket and turns gateway reporting on."""
+    """Test reconnecting opens the socket and turns gateway reporting on (issue #4)."""
     sock = await run_with(hub, None, is_open=False)
 
     assert len(sock.written) == 1
@@ -377,7 +396,7 @@ async def test_reconnect_turns_reporting_on(hub):
 
 @pytest.mark.usefixtures("mock_sleep")
 async def test_reconnect_requests_setback_state(hub):
-    """Test reconnecting re-requests setback state for thermostats and setpoints."""
+    """Test reconnecting re-requests setback state for devices (issue #4)."""
     setpoint = AsyncMock(spec=TekmarSetpoint)
     setpoint.device_id = 2002
     hub.tha_devices = [thermostat(1001), setpoint, MagicMock(device_id=3003)]
@@ -393,7 +412,7 @@ async def test_reconnect_requests_setback_state(hub):
 
 
 async def test_failed_reconnect_closes_and_retries(hub, mock_sleep):
-    """Test a failed reconnect closes, waits, and tries to connect again."""
+    """Test a failed reconnect closes, waits, and tries again (issue #4)."""
     sock = await run_with(hub, is_open=False, open_results=[False, True])
 
     assert sock.opened == 2
@@ -405,7 +424,11 @@ async def test_failed_reconnect_closes_and_retries(hub, mock_sleep):
 
 @pytest.mark.usefixtures("mock_sleep")
 async def test_silent_gateway_reconnects(hub):
-    """Test the connection is reset after 130 reads with no report."""
+    """Test the connection is reset after 130 reads with no report.
+
+    Issue #4: the integration did not reconnect on its own. Issue #10: this
+    internal timer replaced the ping interval option.
+    """
     sock = await run_with(hub, *([None] * 131))
 
     assert sock.closed == 1
@@ -454,7 +477,13 @@ class FakeGateway(FakeSocket):
 
 @pytest.mark.usefixtures("mock_sleep")
 async def test_setup_builds_gateway_and_devices(hass, hub):
-    """Test setup reads the gateway inventory and creates its devices."""
+    """Test setup reads the gateway inventory and creates its devices.
+
+    Also covers:
+    - issue #66: an unknown device type is ignored instead of stopping setup
+    - issue #97: connecting clears the check_configuration repair issue
+    - issue #117: the device firmware version is stored as a string
+    """
     hub._sock = FakeGateway(hub)
     ir.async_create_issue(
         hass,
@@ -487,6 +516,28 @@ async def test_setup_builds_gateway_and_devices(hass, hub):
     assert device.tha_device["attributes"].FanPercent == 1
 
     assert ir.async_get(hass).async_get_issue(DOMAIN, "check_configuration") is None
+
+
+class BadTypeGateway(FakeGateway):
+    """Gateway that reports type 0xFFFFFFFF, as seen after a power loss."""
+
+    TYPES = {1001: THERMOSTAT_TYPE, 1002: 0xFFFFFFFF}
+
+
+@pytest.mark.usefixtures("mock_sleep")
+async def test_setup_ignores_bad_device_type(hub):
+    """Test a device reporting type 0xFFFFFFFF does not stop setup (issue #9).
+
+    The Setpoint 161 can report this type when it and the gateway power on
+    together, which used to fail setup with KeyError: 4294967295.
+    """
+    hub._sock = BadTypeGateway(hub)
+
+    await hub.async_init_tha()
+
+    assert hub.online is True
+    assert hub.tha_ignore_addr == [1002]
+    assert [d.device_id for d in hub.tha_devices] == [1001]
 
 
 async def test_setup_connection_failure_raises_issue(hass, hub):
