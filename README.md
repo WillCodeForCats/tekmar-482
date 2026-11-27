@@ -36,7 +36,7 @@ Either way, you can also use this link to open the integration's page directly:
 
 OR
 
-Download the [latest release](https://github.com/WillCodeForCats/tekmar-482/releases) and copy the `tekmar_482` folder into to your Home Assistant `config/custom_components` folder.
+Download `tekmar_482.zip` from the [latest release](https://github.com/WillCodeForCats/tekmar-482/releases), create a `tekmar_482` folder in your Home Assistant `config/custom_components` folder, and extract the ZIP's contents into it.
 
 After rebooting Home Assistant, this integration can be configured through the integration setup UI.
 <!-- ha-marketplace:exclude-end -->
