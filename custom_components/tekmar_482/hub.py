@@ -466,6 +466,14 @@ class TekmarHub:
                 await getattr(gateway, setter)(*(b[f] for f in fields))
 
         elif tha_method in _DEVICE_UPDATES:
+            if b["address"] not in self._tha_inventory:
+                _LOGGER.warning(
+                    "Device address %s not in inventory. Reloading integration...",
+                    b["address"],
+                )
+                self._schedule_reload()
+                return
+
             setter, fields = _DEVICE_UPDATES[tha_method]
             for device in self.tha_devices:
                 if device.device_id == b["address"]:

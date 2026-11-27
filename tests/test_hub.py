@@ -175,12 +175,26 @@ async def test_device_updates(hub, method, fields, device_class, setter):
     other = AsyncMock(spec=device_class)
     other.device_id = 1002
     hub.tha_devices = [target, other]
+    add_inventory(hub, 1001)
+    add_inventory(hub, 1002)
 
     # Field order in the setter call follows the setter's parameters.
     await run_with(hub, report(method, address=1001, **fields))
 
     getattr(target, setter).assert_awaited_once_with(*fields.values())
     getattr(other, setter).assert_not_awaited()
+
+
+@pytest.mark.usefixtures("mock_sleep")
+async def test_device_update_from_unknown_address_reloads(hub, mock_reload):
+    """Test a device report from an address not in inventory reloads the entry."""
+    device = thermostat(1001)
+    hub.tha_devices = [device]
+
+    await run_with(hub, report("CurrentTemperature", address=1001, temp=0x0150))
+
+    mock_reload.assert_called_once_with("entry_1")
+    device.set_current_temperature.assert_not_awaited()
 
 
 @pytest.mark.usefixtures("mock_sleep")
@@ -344,6 +358,7 @@ async def test_unknown_method_id_is_skipped(hub):
     """
     device = thermostat(1001)
     hub.tha_devices = [device]
+    add_inventory(hub, 1001)
 
     await run_with(
         hub,
@@ -364,6 +379,7 @@ async def test_socket_error_reconnects(hub, mock_sleep, error):
     """Test a socket error closes the connection, waits, and carries on (issue #4)."""
     device = thermostat(1001)
     hub.tha_devices = [device]
+    add_inventory(hub, 1001)
 
     sock = await run_with(
         hub, error, report("CurrentTemperature", address=1001, temp=0x0150)
