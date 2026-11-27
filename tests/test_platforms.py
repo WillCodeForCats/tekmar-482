@@ -12,7 +12,7 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.tekmar_482 import climate, number, sensor, switch
-from custom_components.tekmar_482.const import DOMAIN, DeviceAttributes
+from custom_components.tekmar_482.const import DOMAIN, DeviceAttributes, ThaValue
 from custom_components.tekmar_482.hub import TekmarHub, TekmarSetpoint, TekmarThermostat
 from custom_components.tekmar_482.trpc.msg import name_from_methodID
 
@@ -20,6 +20,7 @@ SETPOINT_161 = 101101
 THERMOSTAT_527 = 102301
 THERMOSTAT_557 = 104401  # supports emergency heat
 SLAB_SETPOINT_ATTR = 0b0100
+ROOM_AND_SLAB_ATTR = 0x100
 
 
 @pytest.fixture
@@ -138,6 +139,94 @@ async def test_floor_entities_enabled_by_slab_attribute(
     (floor_temperature,) = of_type(sensors, sensor.CurrentFloorTemperature)
     assert floor_setpoint.entity_registry_enabled_default == enabled
     assert floor_temperature.entity_registry_enabled_default == enabled
+
+
+# Floor setpoints and Room+Slab mode -----------------------------------------
+
+SETBACK_FLOOR_SETPOINTS = [
+    (number.ThaSlabSetpointDay, 0x00),
+    (number.ThaSlabSetpointNight, 0x03),
+    (number.ThaSlabSetpointAway, 0x06),
+]
+
+
+async def test_room_and_slab_enables_floor_entities(hass, entry, hub):
+    """Test a thermostat in Room+Slab mode has its floor entities enabled."""
+    await add_thermostat(hub, attributes=ROOM_AND_SLAB_ATTR)
+
+    numbers = await setup_platform(hass, entry, number)
+    sensors = await setup_platform(hass, entry, sensor)
+
+    (floor_setpoint,) = of_type(numbers, number.ThaSlabSetpoint)
+    (floor_temperature,) = of_type(sensors, sensor.CurrentFloorTemperature)
+    assert floor_setpoint.entity_registry_enabled_default is True
+    assert floor_temperature.entity_registry_enabled_default is True
+
+
+async def test_setback_adds_floor_setpoint_per_setback(hass, entry, hub):
+    """Test setback mode adds day, night and away floor setpoints."""
+    hub._tha_setback_enable = 1
+    await add_thermostat(hub, attributes=SLAB_SETPOINT_ATTR)
+
+    floor = of_type(await setup_platform(hass, entry, number), number.ThaSlabSetpoint)
+
+    assert [type(e) for e in floor] == [cls for cls, _ in SETBACK_FLOOR_SETPOINTS]
+    assert len({e.unique_id for e in floor}) == 3
+    assert len({e.name for e in floor}) == 3
+
+
+@pytest.mark.parametrize(("cls", "setback"), SETBACK_FLOOR_SETPOINTS)
+async def test_setback_floor_setpoint_uses_its_setback(hass, entry, hub, cls, setback):
+    """Test each setback floor setpoint reads and writes its own setback."""
+    hub._tha_setback_enable = 1
+    device = await add_thermostat(hub, attributes=SLAB_SETPOINT_ATTR)
+    (entity,) = of_type(await setup_platform(hass, entry, number), cls)
+
+    await device.set_slab_setpoint(44, setback)  # degE
+    assert entity.native_value == 22
+
+    hub._tx_queue.clear()
+    await entity.async_set_native_value(23)
+
+    (packet,) = hub._tx_queue
+    assert name_from_methodID[packet.header["methodID"]] == "SlabSetpoint"
+    assert packet.body["setback"] == setback
+    assert packet.body["setpoint"] == 46
+
+
+async def test_setback_floor_setpoint_availability(hass, entry, hub):
+    """Test a setback floor setpoint does not depend on the active setpoint.
+
+    Before the setback state is reported, the active floor setpoint is
+    unknown, but the day setpoint is still usable.
+    """
+    hub._tha_setback_enable = 1
+    hub.online = True
+    device = await add_thermostat(hub, attributes=SLAB_SETPOINT_ATTR)
+    (day,) = of_type(
+        await setup_platform(hass, entry, number), number.ThaSlabSetpointDay
+    )
+
+    await device.set_slab_setpoint(44, 0x00)
+    assert device.slab_setpoint is None
+    assert day.available is True
+
+    await device.set_slab_setpoint(ThaValue.NA_8, 0x00)
+    assert day.available is False
+
+
+async def test_floor_setpoint_unavailable_without_floor_sensor(hass, entry, hub):
+    """Test a floor setpoint is unavailable if the device has no floor sensor."""
+    hub._tha_setback_enable = 1
+    hub.online = True
+    device = await add_thermostat(hub)
+    (day,) = of_type(
+        await setup_platform(hass, entry, number), number.ThaSlabSetpointDay
+    )
+
+    await device.set_slab_setpoint(44, 0x00)
+
+    assert day.available is False
 
 
 # Issue #77: aux heat moved from the climate entity to a switch --------------
