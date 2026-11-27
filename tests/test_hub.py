@@ -12,7 +12,7 @@ import logging
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers import entity_registry as er, issue_registry as ir
 import pytest
 
 from custom_components.tekmar_482.const import DOMAIN, DeviceAttributes, ThaSetback
@@ -27,6 +27,8 @@ from custom_components.tekmar_482.trpc.msg import TrpcPacket, name_from_methodID
 THERMOSTAT_TYPE = 102301  # model 527
 UNKNOWN_TYPE = 999999
 FAN_PERCENT_ATTR = 0b1000
+SLAB_SETPOINT_ATTR = 0b0100
+ROOM_AND_SLAB_ATTR = 0x100
 
 
 def report(method, **fields):
@@ -323,6 +325,145 @@ async def test_attributes_while_running_update_without_reload(hub, mock_reload):
 
     mock_reload.assert_not_called()
     assert hub._tha_inventory[1001]["attributes"].attrs == 0b0001
+
+
+@pytest.mark.usefixtures("mock_sleep")
+async def test_changed_attributes_refresh_device_state(hub):
+    """Test changed attributes make a thermostat request its state again."""
+    add_inventory(hub, 1001)
+    device = thermostat(1001)
+    hub.tha_devices = [device]
+
+    await run_with(hub, report("DeviceAttributes", address=1001, attributes=0b0001))
+
+    device.request_attribute_state.assert_called_once_with()
+    device.publish_updates.assert_awaited_once_with()
+
+
+@pytest.mark.usefixtures("mock_sleep")
+async def test_repeated_attributes_do_not_refresh_device_state(hub):
+    """Test an attribute report with no change does nothing (issue #59)."""
+    add_inventory(hub, 1001, attributes=FAN_PERCENT_ATTR)
+    device = thermostat(1001)
+    hub.tha_devices = [device]
+
+    await run_with(
+        hub, report("DeviceAttributes", address=1001, attributes=FAN_PERCENT_ATTR)
+    )
+
+    device.request_attribute_state.assert_not_called()
+    device.publish_updates.assert_not_awaited()
+
+
+def floor_registry_entry(hass, platform, suffix, disabled_by):
+    """Register a floor entity for thermostat 1001 and return its entity id."""
+    return (
+        er.async_get(hass)
+        .async_get_or_create(
+            platform,
+            DOMAIN,
+            f"entry_1-527-1001-{suffix}",
+            disabled_by=disabled_by,
+        )
+        .entity_id
+    )
+
+
+@pytest.mark.usefixtures("mock_sleep")
+async def test_floor_sensor_detected_enables_floor_entities(hass, hub):
+    """Test a floor sensor reported after setup enables the floor entities.
+
+    Entities the integration disabled at setup are enabled; entities the
+    user disabled stay disabled.
+    """
+    add_inventory(hub, 1001)
+    device = thermostat(1001)
+    device.model = "527"
+    hub.tha_devices = [device]
+    by_integration = floor_registry_entry(
+        hass, "number", "slab-setpoint", er.RegistryEntryDisabler.INTEGRATION
+    )
+    by_user = floor_registry_entry(
+        hass, "sensor", "current-floor-temperature", er.RegistryEntryDisabler.USER
+    )
+
+    await run_with(
+        hub, report("DeviceAttributes", address=1001, attributes=ROOM_AND_SLAB_ATTR)
+    )
+
+    registry = er.async_get(hass)
+    assert registry.async_get(by_integration).disabled_by is None
+    assert registry.async_get(by_user).disabled_by is er.RegistryEntryDisabler.USER
+
+
+@pytest.mark.usefixtures("mock_sleep")
+async def test_floor_entities_left_alone_if_floor_sensor_was_known(hass, hub):
+    """Test floor entities are not re-enabled when the floor sensor was known."""
+    add_inventory(hub, 1001, attributes=SLAB_SETPOINT_ATTR)
+    device = thermostat(1001)
+    device.model = "527"
+    hub.tha_devices = [device]
+    entity_id = floor_registry_entry(
+        hass, "number", "slab-setpoint", er.RegistryEntryDisabler.INTEGRATION
+    )
+
+    await run_with(
+        hub,
+        report(
+            "DeviceAttributes",
+            address=1001,
+            attributes=SLAB_SETPOINT_ATTR | FAN_PERCENT_ATTR,
+        ),
+    )
+
+    entry = er.async_get(hass).async_get(entity_id)
+    assert entry.disabled_by is er.RegistryEntryDisabler.INTEGRATION
+
+
+def attribute_requests(hub, attributes, setback_enable=False, protocol=3):
+    """Return the floor requests a thermostat queues for its attributes."""
+    add_inventory(hub, 1001, attributes=attributes)
+    hub._tha_setback_enable = setback_enable
+    hub._tha_pr_ver = protocol
+    device = TekmarThermostat(1001, hub._tha_inventory[1001], hub)
+
+    device.request_attribute_state()
+
+    return [
+        (method_of(p), p.body["setback"] if method_of(p) == "SlabSetpoint" else None)
+        for p in hub._tx_queue
+        if method_of(p) in ("SlabSetpoint", "CurrentFloorTemperature")
+    ]
+
+
+@pytest.mark.parametrize("attributes", [SLAB_SETPOINT_ATTR, ROOM_AND_SLAB_ATTR])
+@pytest.mark.parametrize(
+    ("setback_enable", "setbacks"),
+    [(False, [ThaSetback.CURRENT]), (True, [0x00, 0x03, 0x06])],
+)
+async def test_floor_sensor_requests_slab_state(
+    hub, attributes, setback_enable, setbacks
+):
+    """Test a thermostat with a floor sensor requests its floor state."""
+    requests = attribute_requests(hub, attributes, setback_enable)
+
+    assert requests == [
+        *(("SlabSetpoint", setback) for setback in setbacks),
+        ("CurrentFloorTemperature", None),
+    ]
+
+
+@pytest.mark.parametrize("protocol", [1, 2])
+async def test_floor_temperature_request_needs_protocol_3(hub, protocol):
+    """Test the floor temperature is only requested on protocol v3."""
+    requests = attribute_requests(hub, SLAB_SETPOINT_ATTR, protocol=protocol)
+
+    assert ("CurrentFloorTemperature", None) not in requests
+
+
+async def test_no_floor_requests_without_floor_sensor(hub):
+    """Test a thermostat without a floor sensor requests no floor state."""
+    assert attribute_requests(hub, 0) == []
 
 
 @pytest.mark.usefixtures("mock_sleep")
