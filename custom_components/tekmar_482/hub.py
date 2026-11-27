@@ -7,7 +7,7 @@ from typing import Any
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers import entity_registry as er, issue_registry as ir
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 from homeassistant.util.hass_dict import HassKey
@@ -29,6 +29,7 @@ from .const import (
     ThaType,
     ThaValue,
 )
+from .entity import FLOOR_ENTITIES
 from .trpc.fields import Record
 from .trpc.msg import TrpcPacket, name_from_methodID
 from .trpc.sock import TrpcSocket
@@ -487,9 +488,11 @@ class TekmarHub:
 
         elif tha_method == "DeviceAttributes":
             try:
-                old_attrs = self._tha_inventory[b["address"]]["attributes"].attrs
+                attributes = self._tha_inventory[b["address"]]["attributes"]
+                old_attrs = attributes.attrs
+                had_floor = attributes.has_floor
                 new_attrs = int(b["attributes"])
-                self._tha_inventory[b["address"]]["attributes"].attrs = new_attrs
+                attributes.attrs = new_attrs
                 _LOGGER.debug(
                     "Updated attributes for %s in run: %s -> %s",
                     b["address"],
@@ -500,6 +503,8 @@ class TekmarHub:
                     for device in self.tha_devices:
                         if device.device_id == b["address"]:
                             if isinstance(device, TekmarThermostat):
+                                if not had_floor and attributes.has_floor:
+                                    self._enable_floor_entities(device)
                                 device.request_attribute_state()
                             await device.publish_updates()
             except KeyError as e:
@@ -514,6 +519,28 @@ class TekmarHub:
 
         else:
             _LOGGER.warning("Unhandled method: %s", tha_method)
+
+    def _enable_floor_entities(self, device: "TekmarThermostat") -> None:
+        """Enable floor entities the integration disabled at setup.
+
+        They were registered disabled because the thermostat reported no
+        floor sensor at setup. Entities a user disabled are left alone.
+        Home Assistant reloads the entry after enabling them.
+        """
+        registry = er.async_get(self._hass)
+        prefix = f"{self._entry_id}-{device.model}-{device.device_id}"
+
+        for platform, suffix in FLOOR_ENTITIES:
+            entity_id = registry.async_get_entity_id(
+                platform, DOMAIN, f"{prefix}-{suffix}"
+            )
+            if entity_id is None:
+                continue
+
+            entry = registry.async_get(entity_id)
+            if entry and entry.disabled_by is er.RegistryEntryDisabler.INTEGRATION:
+                _LOGGER.debug("Enabling %s: floor sensor detected", entity_id)
+                registry.async_update_entity(entity_id, disabled_by=None)
 
     async def _async_handle_active_demand(self, b: Record) -> None:
         """Store active demand and request the mode setting for thermostats."""
@@ -846,6 +873,35 @@ class TekmarThermostat:
                     )
                 )
 
+            if (
+                self.tha_device["attributes"].SlabSetpoint
+                or self.tha_device["attributes"].RoomAndSlab
+            ):
+                self.hub.queue_message(
+                    TrpcPacket(
+                        service="Request",
+                        method="SlabSetpoint",
+                        address=self._id,
+                        setback=0x00,
+                    )
+                )
+                self.hub.queue_message(
+                    TrpcPacket(
+                        service="Request",
+                        method="SlabSetpoint",
+                        address=self._id,
+                        setback=0x03,
+                    )
+                )
+                self.hub.queue_message(
+                    TrpcPacket(
+                        service="Request",
+                        method="SlabSetpoint",
+                        address=self._id,
+                        setback=0x06,
+                    )
+                )
+
         else:
             if self.tha_device["attributes"].ZoneCooling:
                 self.hub.queue_message(
@@ -862,6 +918,19 @@ class TekmarThermostat:
                     TrpcPacket(
                         service="Request",
                         method="HeatSetpoint",
+                        address=self._id,
+                        setback=ThaSetback.CURRENT,
+                    )
+                )
+
+            if (
+                self.tha_device["attributes"].SlabSetpoint
+                or self.tha_device["attributes"].RoomAndSlab
+            ):
+                self.hub.queue_message(
+                    TrpcPacket(
+                        service="Request",
+                        method="SlabSetpoint",
                         address=self._id,
                         setback=ThaSetback.CURRENT,
                     )
@@ -885,13 +954,15 @@ class TekmarThermostat:
                 )
             )
 
-        if self.tha_device["attributes"].SlabSetpoint:
+        if (
+            self.tha_device["attributes"].SlabSetpoint
+            or self.tha_device["attributes"].RoomAndSlab
+        ) and self.hub.tha_pr_ver == 3:
             self.hub.queue_message(
                 TrpcPacket(
                     service="Request",
-                    method="SlabSetpoint",
+                    method="CurrentFloorTemperature",
                     address=self._id,
-                    setback=ThaSetback.CURRENT,
                 )
             )
 
@@ -1053,6 +1124,21 @@ class TekmarThermostat:
             ]
         except KeyError:
             return None
+
+    @property
+    def slab_setpoint_day(self) -> str:
+        """Return the slab setpoint day in degE."""
+        return self._tha_slab_setpoints[0x00]
+
+    @property
+    def slab_setpoint_night(self) -> str:
+        """Return the slab setpoint night in degE."""
+        return self._tha_slab_setpoints[0x01]
+
+    @property
+    def slab_setpoint_away(self) -> str:
+        """Return the slab setpoint away in degE."""
+        return self._tha_slab_setpoints[0x02]
 
     @property
     def active_demand(self) -> str:

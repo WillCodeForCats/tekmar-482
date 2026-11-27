@@ -4,6 +4,15 @@ from __future__ import annotations
 
 from homeassistant.helpers.entity import Entity
 
+# Entities that depend on a floor sensor: (platform, unique_id suffix)
+FLOOR_ENTITIES = (
+    ("sensor", "current-floor-temperature"),
+    ("number", "slab-setpoint"),
+    ("number", "slab-setpoint-day"),
+    ("number", "slab-setpoint-night"),
+    ("number", "slab-setpoint-away"),
+)
+
 
 class ThaEntity(Entity):
     """Base class for Tekmar entities on every platform."""
