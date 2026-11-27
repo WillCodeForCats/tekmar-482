@@ -14,13 +14,13 @@ Integrates your Tekmar communicating thermostats, setpoints, and snowmelt contro
 - Control devices and setpoint groups.
 - View and update device setpoints.
 
-### Required App
+### Packet Server
 
-This Integration requires the Tekmar Packet Server App:
+This integration connects to the gateway through one of the following packet servers:
 
-[WillCodeForCats/tekmar-packetserv](https://github.com/WillCodeForCats/tekmar-packetserv)
-
-The Tekmar Packet Server App is required for this integration to communicate with a Tekmar Gateway 482.
+- [Tekmar Packet Server App](https://github.com/WillCodeForCats/tekmar-packetserv) for Home Assistant.
+- [tekmar-482-dashboard](https://github.com/jameshilliard/tekmar-482-dashboard), an experimental dashboard with a compatible packet server.
+  With custom 482 firmware, it also offers features unavailable in the original Tekmar firmware, such as bidirectional tN4 frame tracing.
 
 ## Installation
 
