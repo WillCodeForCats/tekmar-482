@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
+    ATTR_HVAC_MODE,
     ATTR_TARGET_TEMP_HIGH,
     ATTR_TARGET_TEMP_LOW,
     FAN_AUTO,
@@ -62,6 +63,37 @@ class ThaClimateThermostat(ThaClimateBase):
     _attr_max_humidity = 80
     _attr_min_humidity = 20
 
+    def __init__(self, tekmar_tha, config_entry):
+        """Initialize the entity."""
+        super().__init__(tekmar_tha, config_entry)
+        self._requested_hvac_mode = None
+        self._requested_from_mode_setting = None
+
+    async def async_added_to_hass(self):
+        """Added to hass."""
+        self._tekmar_tha.register_callback(self._async_device_updated)
+
+    async def async_will_remove_from_hass(self):
+        """Will remove from hass."""
+        self._tekmar_tha.remove_callback(self._async_device_updated)
+
+    def _async_device_updated(self) -> None:
+        """Drop a pending mode request once the device reports a mode change."""
+        if self._requested_hvac_mode is not None and (
+            self.hvac_mode == self._requested_hvac_mode
+            or self._tekmar_tha.mode_setting != self._requested_from_mode_setting
+        ):
+            self._requested_hvac_mode = None
+            self._requested_from_mode_setting = None
+        self.async_write_ha_state()
+
+    @property
+    def _routing_hvac_mode(self):
+        """Return the requested HVAC mode if pending, else the reported one."""
+        if self._requested_hvac_mode is not None:
+            return self._requested_hvac_mode
+        return self.hvac_mode
+
     @property
     def unique_id(self) -> str:
         """Return the unique id."""
@@ -76,10 +108,30 @@ class ThaClimateThermostat(ThaClimateBase):
         return None
 
     @property
+    def _single_setpoint(self) -> str | None:
+        """Return which setpoint a single target temperature maps to."""
+        attributes = self._tekmar_tha.tha_device["attributes"]
+        if attributes.ZoneHeating == 1:
+            return "heat"
+        if attributes.ZoneCooling == 1:
+            if (
+                attributes.SlabSetpoint == 1
+                and self._routing_hvac_mode == HVACMode.HEAT
+            ):
+                return "slab"
+            return "cool"
+        if attributes.SlabSetpoint == 1:
+            return "slab"
+        return None
+
+    @property
     def max_temp(self):
         """Return the max temp."""
         if self.hvac_mode == HVACMode.OFF:
             return None
+
+        if self._single_setpoint == "slab":
+            return self._tekmar_tha.config_slab_setpoint_max
 
         if (
             self._tekmar_tha.config_heat_setpoint_max
@@ -93,6 +145,9 @@ class ThaClimateThermostat(ThaClimateBase):
         """Return the min temp."""
         if self.hvac_mode == HVACMode.OFF:
             return None
+
+        if self._single_setpoint == "slab":
+            return self._tekmar_tha.config_slab_setpoint_min
 
         if (
             self._tekmar_tha.config_heat_setpoint_min
@@ -165,7 +220,10 @@ class ThaClimateThermostat(ThaClimateBase):
         """Return the hvac modes."""
         hvac_modes = [HVACMode.OFF]
 
-        if self._tekmar_tha.tha_device["attributes"].ZoneHeating == 1:
+        if (
+            self._tekmar_tha.tha_device["attributes"].ZoneHeating == 1
+            or self._tekmar_tha.tha_device["attributes"].SlabSetpoint == 1
+        ):
             hvac_modes.append(HVACMode.HEAT)
 
         if self._tekmar_tha.tha_device["attributes"].ZoneCooling == 1:
@@ -284,11 +342,15 @@ class ThaClimateThermostat(ThaClimateBase):
     @property
     def target_temperature(self):
         """Return the target temperature."""
-        if self._tekmar_tha.tha_device["attributes"].ZoneHeating == 1:
+        setpoint = self._single_setpoint
+        if setpoint == "heat":
             this_device_setpoint = self._tekmar_tha.heat_setpoint
 
-        elif self._tekmar_tha.tha_device["attributes"].ZoneCooling == 1:
+        elif setpoint == "cool":
             this_device_setpoint = self._tekmar_tha.cool_setpoint
+
+        elif setpoint == "slab":
+            this_device_setpoint = self._tekmar_tha.slab_setpoint
 
         else:
             return None
@@ -338,13 +400,21 @@ class ThaClimateThermostat(ThaClimateBase):
         """Set temperature."""
         heat_setpoint = None
         cool_setpoint = None
+        slab_setpoint = None
+
+        if (hvac_mode := kwargs.get(ATTR_HVAC_MODE)) is not None:
+            await self.async_set_hvac_mode(hvac_mode)
 
         if self.supported_features & Feature.TARGET_TEMPERATURE:
-            if self._tekmar_tha.tha_device["attributes"].ZoneHeating == 1:
+            setpoint = self._single_setpoint
+            if setpoint == "heat":
                 heat_setpoint = kwargs.get(ATTR_TEMPERATURE)
 
-            elif self._tekmar_tha.tha_device["attributes"].ZoneCooling == 1:
+            elif setpoint == "cool":
                 cool_setpoint = kwargs.get(ATTR_TEMPERATURE)
+
+            elif setpoint == "slab":
+                slab_setpoint = kwargs.get(ATTR_TEMPERATURE)
 
         elif self.supported_features & Feature.TARGET_TEMPERATURE_RANGE:
             heat_setpoint = kwargs.get(ATTR_TARGET_TEMP_LOW)
@@ -357,6 +427,10 @@ class ThaClimateThermostat(ThaClimateBase):
         if cool_setpoint is not None:
             cool_setpoint = int(round(degCtoE(cool_setpoint), 0))
             await self._tekmar_tha.set_cool_setpoint_txqueue(cool_setpoint)
+
+        if slab_setpoint is not None:
+            slab_setpoint = int(round(degCtoE(slab_setpoint), 0))
+            await self._tekmar_tha.set_slab_setpoint_txqueue(slab_setpoint)
 
     async def async_set_hvac_mode(self, hvac_mode):
         """Set hvac mode."""
@@ -372,6 +446,8 @@ class ThaClimateThermostat(ThaClimateBase):
             raise NotImplementedError
 
         await self._tekmar_tha.set_mode_setting_txqueue(value)
+        self._requested_from_mode_setting = self._tekmar_tha.mode_setting
+        self._requested_hvac_mode = hvac_mode
 
     async def async_turn_off(self):
         """Turn the entity off."""

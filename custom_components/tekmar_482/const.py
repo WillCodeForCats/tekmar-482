@@ -431,6 +431,11 @@ class _DeviceAttributes(ctypes.LittleEndianStructure):
         ("ZoneCooling", c_uint, 1),
         ("SlabSetpoint", c_uint, 1),
         ("FanPercent", c_uint, 1),
+        ("RelativeHumidity", c_uint, 1),
+        ("HumiditySetMax", c_uint, 1),
+        ("HumiditySetMin", c_uint, 1),
+        ("SetpointDevice", c_uint, 1),
+        ("RoomAndSlab", c_uint, 1),
     ]
 
 
@@ -439,6 +444,11 @@ class DeviceAttributes(ctypes.Union):
 
     _anonymous_ = ("bit",)
     _fields_ = [("bit", _DeviceAttributes), ("attrs", c_uint)]
+
+    @property
+    def has_floor(self) -> bool:
+        """Return True if the device reports a floor (slab) sensor."""
+        return bool(self.SlabSetpoint or self.RoomAndSlab)
 
 
 TN_ERRORS = {
