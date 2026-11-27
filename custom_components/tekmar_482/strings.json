@@ -56,6 +56,20 @@
           "invalid_tcp_port": "Valid port range is 1 to 65535."
         }
       }
+    },
+    "unknown_device": {
+      "title": "Unknown device on {name} at address {address}",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Identify device at address {address}",
+            "description": "The gateway reported device type {reported_type} at address {address}, which this integration does not recognize. The device is ignored until you identify it.\n\nChoose the model that matches the device installed at this address. Choosing the wrong model may create entities that do not work. To undo a choice, delete the device and you will be asked again.",
+            "data": {
+              "device_type": "Device model"
+            }
+          }
+        }
+      }
     }
   }
 }

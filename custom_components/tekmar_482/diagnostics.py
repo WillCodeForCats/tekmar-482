@@ -47,6 +47,12 @@ async def async_get_config_entry_diagnostics(
         }
         data.update(async_redact_data(device, REDACT_DEVICE))
 
-    data.update({"ignored": hub.tha_ignore_addr})
+    data.update(
+        {
+            "ignored": hub.tha_ignore_addr,
+            "unknown_devices": hub.unknown_devices,
+            "device_overrides": hub.device_overrides,
+        }
+    )
 
     return data
