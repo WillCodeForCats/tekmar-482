@@ -108,16 +108,6 @@ class ThaClimateThermostat(ThaClimateBase):
         return None
 
     @property
-    def _floor_only(self) -> bool:
-        """Return True if the thermostat only controls a slab setpoint."""
-        attributes = self._tekmar_tha.tha_device["attributes"]
-        return (
-            attributes.ZoneHeating == 0
-            and attributes.ZoneCooling == 0
-            and attributes.SlabSetpoint == 1
-        )
-
-    @property
     def _single_setpoint(self) -> str | None:
         """Return which setpoint a single target temperature maps to."""
         attributes = self._tekmar_tha.tha_device["attributes"]
@@ -140,7 +130,7 @@ class ThaClimateThermostat(ThaClimateBase):
         if self.hvac_mode == HVACMode.OFF:
             return None
 
-        if self._floor_only:
+        if self._single_setpoint == "slab":
             return self._tekmar_tha.config_slab_setpoint_max
 
         if (
@@ -156,7 +146,7 @@ class ThaClimateThermostat(ThaClimateBase):
         if self.hvac_mode == HVACMode.OFF:
             return None
 
-        if self._floor_only:
+        if self._single_setpoint == "slab":
             return self._tekmar_tha.config_slab_setpoint_min
 
         if (
