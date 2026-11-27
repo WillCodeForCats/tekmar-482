@@ -1,6 +1,7 @@
 {
   "domain": "tekmar_482",
   "name": "Tekmar Gateway 482",
+  "categories": ["climate.thermostats_heating"],
   "codeowners": ["@WillCodeForCats"],
   "config_flow": true,
   "dependencies": [],
